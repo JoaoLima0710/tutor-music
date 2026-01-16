@@ -4,6 +4,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { Metronome } from '@/components/practice/Metronome';
+import { PitchDetector } from '@/components/practice/PitchDetector';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { Clock } from 'lucide-react';
 
@@ -41,6 +42,12 @@ export default function Practice() {
             <div>
               <h2 className="text-2xl font-bold text-white mb-4">Metrônomo</h2>
               <Metronome />
+            </div>
+            
+            {/* Pitch Detector */}
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4">Detector de Pitch</h2>
+              <PitchDetector />
             </div>
             
             {/* Tips */}
