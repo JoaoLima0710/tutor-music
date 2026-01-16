@@ -5,12 +5,22 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Chords from "./pages/Chords";
+import Scales from "./pages/Scales";
+import Missions from "./pages/Missions";
+import Achievements from "./pages/Achievements";
+import Profile from "./pages/Profile";
 
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/chords"} component={Chords} />
+      <Route path={"/scales"} component={Scales} />
+      <Route path={"/missions"} component={Missions} />
+      <Route path={"/achievements"} component={Achievements} />
+      <Route path={"/profile"} component={Profile} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -27,7 +37,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="light"
+        defaultTheme="dark"
         // switchable
       >
         <TooltipProvider>
