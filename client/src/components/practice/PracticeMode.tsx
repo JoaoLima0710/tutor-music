@@ -4,6 +4,7 @@ import { Play, Pause, RotateCcw, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { audioService } from '@/services/AudioService';
+import { audioRecorderService } from '@/services/AudioRecorderService';
 
 interface PracticeModeProps {
   chords: string[];
@@ -17,6 +18,7 @@ export function PracticeMode({ chords, bpm, onComplete }: PracticeModeProps) {
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   
   const currentChord = chords[currentChordIndex];
@@ -41,26 +43,42 @@ export function PracticeMode({ chords, bpm, onComplete }: PracticeModeProps) {
     }
   }, [countdown]);
   
-  const handleStart = () => {
+  const handleStart = async () => {
     setIsPlaying(true);
     setCurrentChordIndex(0);
     setScore(0);
     setAttempts(0);
     setFeedback(null);
+    
+    // Start recording
+    const started = await audioRecorderService.startRecording();
+    setIsRecording(started);
   };
   
-  const handlePause = () => {
+  const handlePause = async () => {
     setIsPlaying(false);
     setCountdown(null);
+    
+    // Stop recording
+    if (isRecording) {
+      await audioRecorderService.stopRecording();
+      setIsRecording(false);
+    }
   };
   
-  const handleReset = () => {
+  const handleReset = async () => {
     setIsPlaying(false);
     setCurrentChordIndex(0);
     setScore(0);
     setAttempts(0);
     setFeedback(null);
     setCountdown(null);
+    
+    // Stop recording
+    if (isRecording) {
+      await audioRecorderService.stopRecording();
+      setIsRecording(false);
+    }
   };
   
   const handleChordAttempt = async (isCorrect: boolean) => {
@@ -74,14 +92,23 @@ export function PracticeMode({ chords, bpm, onComplete }: PracticeModeProps) {
       await audioService.playChord(currentChord, 1);
       
       // Move to next chord after delay
-      setTimeout(() => {
+      setTimeout(async () => {
         if (currentChordIndex < chords.length - 1) {
           setCurrentChordIndex(prev => prev + 1);
           setFeedback(null);
         } else {
           // Practice complete
           setIsPlaying(false);
-          if (onComplete) {
+          
+          // Stop recording and save
+          if (isRecording) {
+            const recording = await audioRecorderService.stopRecording();
+            setIsRecording(false);
+            
+            if (recording && onComplete) {
+              onComplete(accuracy);
+            }
+          } else if (onComplete) {
             onComplete(accuracy);
           }
         }

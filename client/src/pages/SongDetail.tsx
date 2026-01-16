@@ -7,11 +7,12 @@ import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { ChordSheet } from '@/components/songs/ChordSheet';
 import { Metronome } from '@/components/practice/Metronome';
 import { PracticeMode } from '@/components/practice/PracticeMode';
+import { AudioRecorder } from '@/components/practice/AudioRecorder';
 import { Button } from '@/components/ui/button';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useSongStore } from '@/stores/useSongStore';
 import { getSongById } from '@/data/songs';
-import { ArrowLeft, Heart, Play, Music, Clock, TrendingUp, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Heart, Play, Music, Clock, TrendingUp, Lightbulb, Mic } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const genreColors: Record<string, string> = {
@@ -35,6 +36,7 @@ export default function SongDetail() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showMetronome, setShowMetronome] = useState(false);
   const [showPracticeMode, setShowPracticeMode] = useState(false);
+  const [showRecorder, setShowRecorder] = useState(false);
   
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { isFavorite, toggleFavorite, markAsPracticed } = useSongStore();
@@ -207,6 +209,28 @@ export default function SongDetail() {
                     console.log('Practice completed with accuracy:', accuracy);
                     markAsPracticed(song.id);
                   }}
+                />
+              </div>
+            )}
+            
+            {/* Audio Recorder */}
+            <div>
+              <Button
+                onClick={() => setShowRecorder(!showRecorder)}
+                variant="outline"
+                className="bg-transparent border-white/20 text-gray-300 hover:bg-white/5"
+              >
+                <Mic className="w-4 h-4 mr-2" />
+                {showRecorder ? 'Ocultar Gravador' : 'Gravar Sessão'}
+              </Button>
+            </div>
+            
+            {showRecorder && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-4">Gravação de Áudio</h2>
+                <AudioRecorder
+                  songId={song.id}
+                  songName={song.title}
                 />
               </div>
             )}
