@@ -1,5 +1,8 @@
 import * as Tone from 'tone';
 
+// Array de notas
+const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
 // Mapeamento de notas para frequências
 const NOTE_FREQUENCIES: Record<string, number> = {
   'C': 261.63,
@@ -125,7 +128,41 @@ class AudioService {
     });
   }
 
-  async playChord(chordName: string, duration: number = 2.5) {
+  async playScale(scaleName: string, root: string, intervals: number[], duration: number = 0.3): Promise<void> {
+    try {
+      await this.initialize();
+      if (!this.synth) return;
+
+      console.log('🎵 Playing scale:', scaleName, 'from', root);
+
+      const rootIndex = NOTES.indexOf(root);
+      if (rootIndex === -1) {
+        console.error('❌ Invalid root note:', root);
+        return;
+      }
+
+      // Generate scale notes (ascending)
+      const scaleNotes = intervals.map(interval => {
+        const noteIndex = (rootIndex + interval) % 12;
+        return NOTES[noteIndex] + '4';
+      });
+
+      // Add octave note
+      scaleNotes.push(root + '5');
+
+      // Play notes in sequence
+      const now = Tone.now();
+      scaleNotes.forEach((note, index) => {
+        this.synth!.triggerAttackRelease(note, duration, now + index * duration);
+      });
+
+      console.log('✅ Scale played:', scaleNotes.length, 'notes');
+    } catch (error) {
+      console.error('❌ Error playing scale:', error);
+    }
+  }
+
+  async playChord(chordName: string, duration: number = 2): Promise<void> {
     console.log('🎸 playChord called:', chordName);
     
     const initialized = await this.initialize();
@@ -182,7 +219,7 @@ class AudioService {
     }
   }
 
-  async playScale(scaleName: string, root: string = 'C', pattern: 'ascending' | 'descending' | 'both' = 'ascending') {
+  async playScaleOld(scaleName: string, root: string = 'C', pattern: 'ascending' | 'descending' | 'both' = 'ascending') {
     const initialized = await this.initialize();
     if (!initialized || !this.synth) {
       console.error('❌ Synth not available');
