@@ -11,6 +11,8 @@ import Missions from "./pages/Missions";
 import Achievements from "./pages/Achievements";
 import Profile from "./pages/Profile";
 import Songs from "./pages/Songs";
+import SongDetail from "./pages/SongDetail";
+import Practice from "./pages/Practice";
 
 
 function Router() {
@@ -23,6 +25,8 @@ function Router() {
       <Route path={"/achievements"} component={Achievements} />
       <Route path={"/profile"} component={Profile} />
       <Route path={"/songs"} component={Songs} />
+      <Route path={"/songs/:id"} component={SongDetail} />
+      <Route path={"/practice"} component={Practice} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
