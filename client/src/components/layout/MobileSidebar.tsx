@@ -108,10 +108,10 @@ export function MobileSidebar({
             
             return (
               <Link key={item.path} href={item.path}>
-                <a
+                <div
                   onClick={onClose}
                   className={`
-                    flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                    flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
                     ${isActive 
                       ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -120,7 +120,7 @@ export function MobileSidebar({
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{item.label}</span>
-                </a>
+                </div>
               </Link>
             );
           })}

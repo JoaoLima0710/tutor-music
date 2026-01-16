@@ -18,22 +18,22 @@ export function MobileBottomNav() {
           const Icon = item.icon;
           const isActive = location === item.path;
           
-          return (
-            <Link key={item.path} href={item.path}>
-              <a
-                className={`
-                  flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all
-                  ${isActive 
-                    ? 'text-[#a855f7]' 
-                    : 'text-gray-400'
-                  }
-                `}
-              >
-                <Icon className="w-6 h-6" />
-                <span className="text-xs font-medium">{item.label}</span>
-              </a>
-            </Link>
-          );
+            return (
+              <Link key={item.path} href={item.path}>
+                <div
+                  className={`
+                    flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all cursor-pointer
+                    ${isActive 
+                      ? 'text-[#a855f7]' 
+                      : 'text-gray-400'
+                    }
+                  `}
+                >
+                  <Icon className="w-6 h-6" />
+                  <span className="text-xs font-medium">{item.label}</span>
+                </div>
+              </Link>
+            );
         })}
       </div>
     </nav>

@@ -76,22 +76,22 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
           const Icon = item.icon;
           const isActive = location === item.path;
           
-          return (
-            <Link key={item.path} href={item.path}>
-              <a
-                className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl transition-all
-                  ${isActive 
-                    ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }
-                `}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
-              </a>
-            </Link>
-          );
+            return (
+              <Link key={item.path} href={item.path}>
+                <div
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
+                    ${isActive 
+                      ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }
+                  `}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
+                </div>
+              </Link>
+            );
         })}
       </nav>
       
