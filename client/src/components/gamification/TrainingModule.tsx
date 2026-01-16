@@ -1,6 +1,7 @@
 import { LucideIcon, ChevronRight } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { useLocation } from 'wouter';
 
 interface TrainingModuleProps {
   icon: LucideIcon;
@@ -56,8 +57,17 @@ export function TrainingModule({
   total,
   color,
 }: TrainingModuleProps) {
+  const [, setLocation] = useLocation();
   const colors = colorMap[color];
   const percentage = (progress / total) * 100;
+  
+  const handleClick = () => {
+    // Map titles to routes
+    if (title.includes('OUVIDO')) setLocation('/practice');
+    else if (title.includes('ACORDES')) setLocation('/chords');
+    else if (title.includes('ESCALAS')) setLocation('/scales');
+    else if (title.includes('MÚSICAS')) setLocation('/songs');
+  };
   
   return (
     <div className={`relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl bg-gradient-to-br ${colors.bg} to-transparent border ${colors.border} ${colors.shadow}`}>
@@ -87,7 +97,7 @@ export function TrainingModule({
           <Progress value={percentage} className="h-2 bg-white/10" />
         </div>
         
-        <Button className={`w-full bg-gradient-to-r ${colors.button} text-white font-semibold shadow-lg transition-all`}>
+        <Button onClick={handleClick} className={`w-full bg-gradient-to-r ${colors.button} text-white font-semibold shadow-lg transition-all`}>
           <span>Continuar</span>
           <ChevronRight className="w-4 h-4 ml-2" />
         </Button>

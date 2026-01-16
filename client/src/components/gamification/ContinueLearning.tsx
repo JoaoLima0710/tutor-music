@@ -1,5 +1,6 @@
 import { Progress } from '@/components/ui/progress';
 import { ChevronRight } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 interface Lesson {
   id: number;
@@ -16,11 +17,24 @@ interface ContinueLearningProps {
 }
 
 export function ContinueLearning({ lessons }: ContinueLearningProps) {
+  const [, setLocation] = useLocation();
+  
+  const handleLessonClick = (lessonId: number) => {
+    // Map lesson IDs to routes
+    const routeMap: Record<number, string> = {
+      1: '/chords',
+      2: '/scales',
+      3: '/practice'
+    };
+    setLocation(routeMap[lessonId] || '/chords');
+  };
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {lessons.map((lesson) => (
         <div
           key={lesson.id}
+          onClick={() => handleLessonClick(lesson.id)}
           className="group relative overflow-hidden rounded-2xl p-5 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10 hover:border-white/20 transition-all cursor-pointer"
         >
           <div className="flex items-start gap-4 mb-4">

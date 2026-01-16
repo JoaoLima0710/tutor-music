@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'wouter';
 import { Bell, ChevronRight, Ear, Guitar, Mic2, Music2 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
@@ -13,6 +14,7 @@ import { useGamificationStore } from '@/stores/useGamificationStore';
 
 export default function Home() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [, setLocation] = useLocation();
   
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   
@@ -141,7 +143,10 @@ export default function Home() {
                   <h2 className="text-2xl font-bold text-white">Continue de onde parou</h2>
                   <p className="text-sm text-gray-400 mt-1">Retome suas lições em andamento</p>
                 </div>
-                <button className="text-sm text-[#06b6d4] font-semibold hover:text-[#22d3ee] transition-colors flex items-center gap-1">
+                <button 
+                  onClick={() => setLocation('/chords')}
+                  className="text-sm text-[#06b6d4] font-semibold hover:text-[#22d3ee] transition-colors flex items-center gap-1"
+                >
                   <span>Ver tudo</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -183,7 +188,10 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  <Button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] text-white font-semibold shadow-[0_0_25px_rgba(139,92,246,0.5)] hover:shadow-[0_0_35px_rgba(139,92,246,0.7)] transition-all">
+                  <Button 
+                    onClick={() => setLocation('/chords')}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] text-white font-semibold shadow-[0_0_25px_rgba(139,92,246,0.5)] hover:shadow-[0_0_35px_rgba(139,92,246,0.7)] transition-all"
+                  >
                     <span>Explorar Trilha</span>
                     <ChevronRight className="w-4 h-4" />
                   </Button>

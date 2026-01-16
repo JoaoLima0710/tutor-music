@@ -1,5 +1,6 @@
 import { Trophy, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLocation } from 'wouter';
 
 interface ChallengeCardProps {
   title: string;
@@ -8,6 +9,8 @@ interface ChallengeCardProps {
 }
 
 export function ChallengeCard({ title, description, xp }: ChallengeCardProps) {
+  const [, setLocation] = useLocation();
+  
   return (
     <div className="relative overflow-hidden rounded-3xl p-6 backdrop-blur-xl bg-gradient-to-br from-[#a855f7]/20 via-[#8b5cf6]/10 to-transparent border border-[#a855f7]/40 shadow-[0_0_35px_rgba(168,85,247,0.2)]">
       <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#a855f7] via-[#c084fc] to-[#a855f7] opacity-10 blur-3xl"></div>
@@ -28,7 +31,10 @@ export function ChallengeCard({ title, description, xp }: ChallengeCardProps) {
           </div>
         </div>
         
-        <Button className="w-full bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] hover:from-[#c084fc] hover:to-[#a855f7] text-white font-semibold shadow-[0_0_25px_rgba(168,85,247,0.4)] transition-all">
+        <Button 
+          onClick={() => setLocation('/chords')}
+          className="w-full bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] hover:from-[#c084fc] hover:to-[#a855f7] text-white font-semibold shadow-[0_0_25px_rgba(168,85,247,0.4)] transition-all"
+        >
           <span>Aceitar Desafio</span>
           <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
