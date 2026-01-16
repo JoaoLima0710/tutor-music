@@ -1,37 +1,24 @@
 import * as Tone from 'tone';
 
 // Mapeamento de notas para frequências
-const NOTE_FREQUENCIES: Record<string, string> = {
-  'C': 'C3',
-  'C#': 'C#3',
-  'Db': 'Db3',
-  'D': 'D3',
-  'D#': 'D#3',
-  'Eb': 'Eb3',
-  'E': 'E3',
-  'F': 'F3',
-  'F#': 'F#3',
-  'Gb': 'Gb3',
-  'G': 'G3',
-  'G#': 'G#3',
-  'Ab': 'Ab3',
-  'A': 'A3',
-  'A#': 'A#3',
-  'Bb': 'Bb3',
-  'B': 'B3',
-};
-
-// Intervalos das escalas (em semitons)
-const SCALE_INTERVALS: Record<string, number[]> = {
-  'major': [0, 2, 4, 5, 7, 9, 11, 12],
-  'minor': [0, 2, 3, 5, 7, 8, 10, 12],
-  'pentatonic-minor': [0, 3, 5, 7, 10, 12],
-  'pentatonic-major': [0, 2, 4, 7, 9, 12],
-  'blues': [0, 3, 5, 6, 7, 10, 12],
-  'dorian': [0, 2, 3, 5, 7, 9, 10, 12],
-  'phrygian': [0, 1, 3, 5, 7, 8, 10, 12],
-  'lydian': [0, 2, 4, 6, 7, 9, 11, 12],
-  'mixolydian': [0, 2, 4, 5, 7, 9, 10, 12],
+const NOTE_FREQUENCIES: Record<string, number> = {
+  'C': 261.63,
+  'C#': 277.18,
+  'Db': 277.18,
+  'D': 293.66,
+  'D#': 311.13,
+  'Eb': 311.13,
+  'E': 329.63,
+  'F': 349.23,
+  'F#': 369.99,
+  'Gb': 369.99,
+  'G': 392.00,
+  'G#': 415.30,
+  'Ab': 415.30,
+  'A': 440.00,
+  'A#': 466.16,
+  'Bb': 466.16,
+  'B': 493.88,
 };
 
 // Acordes e suas notas (intervalos em semitons a partir da fundamental)
@@ -54,15 +41,21 @@ const CHORD_INTERVALS: Record<string, number[]> = {
 class AudioService {
   private synth: Tone.PolySynth | null = null;
   private isInitialized = false;
-  private currentNotes: string[] = [];
 
   async initialize() {
-    if (this.isInitialized) return;
+    if (this.isInitialized) {
+      console.log('✅ AudioService already initialized');
+      return true;
+    }
 
     try {
-      await Tone.start();
+      console.log('🎵 Initializing AudioService...');
       
-      // Criar sintetizador com som de violão simulado
+      // Start Tone.js context
+      await Tone.start();
+      console.log('✅ Tone.js context started');
+      
+      // Create synth with guitar-like sound
       this.synth = new Tone.PolySynth(Tone.Synth, {
         oscillator: {
           type: 'triangle',
@@ -71,37 +64,31 @@ class AudioService {
           attack: 0.005,
           decay: 0.3,
           sustain: 0.4,
-          release: 1.2,
+          release: 1.5,
         },
       }).toDestination();
 
-      // Ajustar volume
-      this.synth.volume.value = -8;
+      // Set volume
+      this.synth.volume.value = -6;
 
       this.isInitialized = true;
-      console.log('AudioService initialized');
+      console.log('✅ AudioService initialized successfully');
+      return true;
     } catch (error) {
-      console.error('Failed to initialize AudioService:', error);
+      console.error('❌ Failed to initialize AudioService:', error);
+      return false;
     }
   }
 
-  private getChordNotes(root: string, chordType: string): string[] {
-    const rootNote = NOTE_FREQUENCIES[root] || 'C3';
-    const intervals = CHORD_INTERVALS[chordType] || CHORD_INTERVALS['major'];
-    
-    const rootMidi = Tone.Frequency(rootNote).toMidi();
-    
-    return intervals.map(interval => {
-      const noteMidi = rootMidi + interval;
-      return Tone.Frequency(noteMidi, 'midi').toNote();
-    });
-  }
-
   private parseChordName(chordName: string): { root: string; type: string } {
+    // Remove espaços
+    chordName = chordName.trim();
+    
     // Exemplos: C, Cm, C7, Cmaj7, etc
     const match = chordName.match(/^([A-G][#b]?)(.*)?$/);
     
     if (!match) {
+      console.warn('Invalid chord name:', chordName);
       return { root: 'C', type: 'major' };
     }
 
@@ -131,102 +118,132 @@ class AudioService {
     return { root, type };
   }
 
-  async playChord(chordName: string, duration: number = 2) {
-    await this.initialize();
+  private getChordNotes(root: string, chordType: string): number[] {
+    const rootFreq = NOTE_FREQUENCIES[root] || NOTE_FREQUENCIES['C'];
+    const intervals = CHORD_INTERVALS[chordType] || CHORD_INTERVALS['major'];
     
-    if (!this.synth) {
-      console.error('Synth not initialized');
-      return;
-    }
-
-    // Parar notas anteriores
-    this.stopAll();
-
-    const { root, type } = this.parseChordName(chordName);
-    const notes = this.getChordNotes(root, type);
-    
-    this.currentNotes = notes;
-    
-    // Tocar acorde com arpejo suave
-    notes.forEach((note, index) => {
-      setTimeout(() => {
-        this.synth?.triggerAttackRelease(note, duration, Tone.now(), 0.6);
-      }, index * 50); // 50ms de delay entre cada nota
+    return intervals.map(interval => {
+      // Calcular frequência usando a fórmula: f = f0 * 2^(n/12)
+      return rootFreq * Math.pow(2, interval / 12);
     });
   }
 
-  async playChordStrummed(chordName: string, duration: number = 2) {
-    await this.initialize();
+  async playChord(chordName: string, duration: number = 2.5) {
+    console.log('🎸 playChord called:', chordName);
     
-    if (!this.synth) {
-      console.error('Synth not initialized');
+    const initialized = await this.initialize();
+    if (!initialized || !this.synth) {
+      console.error('❌ Synth not available');
       return;
     }
 
-    this.stopAll();
+    try {
+      // Stop any playing notes
+      this.stopAll();
 
-    const { root, type } = this.parseChordName(chordName);
-    const notes = this.getChordNotes(root, type);
+      const { root, type } = this.parseChordName(chordName);
+      console.log('📝 Parsed chord:', { root, type });
+      
+      const frequencies = this.getChordNotes(root, type);
+      console.log('🎼 Frequencies:', frequencies);
+      
+      // Play chord with slight arpeggio
+      frequencies.forEach((freq, index) => {
+        setTimeout(() => {
+          console.log(`🎵 Playing note ${index + 1}:`, freq.toFixed(2), 'Hz');
+          this.synth?.triggerAttackRelease(freq, duration, Tone.now(), 0.7);
+        }, index * 50);
+      });
+      
+      console.log('✅ Chord playing');
+    } catch (error) {
+      console.error('❌ Error playing chord:', error);
+    }
+  }
+
+  async playChordStrummed(chordName: string, duration: number = 2.5) {
+    console.log('🎸 playChordStrummed called:', chordName);
     
-    this.currentNotes = notes;
-    
-    // Tocar todas as notas juntas (dedilhado)
-    this.synth.triggerAttackRelease(notes, duration, Tone.now(), 0.7);
+    const initialized = await this.initialize();
+    if (!initialized || !this.synth) {
+      console.error('❌ Synth not available');
+      return;
+    }
+
+    try {
+      this.stopAll();
+
+      const { root, type } = this.parseChordName(chordName);
+      const frequencies = this.getChordNotes(root, type);
+      
+      // Play all notes together
+      this.synth.triggerAttackRelease(frequencies, duration, Tone.now(), 0.8);
+      
+      console.log('✅ Strummed chord playing');
+    } catch (error) {
+      console.error('❌ Error playing strummed chord:', error);
+    }
   }
 
   async playScale(scaleName: string, root: string = 'C', pattern: 'ascending' | 'descending' | 'both' = 'ascending') {
-    await this.initialize();
-    
-    if (!this.synth) {
-      console.error('Synth not initialized');
+    const initialized = await this.initialize();
+    if (!initialized || !this.synth) {
+      console.error('❌ Synth not available');
       return;
     }
 
-    this.stopAll();
+    try {
+      this.stopAll();
 
-    const rootNote = NOTE_FREQUENCIES[root] || 'C3';
-    const intervals = SCALE_INTERVALS[scaleName] || SCALE_INTERVALS['major'];
-    
-    const rootMidi = Tone.Frequency(rootNote).toMidi();
-    
-    const ascendingNotes = intervals.map(interval => {
-      const noteMidi = rootMidi + interval;
-      return Tone.Frequency(noteMidi, 'midi').toNote();
-    });
+      // Scale intervals (major scale as example)
+      const scaleIntervals = [0, 2, 4, 5, 7, 9, 11, 12];
+      const rootFreq = NOTE_FREQUENCIES[root] || NOTE_FREQUENCIES['C'];
+      
+      const frequencies = scaleIntervals.map(interval => 
+        rootFreq * Math.pow(2, interval / 12)
+      );
 
-    let notesToPlay = ascendingNotes;
-    
-    if (pattern === 'descending') {
-      notesToPlay = [...ascendingNotes].reverse();
-    } else if (pattern === 'both') {
-      notesToPlay = [...ascendingNotes, ...ascendingNotes.slice(0, -1).reverse()];
+      let notesToPlay = frequencies;
+      
+      if (pattern === 'descending') {
+        notesToPlay = [...frequencies].reverse();
+      } else if (pattern === 'both') {
+        notesToPlay = [...frequencies, ...frequencies.slice(0, -1).reverse()];
+      }
+
+      // Play scale
+      notesToPlay.forEach((freq, index) => {
+        setTimeout(() => {
+          this.synth?.triggerAttackRelease(freq, '8n', Tone.now(), 0.6);
+        }, index * 250);
+      });
+      
+      console.log('✅ Scale playing');
+    } catch (error) {
+      console.error('❌ Error playing scale:', error);
     }
-
-    // Tocar escala com timing
-    const noteLength = '8n';
-    const now = Tone.now();
-    
-    notesToPlay.forEach((note, index) => {
-      this.synth?.triggerAttackRelease(note, noteLength, now + index * 0.25, 0.6);
-    });
   }
 
   async playSingleNote(note: string, duration: number = 1) {
-    await this.initialize();
-    
-    if (!this.synth) {
-      console.error('Synth not initialized');
+    const initialized = await this.initialize();
+    if (!initialized || !this.synth) {
+      console.error('❌ Synth not available');
       return;
     }
 
-    const frequency = NOTE_FREQUENCIES[note] || 'C3';
-    this.synth.triggerAttackRelease(frequency, duration, Tone.now(), 0.7);
+    try {
+      const frequency = NOTE_FREQUENCIES[note] || NOTE_FREQUENCIES['C'];
+      this.synth.triggerAttackRelease(frequency, duration, Tone.now(), 0.7);
+      console.log('✅ Note playing:', note, frequency, 'Hz');
+    } catch (error) {
+      console.error('❌ Error playing note:', error);
+    }
   }
 
   stopAll() {
     if (this.synth) {
       this.synth.releaseAll();
-      this.currentNotes = [];
+      console.log('🛑 All notes stopped');
     }
   }
 
@@ -234,6 +251,7 @@ class AudioService {
     if (this.synth) {
       // Volume em dB (-60 a 0)
       this.synth.volume.value = volume;
+      console.log('🔊 Volume set to:', volume, 'dB');
     }
   }
 
@@ -242,6 +260,7 @@ class AudioService {
       this.synth.dispose();
       this.synth = null;
       this.isInitialized = false;
+      console.log('🗑️ AudioService disposed');
     }
   }
 }
