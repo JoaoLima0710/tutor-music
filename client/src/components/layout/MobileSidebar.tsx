@@ -1,4 +1,4 @@
-import { X, Home, Guitar, Music2, Trophy, Target, User, Flame } from 'lucide-react';
+import { X, Home, Guitar, Music2, Trophy, Target, User, Flame, Music, Clock } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -28,6 +28,8 @@ export function MobileSidebar({
     { path: '/', label: 'Início', icon: Home },
     { path: '/chords', label: 'Acordes', icon: Guitar },
     { path: '/scales', label: 'Escalas', icon: Music2 },
+    { path: '/songs', label: 'Músicas', icon: Music },
+    { path: '/practice', label: 'Prática', icon: Clock },
     { path: '/missions', label: 'Missões', icon: Target },
     { path: '/achievements', label: 'Conquistas', icon: Trophy },
     { path: '/profile', label: 'Perfil', icon: User },

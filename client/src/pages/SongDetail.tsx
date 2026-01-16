@@ -5,6 +5,8 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { ChordSheet } from '@/components/songs/ChordSheet';
+import { Metronome } from '@/components/practice/Metronome';
+import { PracticeMode } from '@/components/practice/PracticeMode';
 import { Button } from '@/components/ui/button';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useSongStore } from '@/stores/useSongStore';
@@ -31,6 +33,8 @@ export default function SongDetail() {
   const [, params] = useRoute('/songs/:id');
   const [, setLocation] = useLocation();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [showMetronome, setShowMetronome] = useState(false);
+  const [showPracticeMode, setShowPracticeMode] = useState(false);
   
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { isFavorite, toggleFavorite, markAsPracticed } = useSongStore();
@@ -172,6 +176,49 @@ export default function SongDetail() {
               </div>
             </motion.div>
             
+            {/* Practice Mode Toggle */}
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setShowPracticeMode(!showPracticeMode)}
+                size="lg"
+                className="flex-1 bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] hover:from-[#c084fc] hover:to-[#a855f7] text-white font-bold"
+              >
+                <Play className="w-5 h-5 mr-2" />
+                {showPracticeMode ? 'Ocultar Prática' : 'Modo de Prática'}
+              </Button>
+              <Button
+                onClick={() => setShowMetronome(!showMetronome)}
+                variant="outline"
+                className="bg-transparent border-white/20 text-gray-300 hover:bg-white/5"
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                {showMetronome ? 'Ocultar Metrônomo' : 'Mostrar Metrônomo'}
+              </Button>
+            </div>
+            
+            {/* Practice Mode */}
+            {showPracticeMode && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-4">Prática Interativa</h2>
+                <PracticeMode
+                  chords={song.chords}
+                  bpm={song.bpm}
+                  onComplete={(accuracy) => {
+                    console.log('Practice completed with accuracy:', accuracy);
+                    markAsPracticed(song.id);
+                  }}
+                />
+              </div>
+            )}
+            
+            {/* Metronome */}
+            {showMetronome && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-4">Metrônomo</h2>
+                <Metronome defaultBpm={song.bpm} />
+              </div>
+            )}
+            
             {/* Chord Sheet */}
             <div>
               <h2 className="text-2xl font-bold text-white mb-4">Cifra Completa</h2>
@@ -302,6 +349,27 @@ export default function SongDetail() {
               ))}
             </div>
           </div>
+          
+          {/* Metronome Toggle */}
+          <div>
+            <Button
+              onClick={() => setShowMetronome(!showMetronome)}
+              size="sm"
+              variant="outline"
+              className="w-full bg-transparent border-white/20 text-gray-300"
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              {showMetronome ? 'Ocultar Metrônomo' : 'Mostrar Metrônomo'}
+            </Button>
+          </div>
+          
+          {/* Metronome */}
+          {showMetronome && (
+            <div>
+              <h3 className="text-lg font-bold text-white mb-3">Metrônomo</h3>
+              <Metronome defaultBpm={song.bpm} />
+            </div>
+          )}
           
           {/* Chord Sheet */}
           <div>
