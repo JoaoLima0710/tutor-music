@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, RotateCcw, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { audioService } from '@/services/AudioService';
+import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { audioRecorderService } from '@/services/AudioRecorderService';
 
 interface PracticeModeProps {
@@ -89,7 +89,7 @@ export function PracticeMode({ chords, bpm, onComplete }: PracticeModeProps) {
       setFeedback('correct');
       
       // Play chord sound
-      await audioService.playChord(currentChord, 1);
+      await unifiedAudioService.playChord(currentChord, 1);
       
       // Move to next chord after delay
       setTimeout(async () => {
@@ -124,7 +124,7 @@ export function PracticeMode({ chords, bpm, onComplete }: PracticeModeProps) {
   };
   
   const handlePlayChord = async () => {
-    await audioService.playChord(currentChord, 2);
+    await unifiedAudioService.playChord(currentChord, 2);
   };
   
   return (
