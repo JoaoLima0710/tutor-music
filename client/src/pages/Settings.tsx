@@ -8,9 +8,11 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
+import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { Settings as SettingsIcon, Music, Volume2, Waves, Sliders } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 const userName = 'João';
 
@@ -53,6 +55,11 @@ export default function Settings() {
     setInstrument(newInstrument);
     toast.success(`Instrumento alterado para ${getInstrumentLabel(newInstrument)}`);
   };
+
+  // Apply EQ whenever values change
+  useEffect(() => {
+    unifiedAudioService.setEQ(bassGain, midGain, trebleGain);
+  }, [bassGain, midGain, trebleGain]);
 
   const getInstrumentLabel = (inst: string) => {
     const labels: Record<string, string> = {

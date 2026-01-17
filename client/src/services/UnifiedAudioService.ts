@@ -43,6 +43,12 @@ class UnifiedAudioService {
     await service.playScale(scaleName, root, intervals, duration);
   }
 
+  setEQ(bassGain: number, midGain: number, trebleGain: number) {
+    // Apply EQ to both services
+    audioService.setEQ(bassGain, midGain, trebleGain);
+    // audioServiceWithSamples doesn't have EQ yet
+  }
+
   stopAll() {
     // Stop both services to be safe
     audioService.stopAll();

@@ -47,6 +47,7 @@ class AudioService {
   private synth: Tone.PolySynth | null = null;
   private reverb: Tone.Reverb | null = null;
   private chorus: Tone.Chorus | null = null;
+  private eq3: Tone.EQ3 | null = null;
   private isInitialized = false;
   private currentInstrument: InstrumentType = 'nylon-guitar';
 
@@ -60,10 +61,18 @@ class AudioService {
       console.log('🎵 Tone.js context started');
       
       // Create effects chain
+      this.eq3 = new Tone.EQ3({
+        low: 0,
+        mid: 0,
+        high: 0,
+        lowFrequency: 400,
+        highFrequency: 2500,
+      }).toDestination();
+
       this.reverb = new Tone.Reverb({
         decay: 2.5,
         wet: 0.3,
-      }).toDestination();
+      }).connect(this.eq3);
 
       this.chorus = new Tone.Chorus({
         frequency: 1.5,
@@ -275,6 +284,15 @@ class AudioService {
     }
   }
 
+  setEQ(bassGain: number, midGain: number, trebleGain: number) {
+    if (this.eq3) {
+      this.eq3.low.value = bassGain;
+      this.eq3.mid.value = midGain;
+      this.eq3.high.value = trebleGain;
+      console.log('🎚️ EQ updated:', { bass: bassGain, mid: midGain, treble: trebleGain });
+    }
+  }
+
   stopAll() {
     if (this.synth) {
       this.synth.releaseAll();
@@ -295,6 +313,10 @@ class AudioService {
     if (this.chorus) {
       this.chorus.dispose();
       this.chorus = null;
+    }
+    if (this.eq3) {
+      this.eq3.dispose();
+      this.eq3 = null;
     }
     this.isInitialized = false;
     console.log('🗑️ AudioService disposed');
