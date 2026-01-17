@@ -10,6 +10,7 @@ import { useGamificationStore } from '@/stores/useGamificationStore';
 import { Play, Volume2, StopCircle } from 'lucide-react';
 import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
+import { useScaleProgressionStore } from '@/stores/useScaleProgressionStore';
 
 const scales = [
   {
@@ -60,6 +61,88 @@ const scales = [
     difficulty: 'intermediate',
     description: 'Pentatônica menor com blue note. Som característico do blues.',
   },
+  // Modos Gregos
+  {
+    id: 'd-dorian',
+    name: 'Dórico de Ré',
+    root: 'D',
+    intervals: [0, 2, 3, 5, 7, 9, 10],
+    difficulty: 'intermediate',
+    description: 'Modo menor com 6ª maior. Som jazzy e sofisticado. Muito usado em jazz e fusion.',
+  },
+  {
+    id: 'e-phrygian',
+    name: 'Frígio de Mi',
+    root: 'E',
+    intervals: [0, 1, 3, 5, 7, 8, 10],
+    difficulty: 'intermediate',
+    description: 'Modo menor com 2ª menor. Som espanhol e exótico. Usado em flamenco.',
+  },
+  {
+    id: 'f-lydian',
+    name: 'Lídio de Fá',
+    root: 'F',
+    intervals: [0, 2, 4, 6, 7, 9, 11],
+    difficulty: 'intermediate',
+    description: 'Modo maior com 4ª aumentada. Som sonhador e etéreo. Usado em trilhas sonoras.',
+  },
+  {
+    id: 'g-mixolydian',
+    name: 'Mixolídio de Sol',
+    root: 'G',
+    intervals: [0, 2, 4, 5, 7, 9, 10],
+    difficulty: 'intermediate',
+    description: 'Modo maior com 7ª menor. Som de blues e rock. Usado em improvisação.',
+  },
+  {
+    id: 'a-aeolian',
+    name: 'Eólio de Lá',
+    root: 'A',
+    intervals: [0, 2, 3, 5, 7, 8, 10],
+    difficulty: 'beginner',
+    description: 'Escala menor natural. Idêntico à escala menor, base de toda música menor.',
+  },
+  {
+    id: 'b-locrian',
+    name: 'Lócrio de Si',
+    root: 'B',
+    intervals: [0, 1, 3, 5, 6, 8, 10],
+    difficulty: 'advanced',
+    description: 'Modo diminuto. Som tenso e instável. Usado em metal e música experimental.',
+  },
+  // Escalas Exóticas
+  {
+    id: 'a-harmonic-minor',
+    name: 'Harmônica Menor de Lá',
+    root: 'A',
+    intervals: [0, 2, 3, 5, 7, 8, 11],
+    difficulty: 'advanced',
+    description: 'Menor com 7ª maior. Som dramático e oriental. Usada em metal e clássico.',
+  },
+  {
+    id: 'a-melodic-minor',
+    name: 'Melódica Menor de Lá',
+    root: 'A',
+    intervals: [0, 2, 3, 5, 7, 9, 11],
+    difficulty: 'advanced',
+    description: 'Menor com 6ª e 7ª maiores. Som jazzy e sofisticado. Essencial para jazz.',
+  },
+  {
+    id: 'c-gypsy',
+    name: 'Cigana de Dó',
+    root: 'C',
+    intervals: [0, 2, 3, 6, 7, 8, 11],
+    difficulty: 'advanced',
+    description: 'Escala húngara/cigana. Som exótico e apaixonado. Usada em música cigana.',
+  },
+  {
+    id: 'e-phrygian-dominant',
+    name: 'Frígio Dominante de Mi',
+    root: 'E',
+    intervals: [0, 1, 4, 5, 7, 8, 10],
+    difficulty: 'advanced',
+    description: 'Escala espanhola/flamenco. Som intenso e apaixonado. Essencial para flamenco.',
+  },
 ];
 
 export default function Scales() {
@@ -68,6 +151,14 @@ export default function Scales() {
   const [isPlaying, setIsPlaying] = useState(false);
   
   const { xp, level, xpToNextLevel, currentStreak, addXP } = useGamificationStore();
+  const { isScaleUnlocked, isScaleMastered, getScaleProgress, getStats } = useScaleProgressionStore();
+  
+  // Filtrar escalas desbloqueadas
+  const unlockedScales = scales.filter(scale => isScaleUnlocked(scale.id));
+  const lockedScales = scales.filter(scale => !isScaleUnlocked(scale.id));
+  
+  // Estatísticas de progressão
+  const stats = getStats();
 
   const handlePlayScale = async () => {
     setIsPlaying(true);
@@ -121,10 +212,38 @@ export default function Scales() {
             <h1 className="text-4xl font-bold text-white mb-2">Escalas Musicais</h1>
             <p className="text-gray-400">Aprenda e pratique escalas no braço do violão</p>
           </header>
+          
+          {/* Estatísticas de Progressão */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-[#06b6d4]/20 to-[#0891b2]/10 border border-[#06b6d4]/30">
+              <div className="text-3xl font-bold text-[#06b6d4]">{stats.totalUnlocked}</div>
+              <div className="text-sm text-gray-400 mt-1">🔓 Escalas Desbloqueadas</div>
+            </div>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-[#10b981]/20 to-[#059669]/10 border border-[#10b981]/30">
+              <div className="text-3xl font-bold text-[#10b981]">{stats.totalMastered}</div>
+              <div className="text-sm text-gray-400 mt-1">🏆 Escalas Dominadas</div>
+            </div>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-[#8b5cf6]/20 to-[#7c3aed]/10 border border-[#8b5cf6]/30">
+              <div className="text-3xl font-bold text-[#8b5cf6]">{stats.totalPracticed}</div>
+              <div className="text-sm text-gray-400 mt-1">🎸 Práticas Realizadas</div>
+            </div>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-[#f59e0b]/20 to-[#d97706]/10 border border-[#f59e0b]/30">
+              <div className="text-3xl font-bold text-[#f59e0b]">{stats.averageAccuracy}%</div>
+              <div className="text-sm text-gray-400 mt-1">🎯 Precisão Média</div>
+            </div>
+          </div>
 
-          {/* Scale Selection */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {scales.map((scale) => (
+          {/* Escalas Desbloqueadas */}
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+              <span>🔓</span>
+              <span>Escalas Disponíveis</span>
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {unlockedScales.map((scale) => {
+                const progress = getScaleProgress(scale.id);
+                const mastered = isScaleMastered(scale.id);
+                return (
               <Button
                 key={scale.id}
                 onClick={() => setSelectedScale(scale)}
@@ -138,10 +257,37 @@ export default function Scales() {
                 <div className="flex flex-col items-center gap-1">
                   <span className="font-bold">{scale.name}</span>
                   <span className="text-xs opacity-70 capitalize">{scale.difficulty}</span>
+                  {mastered && <span className="text-xs text-[#10b981]">✅ Dominada</span>}
                 </div>
               </Button>
-            ))}
+                );
+              })}
+            </div>
           </div>
+          
+          {/* Escalas Bloqueadas */}
+          {lockedScales.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-500 mb-4 flex items-center gap-2">
+                <span>🔒</span>
+                <span>Escalas Bloqueadas</span>
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {lockedScales.map((scale) => (
+                  <div
+                    key={scale.id}
+                    className="p-3 rounded-lg bg-[#1a1a2e]/30 border border-white/10 opacity-50 cursor-not-allowed"
+                  >
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="font-bold text-gray-500">{scale.name}</span>
+                      <span className="text-xs text-gray-600 capitalize">{scale.difficulty}</span>
+                      <span className="text-xs text-gray-600">🔒 Bloqueada</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Selected Scale Details */}
           <div className="grid lg:grid-cols-2 gap-8">
