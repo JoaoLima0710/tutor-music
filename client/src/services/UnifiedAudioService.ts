@@ -43,16 +43,26 @@ class UnifiedAudioService {
     await service.playScale(scaleName, root, intervals, duration);
   }
 
-  setEQ(bassGain: number, midGain: number, trebleGain: number) {
-    // Apply EQ to both services
-    audioService.setEQ(bassGain, midGain, trebleGain);
-    // audioServiceWithSamples doesn't have EQ yet
+  async playNote(note: string, duration?: number) {
+    const service = this.getCurrentService();
+    // Use playScale with single note as workaround
+    await service.playScale(note, note, [0], duration || 0.5);
   }
 
   stopAll() {
     // Stop both services to be safe
-    audioService.stopAll();
-    audioServiceWithSamples.stopAll();
+    try {
+      audioService.stopAll?.();
+      audioServiceWithSamples.stopAll?.();
+    } catch (e) {
+      console.error('Error stopping audio:', e);
+    }
+  }
+
+  setEQ(bassGain: number, midGain: number, trebleGain: number) {
+    // Apply EQ to both services
+    audioService.setEQ(bassGain, midGain, trebleGain);
+    // audioServiceWithSamples doesn't have EQ yet
   }
 
   dispose() {
