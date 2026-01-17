@@ -5,6 +5,7 @@ import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { Button } from '@/components/ui/button';
 import { ScaleFretboard } from '@/components/scales/ScaleFretboard';
+import { ScalePractice } from '@/components/scales/ScalePractice';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { Play, Volume2, StopCircle } from 'lucide-react';
 import { unifiedAudioService } from '@/services/UnifiedAudioService';
@@ -66,7 +67,7 @@ export default function Scales() {
   const [selectedScale, setSelectedScale] = useState(scales[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   
-  const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
+  const { xp, level, xpToNextLevel, currentStreak, addXP } = useGamificationStore();
 
   const handlePlayScale = async () => {
     setIsPlaying(true);
@@ -248,6 +249,30 @@ export default function Scales() {
                 </ul>
               </div>
             </div>
+          </div>
+
+          {/* Scale Practice Section */}
+          <div className="mt-8 p-8 rounded-2xl bg-gradient-to-br from-[#1a1a2e]/80 to-[#2a2a3e]/60 border border-white/20 shadow-xl">
+            <h2 className="text-2xl font-bold text-white mb-2">🎸 Treino Interativo</h2>
+            <p className="text-gray-400 mb-6">Pratique a escala com feedback em tempo real usando seu violão</p>
+            
+            <ScalePractice 
+              scale={{
+                id: selectedScale.id,
+                name: selectedScale.name,
+                notes: selectedScale.intervals.map((interval, i) => {
+                  const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+                  const rootIndex = notes.indexOf(selectedScale.root);
+                  const noteIndex = (rootIndex + interval) % 12;
+                  return notes[noteIndex];
+                }),
+                intervals: selectedScale.intervals.map(i => i.toString()),
+                fretPositions: [],
+              }}
+              onComplete={() => {
+                addXP(50);
+              }}
+            />
           </div>
         </div>
       </main>
