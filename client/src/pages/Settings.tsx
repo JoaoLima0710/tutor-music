@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
-import { Settings as SettingsIcon, Music, Volume2, Waves } from 'lucide-react';
+import { Settings as SettingsIcon, Music, Volume2, Waves, Sliders } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -29,6 +29,14 @@ export default function Settings() {
     setEnableReverb,
     reverbAmount,
     setReverbAmount,
+    eqPreset,
+    setEQPreset,
+    bassGain,
+    setBassGain,
+    midGain,
+    setMidGain,
+    trebleGain,
+    setTrebleGain,
   } = useAudioSettingsStore();
 
   const handleAudioEngineChange = (checked: boolean) => {
@@ -181,6 +189,89 @@ export default function Settings() {
                         step={1}
                         className="w-full"
                       />
+                    </div>
+                  )}
+                </div>
+
+                {/* EQ Settings */}
+                <div className="p-6 bg-white/5 rounded-2xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Sliders className="w-5 h-5 text-[#06b6d4]" />
+                    <h3 className="text-lg font-bold text-white">Equalização (EQ)</h3>
+                  </div>
+                  
+                  {/* EQ Presets */}
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    {[
+                      { value: 'balanced', label: 'Balanceado', icon: '⚖️', desc: 'Som natural' },
+                      { value: 'bass-boost', label: 'Graves', icon: '🔊', desc: 'Mais corpo' },
+                      { value: 'treble-boost', label: 'Agudos', icon: '✨', desc: 'Mais brilho' },
+                    ].map((preset) => (
+                      <Button
+                        key={preset.value}
+                        onClick={() => setEQPreset(preset.value as any)}
+                        className={`h-20 flex flex-col items-center justify-center gap-1 ${
+                          eqPreset === preset.value
+                            ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
+                            : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
+                        }`}
+                      >
+                        <span className="text-2xl">{preset.icon}</span>
+                        <span className="text-xs font-semibold">{preset.label}</span>
+                        {eqPreset === preset.value && (
+                          <span className="text-[10px] text-cyan-200">{preset.desc}</span>
+                        )}
+                      </Button>
+                    ))}
+                  </div>
+                  
+                  {/* Custom EQ Controls */}
+                  {eqPreset === 'custom' && (
+                    <div className="space-y-4 mt-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-400">Graves (Bass)</span>
+                          <span className="text-cyan-400 font-bold">{bassGain > 0 ? '+' : ''}{bassGain} dB</span>
+                        </div>
+                        <Slider
+                          value={[bassGain]}
+                          onValueChange={(value) => setBassGain(value[0])}
+                          min={-12}
+                          max={12}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                      
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-400">Médios (Mid)</span>
+                          <span className="text-cyan-400 font-bold">{midGain > 0 ? '+' : ''}{midGain} dB</span>
+                        </div>
+                        <Slider
+                          value={[midGain]}
+                          onValueChange={(value) => setMidGain(value[0])}
+                          min={-12}
+                          max={12}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                      
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-400">Agudos (Treble)</span>
+                          <span className="text-cyan-400 font-bold">{trebleGain > 0 ? '+' : ''}{trebleGain} dB</span>
+                        </div>
+                        <Slider
+                          value={[trebleGain]}
+                          onValueChange={(value) => setTrebleGain(value[0])}
+                          min={-12}
+                          max={12}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>

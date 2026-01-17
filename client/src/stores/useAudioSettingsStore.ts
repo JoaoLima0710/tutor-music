@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export type AudioEngineType = 'synthesis' | 'samples';
 export type InstrumentType = 'nylon-guitar' | 'steel-guitar' | 'piano';
+export type EQPreset = 'balanced' | 'bass-boost' | 'treble-boost' | 'custom';
 
 interface AudioSettingsState {
   // Audio Engine
@@ -23,6 +24,16 @@ interface AudioSettingsState {
   
   reverbAmount: number;
   setReverbAmount: (amount: number) => void;
+  
+  // EQ Settings
+  eqPreset: EQPreset;
+  setEQPreset: (preset: EQPreset) => void;
+  bassGain: number;
+  setBassGain: (gain: number) => void;
+  midGain: number;
+  setMidGain: (gain: number) => void;
+  trebleGain: number;
+  setTrebleGain: (gain: number) => void;
 }
 
 export const useAudioSettingsStore = create<AudioSettingsState>()(
@@ -34,6 +45,10 @@ export const useAudioSettingsStore = create<AudioSettingsState>()(
       masterVolume: 0.7,
       enableReverb: true,
       reverbAmount: 0.3,
+      eqPreset: 'balanced',
+      bassGain: 0,
+      midGain: 0,
+      trebleGain: 0,
       
       // Actions
       setAudioEngine: (engine) => {
@@ -57,8 +72,36 @@ export const useAudioSettingsStore = create<AudioSettingsState>()(
       },
       
       setReverbAmount: (amount) => {
-        console.log('🎛️ Reverb amount changed to:', amount);
+        console.log('🏛️ Reverb amount changed to:', amount);
         set({ reverbAmount: amount });
+      },
+      
+      setEQPreset: (preset) => {
+        console.log('🎵 EQ preset changed to:', preset);
+        set({ eqPreset: preset });
+        // Apply preset values
+        if (preset === 'balanced') {
+          set({ bassGain: 0, midGain: 0, trebleGain: 0 });
+        } else if (preset === 'bass-boost') {
+          set({ bassGain: 6, midGain: 0, trebleGain: -2 });
+        } else if (preset === 'treble-boost') {
+          set({ bassGain: -2, midGain: 0, trebleGain: 6 });
+        }
+      },
+      
+      setBassGain: (gain) => {
+        console.log('🔊 Bass gain changed to:', gain);
+        set({ bassGain: gain, eqPreset: 'custom' });
+      },
+      
+      setMidGain: (gain) => {
+        console.log('🔊 Mid gain changed to:', gain);
+        set({ midGain: gain, eqPreset: 'custom' });
+      },
+      
+      setTrebleGain: (gain) => {
+        console.log('🔊 Treble gain changed to:', gain);
+        set({ trebleGain: gain, eqPreset: 'custom' });
       },
     }),
     {

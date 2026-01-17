@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ScaleFretboard } from '@/components/scales/ScaleFretboard';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { Play, Volume2, StopCircle } from 'lucide-react';
-import { audioService } from '@/services/AudioService';
+import { unifiedAudioService } from '@/services/UnifiedAudioService';
+import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
 
 const scales = [
   {
@@ -69,14 +70,14 @@ export default function Scales() {
 
   const handlePlayScale = async () => {
     setIsPlaying(true);
-    await audioService.playScale(selectedScale.name, selectedScale.root, selectedScale.intervals, 0.4);
+    await unifiedAudioService.playScale(selectedScale.name, selectedScale.root, selectedScale.intervals, 0.4);
     // Calculate duration: number of notes * 0.4s per note
     const duration = (selectedScale.intervals.length + 1) * 400;
     setTimeout(() => setIsPlaying(false), duration);
   };
 
   const handleStopScale = () => {
-    audioService.stopAll();
+    unifiedAudioService.stopAll();
     setIsPlaying(false);
   };
 
