@@ -5,6 +5,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { ChordSheetWithPlayer } from '@/components/songs/ChordSheetWithPlayer';
+import { KaraokeMode } from '@/components/songs/KaraokeMode';
 import { Metronome } from '@/components/practice/Metronome';
 import { PracticeMode } from '@/components/practice/PracticeMode';
 import { AudioRecorder } from '@/components/practice/AudioRecorder';
@@ -12,7 +13,9 @@ import { Button } from '@/components/ui/button';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useSongStore } from '@/stores/useSongStore';
 import { getSongById } from '@/data/songs';
-import { ArrowLeft, Heart, Play, Music, Clock, TrendingUp, Lightbulb, Mic } from 'lucide-react';
+import { PdfExportService } from '@/services/PdfExportService';
+import { toast } from 'sonner';
+import { ArrowLeft, Heart, Play, Music, Clock, TrendingUp, Lightbulb, Mic, Maximize2, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const genreColors: Record<string, string> = {
@@ -37,6 +40,7 @@ export default function SongDetail() {
   const [showMetronome, setShowMetronome] = useState(false);
   const [showPracticeMode, setShowPracticeMode] = useState(false);
   const [showRecorder, setShowRecorder] = useState(false);
+  const [showKaraoke, setShowKaraoke] = useState(false);
   
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { isFavorite, toggleFavorite, markAsPracticed } = useSongStore();
@@ -60,6 +64,17 @@ export default function SongDetail() {
   const handlePractice = () => {
     markAsPracticed(song.id);
     // TODO: Open practice mode
+  };
+  
+  const handleExportPdf = async () => {
+    try {
+      toast.loading('Gerando PDF...');
+      await PdfExportService.exportChordSheet(song);
+      toast.success('PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast.error('Erro ao gerar PDF');
+    }
   };
   
   return (
@@ -166,13 +181,30 @@ export default function SongDetail() {
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      onClick={handlePractice}
+                      className={`bg-gradient-to-r ${genreColors[song.genre]} text-white font-semibold text-lg py-6`}
+                    >
+                      <Play className="w-5 h-5 mr-2" />
+                      Praticar
+                    </Button>
+                    <Button
+                      onClick={() => setShowKaraoke(true)}
+                      className="bg-gradient-to-r from-[#ec4899] to-[#db2777] text-white font-semibold text-lg py-6"
+                    >
+                      <Maximize2 className="w-5 h-5 mr-2" />
+                      Karaokê
+                    </Button>
+                  </div>
                   <Button
-                    onClick={handlePractice}
-                    className={`flex-1 bg-gradient-to-r ${genreColors[song.genre]} text-white font-semibold text-lg py-6`}
+                    onClick={handleExportPdf}
+                    variant="outline"
+                    className="w-full bg-[#1a1a2e]/60 border-white/20 text-white hover:bg-white/10 font-semibold text-lg py-6"
                   >
-                    <Play className="w-5 h-5 mr-2" />
-                    Praticar Agora
+                    <Download className="w-5 h-5 mr-2" />
+                    Exportar Cifra em PDF
                   </Button>
                 </div>
               </div>
@@ -431,6 +463,17 @@ export default function SongDetail() {
         
         <MobileBottomNav />
       </div>
+      
+      {/* Karaoke Mode */}
+      {showKaraoke && (
+        <KaraokeMode
+          chordSheet={song.chordSheet}
+          bpm={song.bpm}
+          title={song.title}
+          artist={song.artist}
+          onClose={() => setShowKaraoke(false)}
+        />
+      )}
     </>
   );
 }
