@@ -18,6 +18,7 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
     { path: '/chords', label: 'Acordes', icon: Guitar },
     { path: '/scales', label: 'Escalas', icon: Music2 },
     { path: '/songs', label: 'Músicas', icon: Music },
+    { path: '/tuner', label: 'Afinador', icon: Music2 },
     { path: '/practice', label: 'Prática', icon: Clock },
     { path: '/missions', label: 'Missões', icon: Target },
     { path: '/achievements', label: 'Conquistas', icon: Trophy },
