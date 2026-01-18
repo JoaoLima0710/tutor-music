@@ -5,10 +5,161 @@ import { Play, Square } from 'lucide-react';
 import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { toast } from 'sonner';
 
+/**
+ * Calculate fretboard positions for any scale dynamically
+ * This replaces the hardcoded C Major positions
+ */
+function calculateScalePositions(root: string, intervals: number[]): Array<{
+  note: string;
+  string: number;
+  fret: number;
+  sequence: number;
+  color: string;
+}> {
+  const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const STRINGS = ['E', 'B', 'G', 'D', 'A', 'E']; // From high to low
+
+  // Convert root to uppercase and find index
+  const rootNote = root.toUpperCase();
+  const rootIndex = NOTES.indexOf(rootNote);
+
+  if (rootIndex === -1) {
+    console.error('Invalid root note:', root);
+    return [];
+  }
+
+  // Generate scale notes
+  const scaleNotes = intervals.map(interval => {
+    const noteIndex = (rootIndex + interval) % 12;
+    return NOTES[noteIndex];
+  });
+
+  // Add octave note
+  scaleNotes.push(rootNote);
+
+  console.log('🎼 Scale notes for', root, ':', scaleNotes);
+
+  // Calculate positions using musical theory
+  const positions: Array<{
+    note: string;
+    string: number;
+    fret: number;
+    sequence: number;
+    color: string;
+  }> = [];
+
+  scaleNotes.forEach((note, sequence) => {
+    // Find the best position for this note
+    const position = findBestNotePosition(note, sequence, positions);
+    if (position) {
+      positions.push({
+        ...position,
+        sequence: sequence + 1,
+        color: NOTE_COLORS[sequence % NOTE_COLORS.length]
+      });
+    }
+  });
+
+  return positions;
+}
+
+/**
+ * Find the best position for a note on the fretboard
+ */
+function findBestNotePosition(note: string, sequence: number, existingPositions: any[]): any {
+  const STRINGS = ['E', 'B', 'G', 'D', 'A', 'E']; // High to low
+  const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+  // Find all possible positions for this note
+  const possiblePositions: Array<{string: number, fret: number, priority: number}> = [];
+
+  STRINGS.forEach((stringNote, stringIndex) => {
+    const stringRootIndex = NOTES.indexOf(stringNote);
+    const targetIndex = NOTES.indexOf(note);
+
+    if (stringRootIndex !== -1 && targetIndex !== -1) {
+      // Calculate fret position
+      let fret = (targetIndex - stringRootIndex + 12) % 12;
+
+      // Also try octave up
+      const fretOctave = fret + 12;
+
+      // Calculate priority (prefer lower frets, avoid overlaps)
+      const priority = calculatePositionPriority(fret, stringIndex, existingPositions);
+
+      possiblePositions.push({
+        string: stringIndex,
+        fret: fret,
+        priority: priority
+      });
+
+      // Add octave option with lower priority
+      const octavePriority = calculatePositionPriority(fretOctave, stringIndex, existingPositions) - 10;
+      possiblePositions.push({
+        string: stringIndex,
+        fret: fretOctave,
+        priority: octavePriority
+      });
+    }
+  });
+
+  // Sort by priority and return best position
+  possiblePositions.sort((a, b) => b.priority - a.priority);
+
+  if (possiblePositions.length > 0) {
+    const best = possiblePositions[0];
+    return {
+      note: note,
+      string: best.string,
+      fret: best.fret
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Calculate priority for a position (higher = better)
+ */
+function calculatePositionPriority(fret: number, stringIndex: number, existingPositions: any[]): number {
+  let priority = 100;
+
+  // Prefer frets between 0-12 (easier to play)
+  if (fret >= 0 && fret <= 12) {
+    priority += 20;
+  } else if (fret > 12 && fret <= 24) {
+    priority += 10;
+  } else {
+    priority -= 10; // Penalize very high frets
+  }
+
+  // Prefer middle strings for better playability
+  if (stringIndex >= 2 && stringIndex <= 4) {
+    priority += 15;
+  } else if (stringIndex === 1 || stringIndex === 5) {
+    priority += 5;
+  }
+
+  // Avoid positions too close to existing ones (prevent crowding)
+  existingPositions.forEach(existing => {
+    if (existing.string === stringIndex) {
+      const distance = Math.abs(existing.fret - fret);
+      if (distance < 2) {
+        priority -= 20; // Heavy penalty for very close positions
+      } else if (distance < 4) {
+        priority -= 10; // Moderate penalty
+      }
+    }
+  });
+
+  return priority;
+}
+
 interface ScaleFretboardProps {
   scaleName: string;
   scaleNotes: string[];
   tonic: string;
+  intervals: number[];
 }
 
 const STRINGS = ['E', 'B', 'G', 'D', 'A', 'E'];
@@ -23,66 +174,48 @@ const NOTE_COLORS = [
   '#14b8a6', // teal
 ];
 
-export function ScaleFretboard({ scaleName, scaleNotes, tonic }: ScaleFretboardProps) {
+export function ScaleFretboard({ scaleName, scaleNotes, tonic, intervals }: ScaleFretboardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentNoteIndex, setCurrentNoteIndex] = useState<number | null>(null);
 
-  // Adicionar a oitava (repetir a primeira nota)
-  const fullScale = [...scaleNotes, scaleNotes[0]];
+  // Calcular posições dinâmicas da escala
+  const scalePattern = calculateScalePositions(tonic, intervals);
 
-  // Definir UMA posição clara e simples da escala
-  // Padrão de 1 oitava começando na corda E grave (6ª corda)
-  // Layout otimizado para C Major (Dó Maior)
-  const scalePattern = fullScale.map((note, index) => {
-    let stringIndex, fret;
-    
-    // Padrão específico para escala de Dó Maior
-    // Distribuição natural pelo braço do violão
-    if (index === 0) {
-      stringIndex = 4; fret = 3; // C na corda A, 3º traste
-    } else if (index === 1) {
-      stringIndex = 4; fret = 5; // D na corda A, 5º traste
-    } else if (index === 2) {
-      stringIndex = 3; fret = 2; // E na corda D, 2º traste
-    } else if (index === 3) {
-      stringIndex = 3; fret = 3; // F na corda D, 3º traste
-    } else if (index === 4) {
-      stringIndex = 3; fret = 5; // G na corda D, 5º traste
-    } else if (index === 5) {
-      stringIndex = 2; fret = 2; // A na corda G, 2º traste
-    } else if (index === 6) {
-      stringIndex = 2; fret = 4; // B na corda G, 4º traste
-    } else if (index === 7) {
-      stringIndex = 2; fret = 5; // C (oitava) na corda G, 5º traste
-    } else {
-      // Fallback
-      stringIndex = 4 - Math.floor(index / 3);
-      fret = 3 + (index % 3) * 2;
-    }
-    
-    return {
-      note,
-      string: stringIndex,
-      fret: fret,
-      sequence: index + 1,
-      color: NOTE_COLORS[index % NOTE_COLORS.length],
-    };
-  });
+  console.log('🎸 Scale positions calculated:', scalePattern);
 
   // Função para tocar a escala com animação
   const playScaleSequence = async () => {
-    setIsPlaying(true);
-    
-    for (let i = 0; i < scalePattern.length; i++) {
-      setCurrentNoteIndex(i);
-      const noteToPlay = scalePattern[i].note + '4'; // Add octave
-      await unifiedAudioService.playNote(noteToPlay, 0.6);
-      await new Promise(resolve => setTimeout(resolve, 600));
+    if (scalePattern.length === 0) {
+      toast.error('Não foi possível calcular as posições da escala');
+      return;
     }
-    
-    setCurrentNoteIndex(null);
-    setIsPlaying(false);
-    toast.success('Sequência completa!');
+
+    setIsPlaying(true);
+
+    try {
+      console.log('🎵 Tocando escala com', scalePattern.length, 'notas');
+
+      for (let i = 0; i < scalePattern.length; i++) {
+        setCurrentNoteIndex(i);
+
+        // Usar o audio service para tocar a nota correta
+        const noteToPlay = scalePattern[i].note;
+        console.log('🎼 Tocando nota:', noteToPlay, 'na posição', scalePattern[i].string, scalePattern[i].fret);
+
+        await unifiedAudioService.playNote(noteToPlay, 0.6);
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+
+      setCurrentNoteIndex(null);
+      setIsPlaying(false);
+      toast.success('🎵 Sequência completa!');
+
+    } catch (error) {
+      console.error('❌ Erro ao tocar escala:', error);
+      setIsPlaying(false);
+      setCurrentNoteIndex(null);
+      toast.error('Erro ao tocar a escala');
+    }
   };
 
   const stopPlaying = () => {

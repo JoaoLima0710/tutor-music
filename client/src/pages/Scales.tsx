@@ -297,7 +297,7 @@ export default function Scales() {
                 <h2 className="text-2xl font-bold text-white mb-4">{selectedScale.name}</h2>
                 <p className="text-gray-400 mb-6">{selectedScale.description}</p>
                 
-                <ScaleFretboard 
+                <ScaleFretboard
                   scaleName={selectedScale.name}
                   scaleNotes={selectedScale.intervals.map((interval, i) => {
                     const rootIndex = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].indexOf(selectedScale.root);
@@ -305,6 +305,7 @@ export default function Scales() {
                     return ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][noteIndex];
                   })}
                   tonic={selectedScale.root}
+                  intervals={selectedScale.intervals}
                 />
               </div>
             </div>
