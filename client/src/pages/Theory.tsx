@@ -214,7 +214,19 @@ const THEORY_MODULES: TheoryModule[] = [
                     <span className="font-bold text-white">Segunda Menor</span>
                     <span className="text-sm text-gray-400">1 semitom</span>
                   </div>
-                  <p className="text-sm text-gray-300">Som tenso, como em "Tubarão" (dó-dó#)</p>
+                  <p className="text-sm text-gray-300 mb-2">Som tenso, como em "Tubarão" (dó-dó#)</p>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
+                      await unifiedAudioService.playNote('C4', 0.5);
+                      setTimeout(() => unifiedAudioService.playNote('C#4', 0.5), 600);
+                    }}
+                    className="bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#0891b2] hover:to-[#0e7490] text-white"
+                  >
+                    <Play className="w-3 h-3 mr-1" />
+                    Ouvir Exemplo
+                  </Button>
                 </div>
                 
                 <div className="p-3 rounded bg-white/5">
@@ -222,7 +234,19 @@ const THEORY_MODULES: TheoryModule[] = [
                     <span className="font-bold text-white">Terça Maior</span>
                     <span className="text-sm text-gray-400">4 semitons</span>
                   </div>
-                  <p className="text-sm text-gray-300">Som alegre, base dos acordes maiores</p>
+                  <p className="text-sm text-gray-300 mb-2">Som alegre, base dos acordes maiores</p>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
+                      await unifiedAudioService.playNote('C4', 0.5);
+                      setTimeout(() => unifiedAudioService.playNote('E4', 0.5), 600);
+                    }}
+                    className="bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#0891b2] hover:to-[#0e7490] text-white"
+                  >
+                    <Play className="w-3 h-3 mr-1" />
+                    Ouvir Exemplo
+                  </Button>
                 </div>
                 
                 <div className="p-3 rounded bg-white/5">
@@ -230,7 +254,19 @@ const THEORY_MODULES: TheoryModule[] = [
                     <span className="font-bold text-white">Quinta Justa</span>
                     <span className="text-sm text-gray-400">7 semitons</span>
                   </div>
-                  <p className="text-sm text-gray-300">Som estável e poderoso, usado em power chords</p>
+                  <p className="text-sm text-gray-300 mb-2">Som estável e poderoso, usado em power chords</p>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
+                      await unifiedAudioService.playNote('C4', 0.5);
+                      setTimeout(() => unifiedAudioService.playNote('G4', 0.5), 600);
+                    }}
+                    className="bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#0891b2] hover:to-[#0e7490] text-white"
+                  >
+                    <Play className="w-3 h-3 mr-1" />
+                    Ouvir Exemplo
+                  </Button>
                 </div>
                 
                 <div className="p-3 rounded bg-white/5">
@@ -238,7 +274,19 @@ const THEORY_MODULES: TheoryModule[] = [
                     <span className="font-bold text-white">Oitava</span>
                     <span className="text-sm text-gray-400">12 semitons</span>
                   </div>
-                  <p className="text-sm text-gray-300">Mesma nota, só que mais aguda ou grave</p>
+                  <p className="text-sm text-gray-300 mb-2">Mesma nota, só que mais aguda ou grave</p>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
+                      await unifiedAudioService.playNote('C4', 0.5);
+                      setTimeout(() => unifiedAudioService.playNote('C5', 0.5), 600);
+                    }}
+                    className="bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#0891b2] hover:to-[#0e7490] text-white"
+                  >
+                    <Play className="w-3 h-3 mr-1" />
+                    Ouvir Exemplo
+                  </Button>
                 </div>
               </div>
             </div>
@@ -315,9 +363,23 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-sm text-gray-300 mb-2">
                   <span className="font-semibold">Fórmula:</span> Tom - Tom - Semitom - Tom - Tom - Tom - Semitom
                 </p>
-                <p className="text-sm text-gray-300">
+                <p className="text-sm text-gray-300 mb-3">
                   <span className="font-semibold">Exemplo (Dó Maior):</span> C - D - E - F - G - A - B - C
                 </p>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
+                    const notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
+                    for (let i = 0; i < notes.length; i++) {
+                      setTimeout(() => unifiedAudioService.playNote(notes[i], 0.3), i * 400);
+                    }
+                  }}
+                  className="bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#0891b2] hover:to-[#0e7490] text-white"
+                >
+                  <Play className="w-3 h-3 mr-1" />
+                  Ouvir Exemplo
+                </Button>
               </div>
             </div>
 
@@ -330,9 +392,23 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-sm text-gray-300 mb-2">
                   <span className="font-semibold">Fórmula:</span> Tom - Semitom - Tom - Tom - Semitom - Tom - Tom
                 </p>
-                <p className="text-sm text-gray-300">
+                <p className="text-sm text-gray-300 mb-3">
                   <span className="font-semibold">Exemplo (Lá Menor):</span> A - B - C - D - E - F - G - A
                 </p>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
+                    const notes = ['A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4'];
+                    for (let i = 0; i < notes.length; i++) {
+                      setTimeout(() => unifiedAudioService.playNote(notes[i], 0.3), i * 400);
+                    }
+                  }}
+                  className="bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] hover:from-[#7c3aed] hover:to-[#9333ea] text-white"
+                >
+                  <Play className="w-3 h-3 mr-1" />
+                  Ouvir Exemplo
+                </Button>
               </div>
             </div>
 
@@ -343,9 +419,23 @@ const THEORY_MODULES: TheoryModule[] = [
                 Muito usada em blues, rock e solos.
               </p>
               <div className="p-3 rounded bg-[#10b981]/10">
-                <p className="text-sm text-gray-300">
+                <p className="text-sm text-gray-300 mb-3">
                   <span className="font-semibold">Exemplo (Pentatônica Menor de Lá):</span> A - C - D - E - G
                 </p>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
+                    const notes = ['A3', 'C4', 'D4', 'E4', 'G4'];
+                    for (let i = 0; i < notes.length; i++) {
+                      setTimeout(() => unifiedAudioService.playNote(notes[i], 0.3), i * 400);
+                    }
+                  }}
+                  className="bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white"
+                >
+                  <Play className="w-3 h-3 mr-1" />
+                  Ouvir Exemplo
+                </Button>
               </div>
             </div>
           </div>
