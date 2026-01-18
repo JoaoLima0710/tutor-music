@@ -1,4 +1,4 @@
-import { Home, Guitar, Music2, Trophy, Target, User, Flame, Music, Clock, Settings } from 'lucide-react';
+import { Home, Guitar, Music2, Trophy, Target, User, Flame, Music, Clock, Settings, Book } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Progress } from '@/components/ui/progress';
 
@@ -20,6 +20,7 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
     { path: '/songs', label: 'Músicas', icon: Music },
     { path: '/tuner', label: 'Afinador', icon: Music2 },
     { path: '/practice', label: 'Prática', icon: Clock },
+    { path: '/theory', label: 'Teoria Musical', icon: Book },
     { path: '/missions', label: 'Missões', icon: Target },
     { path: '/achievements', label: 'Conquistas', icon: Trophy },
     { path: '/profile', label: 'Perfil', icon: User },

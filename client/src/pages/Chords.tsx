@@ -4,6 +4,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { ChordDiagram } from '@/components/chords/ChordDiagram';
+import { ChordTheory } from '@/components/chords/ChordTheory';
 import { Button } from '@/components/ui/button';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useChordStore } from '@/stores/useChordStore';
@@ -19,6 +20,7 @@ export default function Chords() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [selectedChord, setSelectedChord] = useState(chords[0]);
   const [filter, setFilter] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
+  const [activeTab, setActiveTab] = useState<'practice' | 'theory'>('theory');
   const [isPlaying, setIsPlaying] = useState(false);
   
   const { instrument, setInstrument: setGlobalInstrument } = useAudioSettingsStore();
@@ -133,6 +135,36 @@ export default function Chords() {
               </div>
             </div>
             
+            {/* Tabs */}
+            <div className="flex gap-3 mb-6">
+              <Button
+                onClick={() => setActiveTab('theory')}
+                variant={activeTab === 'theory' ? 'default' : 'outline'}
+                className={
+                  activeTab === 'theory'
+                    ? 'bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] text-white'
+                    : 'bg-transparent border-white/20 text-gray-300 hover:bg-white/5'
+                }
+              >
+                📚 Teoria
+              </Button>
+              <Button
+                onClick={() => setActiveTab('practice')}
+                variant={activeTab === 'practice' ? 'default' : 'outline'}
+                className={
+                  activeTab === 'practice'
+                    ? 'bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] text-white'
+                    : 'bg-transparent border-white/20 text-gray-300 hover:bg-white/5'
+                }
+              >
+                🎸 Prática
+              </Button>
+            </div>
+            
+            {activeTab === 'theory' ? (
+              <ChordTheory />
+            ) : (
+              <>
             {/* Filters */}
             <div className="flex gap-3">
               {[
@@ -276,6 +308,8 @@ export default function Chords() {
                 </div>
               </div>
             </div>
+              </>
+            )}
           </div>
         </div>
       </div>

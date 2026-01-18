@@ -111,6 +111,14 @@ export function EarTraining() {
     if (isPlaying) return;
     
     setIsPlaying(true);
+    
+    // Garantir que o audioService está inicializado
+    try {
+      await unifiedAudioService.initialize();
+    } catch (error) {
+      console.warn('AudioService já inicializado');
+    }
+    
     try {
       if (exerciseType === 'chords') {
         // Tocar acorde (todas as notas juntas)
@@ -124,7 +132,9 @@ export function EarTraining() {
       }
     } catch (error) {
       console.error('Erro ao tocar exercício:', error);
-      toast.error('Erro ao reproduzir áudio');
+      toast.error('Erro ao reproduzir áudio', {
+        description: 'Verifique se o áudio está habilitado no navegador'
+      });
     } finally {
       setIsPlaying(false);
     }

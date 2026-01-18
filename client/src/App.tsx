@@ -18,6 +18,7 @@ import Settings from './pages/Settings';
 import Songs from "./pages/Songs";
 import SongDetail from "./pages/SongDetail";
 import Practice from "./pages/Practice";
+import Theory from "./pages/Theory";
 
 
 function Router() {
@@ -34,6 +35,7 @@ function Router() {
       <Route path={"/songs"} component={Songs} />
       <Route path={"/songs/:id"} component={SongDetail} />
       <Route path={"/practice"} component={Practice} />
+      <Route path={"/theory"} component={Theory} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
