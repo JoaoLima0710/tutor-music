@@ -233,7 +233,7 @@ export default function Home() {
           onMenuClick={() => setIsMobileSidebarOpen(true)}
         />
         
-        <main className="px-5 py-5 space-y-6 pb-24">
+        <main className="px-4 py-4 space-y-4 pb-24">
           {/* Daily Training */}
           <section>
             <DailyTraining />
@@ -258,7 +258,7 @@ export default function Home() {
           
           <section>
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-white mb-1">Continue de onde parou</h2>
+              <h2 className="text-lg font-bold text-white mb-1">Continue de onde parou</h2>
               <p className="text-sm text-gray-400">Retome suas lições</p>
             </div>
             
@@ -267,7 +267,7 @@ export default function Home() {
           
           <section>
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-white mb-1">Treino de Hoje</h2>
+              <h2 className="text-lg font-bold text-white mb-1">Treino de Hoje</h2>
               <p className="text-sm text-gray-400">Módulos</p>
             </div>
             
