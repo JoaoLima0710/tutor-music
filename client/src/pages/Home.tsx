@@ -224,7 +224,7 @@ export default function Home() {
                 <h1 className="text-4xl font-bold text-white mb-2">
                   Boa tarde, {userName} 👋
                 </h1>
-                <p className="text-gray-400">
+                <p className="text-gray-300 text-base font-medium">
                   {unlockedSongs.length} músicas desbloqueadas • {nextUnlockable.length} prontas para desbloquear
                 </p>
               </div>

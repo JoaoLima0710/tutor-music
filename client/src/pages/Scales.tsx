@@ -231,23 +231,39 @@ export default function Scales() {
             <p className="text-gray-400">Aprenda e pratique escalas no braço do violão</p>
           </header>
           
-          {/* Estatísticas de Progressão */}
+          {/* Estatísticas de Progressão - Melhoradas com Labels Visíveis */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-[#06b6d4]/20 to-[#0891b2]/10 border border-[#06b6d4]/30">
-              <div className="text-3xl font-bold text-[#06b6d4]">{stats.totalUnlocked}</div>
-              <div className="text-sm text-gray-400 mt-1">🔓 Escalas Desbloqueadas</div>
+            <div className="p-6 rounded-xl bg-gradient-to-br from-[#06b6d4]/20 to-[#0891b2]/10 border border-[#06b6d4]/30">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">🔓</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Desbloqueadas</span>
+              </div>
+              <div className="text-4xl font-bold text-[#06b6d4] mb-1">{stats.totalUnlocked}</div>
+              <div className="text-sm text-gray-500">Escalas disponíveis</div>
             </div>
-            <div className="p-4 rounded-xl bg-gradient-to-br from-[#10b981]/20 to-[#059669]/10 border border-[#10b981]/30">
-              <div className="text-3xl font-bold text-[#10b981]">{stats.totalMastered}</div>
-              <div className="text-sm text-gray-400 mt-1">🏆 Escalas Dominadas</div>
+            <div className="p-6 rounded-xl bg-gradient-to-br from-[#10b981]/20 to-[#059669]/10 border border-[#10b981]/30">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">🏆</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Dominadas</span>
+              </div>
+              <div className="text-4xl font-bold text-[#10b981] mb-1">{stats.totalMastered}</div>
+              <div className="text-sm text-gray-500">Escalas completas</div>
             </div>
-            <div className="p-4 rounded-xl bg-gradient-to-br from-[#8b5cf6]/20 to-[#7c3aed]/10 border border-[#8b5cf6]/30">
-              <div className="text-3xl font-bold text-[#8b5cf6]">{stats.totalPracticed}</div>
-              <div className="text-sm text-gray-400 mt-1">🎸 Práticas Realizadas</div>
+            <div className="p-6 rounded-xl bg-gradient-to-br from-[#8b5cf6]/20 to-[#7c3aed]/10 border border-[#8b5cf6]/30">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">🎸</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Práticas</span>
+              </div>
+              <div className="text-4xl font-bold text-[#8b5cf6] mb-1">{stats.totalPracticed}</div>
+              <div className="text-sm text-gray-500">Sessões realizadas</div>
             </div>
-            <div className="p-4 rounded-xl bg-gradient-to-br from-[#f59e0b]/20 to-[#d97706]/10 border border-[#f59e0b]/30">
-              <div className="text-3xl font-bold text-[#f59e0b]">{stats.averageAccuracy}%</div>
-              <div className="text-sm text-gray-400 mt-1">🎯 Precisão Média</div>
+            <div className="p-6 rounded-xl bg-gradient-to-br from-[#f59e0b]/20 to-[#d97706]/10 border border-[#f59e0b]/30">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">🎯</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Precisão</span>
+              </div>
+              <div className="text-4xl font-bold text-[#f59e0b] mb-1">{stats.averageAccuracy}%</div>
+              <div className="text-sm text-gray-500">Taxa de acerto</div>
             </div>
           </div>
 

@@ -85,29 +85,129 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
         </div>
       </div>
       
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location === item.path;
-          
-            return (
-              <Link key={item.path} href={item.path}>
-                <div
-                  className={`
-                    flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
-                    ${isActive 
-                      ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }
-                  `}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </div>
-              </Link>
-            );
-        })}
+      {/* Navigation - Organizada por Categorias */}
+      <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
+        {/* APRENDER */}
+        <div>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 px-4">APRENDER</h3>
+          <div className="space-y-1">
+            {[
+              { path: '/chords', label: 'Acordes', icon: Guitar },
+              { path: '/scales', label: 'Escalas', icon: Music2 },
+              { path: '/theory', label: 'Teoria Musical', icon: Book },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = location === item.path;
+              return (
+                <Link key={item.path} href={item.path}>
+                  <div
+                    className={`
+                      flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* PRATICAR */}
+        <div>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 px-4">PRATICAR</h3>
+          <div className="space-y-1">
+            {[
+              { path: '/songs', label: 'Músicas', icon: Music },
+              { path: '/tuner', label: 'Afinador', icon: Music2 },
+              { path: '/practice', label: 'Prática', icon: Clock },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = location === item.path;
+              return (
+                <Link key={item.path} href={item.path}>
+                  <div
+                    className={`
+                      flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* PROGRESSO */}
+        <div>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 px-4">PROGRESSO</h3>
+          <div className="space-y-1">
+            {[
+              { path: '/missions', label: 'Missões', icon: Target },
+              { path: '/achievements', label: 'Conquistas', icon: Trophy },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = location === item.path;
+              return (
+                <Link key={item.path} href={item.path}>
+                  <div
+                    className={`
+                      flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* PERFIL E CONFIGURAÇÕES */}
+        <div className="pt-2 border-t border-white/10">
+          <div className="space-y-1">
+            {[
+              { path: '/', label: 'Início', icon: Home },
+              { path: '/profile', label: 'Perfil', icon: User },
+              { path: '/settings', label: 'Configurações', icon: Settings },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = location === item.path;
+              return (
+                <Link key={item.path} href={item.path}>
+                  <div
+                    className={`
+                      flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </nav>
       
       {/* Footer */}

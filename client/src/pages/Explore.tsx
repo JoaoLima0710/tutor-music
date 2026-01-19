@@ -93,36 +93,55 @@ export default function Explore() {
               </div>
             </header>
             
-            {/* Categories Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {exploreCategories.map((category) => {
-                const Icon = category.icon;
-                return (
-                  <div
-                    key={category.id}
-                    onClick={() => setLocation(category.path)}
-                    className="relative overflow-hidden rounded-3xl p-8 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10 hover:border-white/20 cursor-pointer transition-all group"
-                  >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
-                    
-                    <div className="relative z-10">
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center mb-4 shadow-lg`}>
-                        <Icon className="w-8 h-8 text-white" />
+            {/* Categories Grid - Melhorado */}
+            {exploreCategories.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {exploreCategories.map((category) => {
+                  const Icon = category.icon;
+                  return (
+                    <div
+                      key={category.id}
+                      onClick={() => setLocation(category.path)}
+                      className="relative overflow-hidden rounded-3xl p-8 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10 hover:border-white/20 cursor-pointer transition-all group hover:scale-[1.02]"
+                    >
+                      <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+                      
+                      <div className="relative z-10">
+                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
+                          <Icon className="w-8 h-8 text-white" />
+                        </div>
+                        
+                        <h2 className="text-2xl font-bold text-white mb-2">{category.title}</h2>
+                        <p className="text-gray-400 mb-6 leading-relaxed">{category.description}</p>
+                        
+                        <Button
+                          className={`bg-gradient-to-r ${category.color} text-white font-semibold hover:shadow-lg transition-all`}
+                        >
+                          Explorar →
+                        </Button>
                       </div>
-                      
-                      <h2 className="text-2xl font-bold text-white mb-2">{category.title}</h2>
-                      <p className="text-gray-400 mb-6">{category.description}</p>
-                      
-                      <Button
-                        className={`bg-gradient-to-r ${category.color} text-white font-semibold`}
-                      >
-                        Explorar
-                      </Button>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* Estado Vazio Melhorado */
+              <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center mb-6">
+                  <Compass className="w-16 h-16 text-purple-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-3">Nada para explorar ainda</h2>
+                <p className="text-gray-400 mb-6 max-w-md">
+                  Continue praticando para desbloquear mais conteúdo! Complete missões e ganhe XP para acessar novas áreas.
+                </p>
+                <Button
+                  onClick={() => setLocation('/')}
+                  className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-semibold"
+                >
+                  Voltar para Início
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

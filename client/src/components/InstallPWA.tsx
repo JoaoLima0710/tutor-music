@@ -93,10 +93,10 @@ export function InstallPWA() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 50 }}
-        className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50"
+        exit={{ opacity: 0, y: -20 }}
+        className="fixed top-0 left-0 right-0 z-50 md:top-4 md:left-auto md:right-4 md:w-96"
       >
         <Card className="bg-gradient-to-r from-purple-600 to-cyan-600 p-[1px] shadow-2xl">
           <CardContent className="bg-slate-900 rounded-lg p-0">
