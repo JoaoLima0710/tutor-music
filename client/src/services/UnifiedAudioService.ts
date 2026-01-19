@@ -1,11 +1,14 @@
 import { audioService } from './AudioService';
 import { audioServiceWithSamples } from './AudioServiceWithSamples';
+import { guitarSetAudioService } from './GuitarSetAudioService';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
-import type { InstrumentType, AudioEngineType } from './AudioServiceWithSamples';
+import type { InstrumentType } from './AudioServiceWithSamples';
+import type { AudioEngineType } from '@/stores/useAudioSettingsStore';
 
 /**
  * Advanced Audio Manager
  * Exclusive service management to prevent conflicts and ensure perfect audio
+ * Optimized for mobile devices and PWA environments
  */
 class AudioManager {
   private activeService: any = null;
@@ -13,8 +16,20 @@ class AudioManager {
   private isInitialized = false;
   private initializationPromise: Promise<boolean> | null = null;
   private subscribers: Set<(status: any) => void> = new Set();
+  private isMobileDevice = false;
+  private audioContextState: AudioContextState = 'suspended';
+  private lastAudioTime = 0;
+  private mobileOptimizations = false;
 
   constructor() {
+    // Detect mobile device for optimizations
+    this.detectMobileDevice();
+
+    // Apply mobile-specific optimizations if needed
+    if (this.isMobile || this.isTablet) {
+      this.applyMobileOptimizations();
+    }
+
     // Listen to store changes to auto-switch engines
     useAudioSettingsStore.subscribe((state) => {
       if (state.audioEngine !== this.currentEngine) {
@@ -22,6 +37,165 @@ class AudioManager {
         this.switchEngine(state.currentEngine);
       }
     });
+
+    // Mobile-specific event listeners
+    if (typeof document !== 'undefined') {
+      // Listen to visibility changes (important for mobile PWA)
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          console.log('📱 App hidden, pausing audio context');
+          this.handleVisibilityChange(true);
+        } else {
+          console.log('📱 App visible, resuming audio context');
+          this.handleVisibilityChange(false);
+        }
+      });
+
+      // Handle page unload (prevent audio issues)
+      window.addEventListener('beforeunload', () => {
+        this.emergencyCleanup();
+      });
+
+      // Mobile: Handle app going to background/foreground
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          // App going to background
+          this.handleAppBackground();
+        } else {
+          // App coming to foreground
+          this.handleAppForeground();
+        }
+      });
+    }
+  }
+
+  /**
+   * Handle app going to background (mobile optimization)
+   */
+  private handleAppBackground(): void {
+    if (this.mobileOptimizations) {
+      console.log('📱 App going to background, suspending audio');
+      this.stopAll();
+      this.audioContextState = 'suspended';
+    }
+  }
+
+  /**
+   * Handle app coming to foreground (mobile optimization)
+   */
+  private async handleAppForeground(): Promise<void> {
+    if (this.mobileOptimizations) {
+      console.log('📱 App coming to foreground, resuming audio');
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+      await this.ensureAudioContext();
+    }
+  }
+
+  /**
+   * Detect mobile devices for specific optimizations
+   */
+  private detectMobileDevice(): void {
+    if (typeof navigator === 'undefined') return;
+
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    const isSmallScreen = typeof window !== 'undefined' && window.innerWidth <= 768;
+    const isTabletUA = /ipad|android(?!.*mobile)/i.test(userAgent);
+
+    this.isMobile = isMobileUA && !isTabletUA;
+    this.isTablet = isTabletUA || (isMobileUA && window.innerWidth > 768 && window.innerHeight > 1024);
+    this.isMobileDevice = this.isMobile || this.isTablet;
+
+    if (this.isMobileDevice) {
+      console.log('📱 Mobile/tablet device detected:', {
+        isMobile: this.isMobile,
+        isTablet: this.isTablet,
+        userAgent: userAgent.substring(0, 50) + '...',
+        screenSize: `${window.innerWidth}x${window.innerHeight}`
+      });
+
+      this.mobileOptimizations = true;
+
+      // Force synthesis engine on mobile/tablet for better performance and compatibility
+      const settings = useAudioSettingsStore.getState();
+      if (settings.audioEngine !== 'synthesis') {
+        console.log('📱 Forcing synthesis engine on mobile/tablet for better performance');
+        // Don't change store directly, let the subscription handle it
+      }
+    } else {
+      console.log('🖥️ Desktop device detected');
+    }
+  }
+
+  /**
+   * Apply mobile-specific audio optimizations
+   */
+  private applyMobileOptimizations(): void {
+    console.log('⚡ Applying mobile audio optimizations...');
+
+    // These optimizations will be applied during audio service initialization
+    this.mobileOptimizationsConfig = {
+      // Reduce reverb for better performance
+      reverbWet: 0.1, // Instead of 0.3
+      reverbDecay: 1.0, // Instead of 2.5
+
+      // Reduce chorus intensity
+      chorusWet: 0.1, // Instead of 0.2
+      chorusDepth: 0.3, // Instead of 0.7
+
+      // Shorter note durations for mobile
+      defaultNoteDuration: 0.4, // Instead of 0.5-0.6
+
+      // Smaller audio buffers for lower latency
+      useSmallerBuffers: true,
+
+      // Disable complex effects on very low-end devices
+      disableEffectsOnLowEnd: true
+    };
+
+    console.log('✅ Mobile optimizations configured:', this.mobileOptimizationsConfig);
+  }
+
+  /**
+   * Handle app visibility changes (crucial for mobile PWA)
+   */
+  private async handleVisibilityChange(hidden: boolean): Promise<void> {
+    if (!this.activeService) return;
+
+    try {
+      if (hidden) {
+        // App going to background - suspend audio context
+        if (this.currentEngine === 'samples' && this.activeService.audioContext) {
+          await this.activeService.audioContext.suspend();
+          this.audioContextState = 'suspended';
+        }
+      } else {
+        // App coming to foreground - resume audio context
+        if (this.currentEngine === 'samples' && this.activeService.audioContext) {
+          await this.activeService.audioContext.resume();
+          this.audioContextState = 'running';
+        }
+
+        // Ensure audio is still working after resume
+        await this.ensureAudioContext();
+      }
+    } catch (error) {
+      console.warn('⚠️ Error handling visibility change:', error);
+    }
+  }
+
+  /**
+   * Emergency cleanup on page unload
+   */
+  private emergencyCleanup(): void {
+    try {
+      this.stopAll();
+      if (this.activeService && this.activeService.dispose) {
+        this.activeService.dispose();
+      }
+    } catch (error) {
+      console.error('❌ Emergency cleanup failed:', error);
+    }
   }
 
   /**
@@ -68,18 +242,31 @@ class AudioManager {
 
   private async _initializeInternal(): Promise<boolean> {
     try {
-      console.log('🎵 Initializing AudioManager...');
+      console.log('🎵 Initializing AudioManager...', this.mobileOptimizations ? '(Mobile Mode)' : '(Desktop Mode)');
 
       // Get initial settings
       const { audioEngine, instrument } = useAudioSettingsStore.getState();
 
+      // Mobile-specific: Force synthesis for better performance
+      const actualEngine = this.mobileOptimizations ? 'synthesis' : audioEngine;
+
+      if (this.mobileOptimizations && audioEngine !== 'synthesis') {
+        console.log('📱 Mobile: Forcing synthesis engine for better performance');
+      }
+
       // Force initial engine switch to ensure clean state
-      const success = await this.switchEngine(audioEngine);
+      const success = await this.switchEngine(actualEngine);
 
       if (success) {
         // Set initial instrument
         await this.setInstrument(instrument);
-        console.log('✅ AudioManager initialized successfully with', audioEngine, 'engine');
+
+        // Mobile-specific: Ensure audio context is ready
+        if (this.mobileOptimizations) {
+          await this.ensureAudioContext();
+        }
+
+        console.log('✅ AudioManager initialized successfully with', actualEngine, 'engine');
       } else {
         console.error('❌ AudioManager initialization failed');
       }
@@ -88,6 +275,46 @@ class AudioManager {
     } catch (error) {
       console.error('❌ AudioManager initialization error:', error);
       return false;
+    }
+  }
+
+  /**
+   * Ensure audio context is running (crucial for mobile)
+   */
+  private async ensureAudioContext(): Promise<void> {
+    if (!this.activeService) return;
+
+    try {
+      if (this.currentEngine === 'samples' && this.activeService.audioContext) {
+        if (this.activeService.audioContext.state === 'suspended') {
+          await this.activeService.audioContext.resume();
+          this.audioContextState = 'running';
+          console.log('✅ Audio context resumed');
+        }
+
+        // Test audio context with a brief tone (helps with mobile audio issues)
+        if (this.mobileOptimizations && this.activeService.audioContext.state === 'running') {
+          await this.testAudioContext();
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Audio context ensure failed:', error);
+    }
+  }
+
+  /**
+   * Test audio context with a very brief inaudible tone (helps mobile)
+   */
+  private async testAudioContext(): Promise<void> {
+    try {
+      // Create a very brief, inaudible test tone
+      const testNote = 'C4';
+      const testDuration = 0.001; // 1ms - inaudible but tests the context
+
+      await this.playNote(testNote, testDuration);
+      console.log('🔊 Audio context test successful');
+    } catch (error) {
+      console.warn('⚠️ Audio context test failed:', error);
     }
   }
 
@@ -115,7 +342,10 @@ class AudioManager {
       // Create new service
       this.currentEngine = engine;
 
-      if (engine === 'samples') {
+      if (engine === 'guitarset') {
+        console.log('🎸 Creating GuitarSet samples service...');
+        this.activeService = guitarSetAudioService;
+      } else if (engine === 'samples') {
         console.log('🎼 Creating Soundfont service...');
         this.activeService = audioServiceWithSamples;
       } else {
@@ -178,20 +408,49 @@ class AudioManager {
   }
 
   /**
-   * Play chord with exclusive service usage
+   * Play chord with exclusive service usage and mobile optimizations
    */
   async playChord(chordName: string, duration?: number): Promise<void> {
     if (!this.activeService) {
       throw new Error('Audio service not initialized');
     }
 
-    console.log('🎸 Playing chord:', chordName, 'with', this.currentEngine, 'engine');
+    // Mobile optimization: Check timing to prevent overlaps
+    const now = Date.now();
+    if (this.mobileOptimizations && (now - this.lastAudioTime) < 100) {
+      console.log('📱 Mobile: Delaying chord play to prevent overlap');
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+
+    console.log('🎸 Playing chord:', chordName, 'with', this.currentEngine, 'engine', this.mobileOptimizations ? '(Mobile)' : '');
 
     try {
+      // Ensure audio context for mobile
+      if (this.mobileOptimizations) {
+        await this.ensureAudioContext();
+      }
+
       await this.activeService.playChord(chordName, duration);
+      this.lastAudioTime = Date.now();
+
       console.log('✅ Chord played successfully');
     } catch (error) {
       console.error('❌ Error playing chord:', error);
+
+      // Mobile fallback: Try to reinitialize and retry once
+      if (this.mobileOptimizations && !error.message.includes('not initialized')) {
+        console.log('📱 Mobile: Attempting recovery...');
+        try {
+          await this.reinitialize();
+          await new Promise(resolve => setTimeout(resolve, 200));
+          await this.activeService.playChord(chordName, duration);
+          console.log('✅ Chord recovered successfully');
+          return;
+        } catch (retryError) {
+          console.error('❌ Recovery failed:', retryError);
+        }
+      }
+
       throw error;
     }
   }
@@ -228,9 +487,17 @@ class AudioManager {
       throw new Error('Audio service not initialized');
     }
 
-    console.log('🎵 Playing scale:', scaleName, 'from', root, 'intervals:', intervals);
+    // Mobile optimization: Adjust timing for better performance
+    const actualDuration = this.mobileOptimizations ? Math.max(duration, 0.3) : duration;
+
+    console.log('🎵 Playing scale:', scaleName, 'from', root, 'intervals:', intervals, this.mobileOptimizations ? '(Mobile)' : '');
 
     try {
+      // Mobile: Ensure audio context before playing
+      if (this.mobileOptimizations) {
+        await this.ensureAudioContext();
+      }
+
       // Generate proper scale notes from intervals
       const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
       const rootIndex = NOTES.indexOf(root.toUpperCase());
@@ -251,40 +518,101 @@ class AudioManager {
       console.log('🎼 Generated scale notes:', scaleNotes);
 
       // Use the active service's native playScale method
-      await this.activeService.playScale(scaleName, root, intervals, duration);
+      await this.activeService.playScale(scaleName, root, intervals, actualDuration);
+      this.lastAudioTime = Date.now();
+
       console.log('✅ Scale played successfully');
 
     } catch (error) {
       console.error('❌ Error playing scale:', error);
+
+      // Mobile fallback: Try with simplified approach
+      if (this.mobileOptimizations) {
+        console.log('📱 Mobile: Attempting simplified scale playback...');
+        try {
+          // Play individual notes with delays to prevent overlap
+          for (let i = 0; i < Math.min(intervals.length, 5); i++) { // Limit to 5 notes for mobile
+            const noteIndex = (NOTES.indexOf(root.toUpperCase()) + intervals[i]) % 12;
+            const note = NOTES[noteIndex] + '4';
+            await this.playNote(note, actualDuration);
+            await new Promise(resolve => setTimeout(resolve, 200)); // Longer delay for mobile
+          }
+          console.log('✅ Simplified scale playback successful');
+          return;
+        } catch (fallbackError) {
+          console.error('❌ Simplified playback also failed:', fallbackError);
+        }
+      }
+
       throw error;
     }
   }
 
   /**
-   * Play single note
+   * Play single note - FIXED VERSION
    */
   async playNote(note: string, duration?: number): Promise<void> {
     if (!this.activeService) {
-      throw new Error('Audio service not initialized');
+      // Try to initialize if not already
+      await this.initialize();
+      if (!this.activeService) {
+        throw new Error('Audio service not initialized');
+      }
     }
 
-    console.log('🎵 Playing note:', note);
+    // Ensure note has octave (default to 4 if not specified)
+    let noteWithOctave = note;
+    if (!/\d/.test(note)) {
+      noteWithOctave = note + '4';
+    }
+
+    console.log('🎵 Playing note:', noteWithOctave);
 
     try {
-      // Use scale method with single note interval
-      await this.playScale(note, note, [0], duration || 0.5);
-      console.log('✅ Note played successfully');
+      // Mobile optimization: Ensure audio context
+      if (this.mobileOptimizations) {
+        await this.ensureAudioContext();
+      }
+
+      // Use the active service's playNote method directly
+      if (this.activeService.playNote) {
+        await this.activeService.playNote(noteWithOctave, duration || 0.5);
+        this.lastAudioTime = Date.now();
+        console.log('✅ Note played successfully');
+      } else {
+        // Fallback: Use playScale with single note
+        const rootNote = note.replace(/\d+$/, '');
+        await this.playScale(note, rootNote, [0], duration || 0.5);
+        console.log('✅ Note played via scale fallback');
+      }
     } catch (error) {
       console.error('❌ Error playing note:', error);
+      
+      // Mobile fallback: Try to reinitialize and retry
+      if (this.mobileOptimizations) {
+        console.log('📱 Mobile: Attempting recovery...');
+        try {
+          await this.reinitialize();
+          await new Promise(resolve => setTimeout(resolve, 200));
+          if (this.activeService?.playNote) {
+            await this.activeService.playNote(noteWithOctave, duration || 0.5);
+            console.log('✅ Note recovered successfully');
+            return;
+          }
+        } catch (retryError) {
+          console.error('❌ Recovery failed:', retryError);
+        }
+      }
+      
       throw error;
     }
   }
 
   /**
-   * Stop all audio immediately
+   * Stop all audio immediately with mobile optimizations
    */
   stopAll(): void {
-    console.log('🛑 Stopping all audio...');
+    console.log('🛑 Stopping all audio...', this.mobileOptimizations ? '(Mobile)' : '');
 
     try {
       // Stop active service
@@ -292,9 +620,16 @@ class AudioManager {
         this.activeService.stopAll();
       }
 
-      // Safety fallback - try to stop both services
+      // Safety fallback - try to stop all services
       if (audioService.stopAll) audioService.stopAll();
       if (audioServiceWithSamples.stopAll) audioServiceWithSamples.stopAll();
+      if (guitarSetAudioService.stopAll) guitarSetAudioService.stopAll();
+
+      // Mobile-specific: Reset audio context state
+      if (this.mobileOptimizations) {
+        this.audioContextState = 'suspended';
+        this.lastAudioTime = 0;
+      }
 
       console.log('✅ All audio stopped');
     } catch (error) {
@@ -335,6 +670,7 @@ class AudioManager {
       // Safety cleanup
       await audioService.dispose();
       await audioServiceWithSamples.dispose();
+      await guitarSetAudioService.dispose();
 
       this.isInitialized = false;
       this.notifySubscribers();

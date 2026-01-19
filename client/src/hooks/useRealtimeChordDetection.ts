@@ -123,20 +123,87 @@ export function useRealtimeChordDetection(options: UseRealtimeChordDetectionOpti
 
   // Handler para análise de áudio (IA)
   const handleAudioAnalysis = useCallback((analysis: AudioAnalysisResult) => {
+    // Calcular qualidade geral melhorada
+    const signalQuality = Math.min(analysis.chunk.rms * 5, 1.0); // Normalizar RMS
+    const overallQuality = (
+      analysis.quality.clarity * 0.35 +
+      analysis.quality.stability * 0.35 +
+      signalQuality * 0.2 +
+      (analysis.chordDetection?.confidence || 0) * 0.1
+    );
+    
+    // Detectar problemas baseados na análise
+    const problems: ChordProblem[] = [];
+    
+    if (analysis.quality.clarity < 0.3) {
+      problems.push({
+        type: 'low_clarity',
+        description: 'Som pouco claro',
+        suggestion: 'Verifique se todas as cordas estão tocando limpas',
+        severity: 'medium',
+        affectedStrings: []
+      });
+    }
+    
+    if (analysis.quality.stability < 0.3) {
+      problems.push({
+        type: 'unstable',
+        description: 'Som instável',
+        suggestion: 'Mantenha a pressão constante nas cordas',
+        severity: 'medium',
+        affectedStrings: []
+      });
+    }
+    
+    if (analysis.chunk.rms < 0.05) {
+      problems.push({
+        type: 'too_quiet',
+        description: 'Volume muito baixo',
+        suggestion: 'Toque mais forte ou aproxime o microfone',
+        severity: 'low',
+        affectedStrings: []
+      });
+    }
+    
+    if (analysis.chordDetection && expectedChord) {
+      const detected = analysis.chordDetection.chord;
+      if (detected && detected !== expectedChord && detected !== 'unknown' && analysis.chordDetection.confidence > 0.5) {
+        problems.push({
+          type: 'wrong_chord',
+          description: `Acorde detectado: ${detected} (esperado: ${expectedChord})`,
+          suggestion: 'Verifique a posição dos dedos',
+          severity: 'high',
+          affectedStrings: []
+        });
+      }
+    }
+    
+    // Gerar sugestões baseadas nos problemas
+    const suggestions: string[] = [];
+    if (analysis.quality.clarity < 0.5) {
+      suggestions.push('Certifique-se de que os dedos não estão abafando outras cordas');
+    }
+    if (analysis.quality.stability < 0.5) {
+      suggestions.push('Mantenha a pressão uniforme em todas as cordas');
+    }
+    if (analysis.chunk.rms < 0.1) {
+      suggestions.push('Toque com mais força ou verifique o volume do microfone');
+    }
+    
     // Converter resultado da IA para formato compatível
     const result: ChordDetectionResult = {
       detectedChord: analysis.chordDetection?.chord || null,
       confidence: analysis.chordDetection?.confidence || 0,
       timing: analysis.chordDetection?.timestamp || Date.now(),
       quality: {
-        overall: analysis.quality.clarity * 0.4 + analysis.quality.stability * 0.4 + (analysis.chunk.rms > 0.1 ? 0.2 : 0),
+        overall: overallQuality,
         noteAccuracy: analysis.chordDetection?.confidence || 0,
         clarity: analysis.quality.clarity,
         sustain: analysis.quality.stability
       },
       individualStrings: [], // IA ainda não implementa análise por corda detalhada
-      problems: [], // Implementar problemas baseados na análise de qualidade
-      suggestions: []
+      problems,
+      suggestions
     };
 
     setState(prev => ({

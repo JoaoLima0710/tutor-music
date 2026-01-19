@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type AudioEngineType = 'synthesis' | 'samples';
+export type AudioEngineType = 'synthesis' | 'samples' | 'guitarset';
 export type InstrumentType = 'nylon-guitar' | 'steel-guitar' | 'piano';
 export type EQPreset = 'balanced' | 'bass-boost' | 'treble-boost' | 'custom';
 
@@ -40,7 +40,7 @@ export const useAudioSettingsStore = create<AudioSettingsState>()(
   persist(
     (set) => ({
       // Defaults
-      audioEngine: 'synthesis',
+      audioEngine: 'guitarset', // Use real GuitarSet samples by default
       instrument: 'nylon-guitar',
       masterVolume: 0.7,
       enableReverb: true,

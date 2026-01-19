@@ -104,3 +104,9 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+
+# Large datasets and audio files (too large for GitHub)
+datasets/
+*.wav
+*.zip
+!client/public/samples/**/*.wav

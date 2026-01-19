@@ -161,7 +161,10 @@ class ChordDetectionModel:
         # Métricas
         loss, accuracy, top3_accuracy = self.model.evaluate(X_test, y_test, verbose=0)
 
-        print(".2f"        print(".2f"        print(".2f"
+        print(f"📊 Acurácia: {accuracy * 100:.2f}%")
+        print(f"📊 Top-3 Acurácia: {top3_accuracy * 100:.2f}%")
+        print(f"📊 Loss: {loss:.4f}")
+        
         return {
             'loss': loss,
             'accuracy': accuracy,
@@ -318,13 +321,15 @@ def main():
         with open(f"{args.model_dir}/training_metrics.json", 'w') as f:
             json.dump(metrics, f, indent=2)
 
-        print("
-🎉 Treinamento concluído!"        print(f"💾 Modelo salvo em: {args.model_dir}")
-        print(".2f"        print(".2f"        print(".2f"
-        print("
-🌐 Para usar no navegador:"        print(f"   1. Copie {args.model_dir}/web_model/ para public/models/")
-        print("   2. Atualize o caminho no ChordDetectionAIService.ts"
-        print("   3. Teste no dashboard: http://localhost:3007/training"
+        print("\n🎉 Treinamento concluído!")
+        print(f"💾 Modelo salvo em: {args.model_dir}")
+        print(f"📊 Acurácia final: {results['accuracy'] * 100:.2f}%")
+        print(f"📊 Top-3 Acurácia: {results['top3_accuracy'] * 100:.2f}%")
+        print(f"📊 Loss: {results['loss']:.4f}")
+        print("\n🌐 Para usar no navegador:")
+        print(f"   1. Copie {args.model_dir}/web_model/ para client/public/models/")
+        print("   2. Atualize o caminho no ChordDetectionAIService.ts")
+        print("   3. Teste no dashboard: http://localhost:3007/training")
 
     except Exception as e:
         print(f"❌ Erro durante treinamento: {e}")

@@ -12,6 +12,7 @@ import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { Settings as SettingsIcon, Music, Volume2, Waves, Sliders } from 'lucide-react';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { AudioCacheSettings } from '@/components/AudioCacheSettings';
+import { LLMSettings } from '@/components/ai/LLMSettings';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
@@ -43,14 +44,14 @@ export default function Settings() {
     setTrebleGain,
   } = useAudioSettingsStore();
 
-  const handleAudioEngineChange = (checked: boolean) => {
-    const newEngine = checked ? 'samples' : 'synthesis';
-    setAudioEngine(newEngine);
-    toast.success(
-      newEngine === 'samples'
-        ? 'Usando samples reais de instrumentos'
-        : 'Usando síntese de áudio'
-    );
+  const handleAudioEngineChange = (engine: 'synthesis' | 'samples' | 'guitarset') => {
+    setAudioEngine(engine);
+    const messages = {
+      synthesis: 'Usando síntese de áudio (leve)',
+      samples: 'Usando samples Soundfont (autêntico)',
+      guitarset: 'Usando samples reais do GuitarSet (profissional)'
+    };
+    toast.success(messages[engine]);
   };
 
   const handleInstrumentChange = (newInstrument: 'nylon-guitar' | 'steel-guitar' | 'piano') => {
@@ -114,10 +115,20 @@ export default function Settings() {
               transition={{ delay: 0.15 }}
               className="mb-6"
             >
-              <AudioCacheSettings />
-            </motion.div>
+            <AudioCacheSettings />
+          </motion.div>
 
-            {/* Audio Settings */}
+          {/* LLM Settings */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-6"
+          >
+            <LLMSettings />
+          </motion.div>
+
+          {/* Audio Settings */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -129,29 +140,53 @@ export default function Settings() {
                 <h2 className="text-2xl font-bold text-white">Configurações de Áudio</h2>
               </div>
 
-              {/* Audio Engine Toggle */}
+              {/* Audio Engine Selection */}
               <div className="space-y-6">
-                <div className="flex items-center justify-between p-6 bg-white/5 rounded-2xl">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-white mb-2">Motor de Áudio</h3>
-                    <p className="text-sm text-gray-400">
-                      {audioEngine === 'synthesis' 
-                        ? 'Síntese: Som gerado em tempo real (mais leve)'
-                        : 'Samples: Gravações reais de instrumentos (mais autêntico)'}
-                    </p>
+                <div className="p-6 bg-white/5 rounded-2xl">
+                  <h3 className="text-lg font-bold text-white mb-4">Motor de Áudio</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Button
+                      onClick={() => handleAudioEngineChange('synthesis')}
+                      className={`h-20 flex flex-col items-center justify-center gap-1 ${
+                        audioEngine === 'synthesis'
+                          ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
+                          : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
+                      }`}
+                    >
+                      <span className="text-xl">🎹</span>
+                      <span className="text-xs font-semibold">Síntese</span>
+                      <span className="text-[10px] text-gray-500">Leve</span>
+                    </Button>
+                    <Button
+                      onClick={() => handleAudioEngineChange('samples')}
+                      className={`h-20 flex flex-col items-center justify-center gap-1 ${
+                        audioEngine === 'samples'
+                          ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
+                          : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
+                      }`}
+                    >
+                      <span className="text-xl">🎼</span>
+                      <span className="text-xs font-semibold">Soundfont</span>
+                      <span className="text-[10px] text-gray-500">Autêntico</span>
+                    </Button>
+                    <Button
+                      onClick={() => handleAudioEngineChange('guitarset')}
+                      className={`h-20 flex flex-col items-center justify-center gap-1 ${
+                        audioEngine === 'guitarset'
+                          ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
+                          : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
+                      }`}
+                    >
+                      <span className="text-xl">🎸</span>
+                      <span className="text-xs font-semibold">GuitarSet</span>
+                      <span className="text-[10px] text-gray-500">Profissional</span>
+                    </Button>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className={`text-sm font-semibold ${audioEngine === 'synthesis' ? 'text-cyan-400' : 'text-gray-500'}`}>
-                      Síntese
-                    </span>
-                    <Switch
-                      checked={audioEngine === 'samples'}
-                      onCheckedChange={handleAudioEngineChange}
-                    />
-                    <span className={`text-sm font-semibold ${audioEngine === 'samples' ? 'text-cyan-400' : 'text-gray-500'}`}>
-                      Samples
-                    </span>
-                  </div>
+                  <p className="text-xs text-gray-400 mt-3">
+                    {audioEngine === 'synthesis' && 'Som gerado em tempo real, mais leve e rápido'}
+                    {audioEngine === 'samples' && 'Samples de instrumentos via Soundfont, som autêntico'}
+                    {audioEngine === 'guitarset' && 'Samples reais extraídos do dataset GuitarSet, qualidade profissional'}
+                  </p>
                 </div>
 
                 {/* Instrument Selection */}
@@ -354,24 +389,47 @@ export default function Settings() {
             <div className="space-y-4">
               {/* Audio Engine */}
               <div className="p-4 bg-white/5 rounded-xl">
-                <div className="mb-3">
-                  <h3 className="text-base font-bold text-white mb-1">Motor de Áudio</h3>
-                  <p className="text-xs text-gray-400">
-                    {audioEngine === 'synthesis' ? 'Síntese (leve)' : 'Samples (autêntico)'}
-                  </p>
+                <h3 className="text-base font-bold text-white mb-3">Motor de Áudio</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    onClick={() => handleAudioEngineChange('synthesis')}
+                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${
+                      audioEngine === 'synthesis'
+                        ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                    }`}
+                  >
+                    <span className="text-lg">🎹</span>
+                    <span className="font-semibold">Síntese</span>
+                  </Button>
+                  <Button
+                    onClick={() => handleAudioEngineChange('samples')}
+                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${
+                      audioEngine === 'samples'
+                        ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                    }`}
+                  >
+                    <span className="text-lg">🎼</span>
+                    <span className="font-semibold">Soundfont</span>
+                  </Button>
+                  <Button
+                    onClick={() => handleAudioEngineChange('guitarset')}
+                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${
+                      audioEngine === 'guitarset'
+                        ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                    }`}
+                  >
+                    <span className="text-lg">🎸</span>
+                    <span className="font-semibold">GuitarSet</span>
+                  </Button>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-semibold ${audioEngine === 'synthesis' ? 'text-cyan-400' : 'text-gray-500'}`}>
-                    Síntese
-                  </span>
-                  <Switch
-                    checked={audioEngine === 'samples'}
-                    onCheckedChange={handleAudioEngineChange}
-                  />
-                  <span className={`text-xs font-semibold ${audioEngine === 'samples' ? 'text-cyan-400' : 'text-gray-500'}`}>
-                    Samples
-                  </span>
-                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  {audioEngine === 'synthesis' && 'Som gerado em tempo real'}
+                  {audioEngine === 'samples' && 'Samples Soundfont'}
+                  {audioEngine === 'guitarset' && 'Samples reais profissionais'}
+                </p>
               </div>
 
               {/* Instrument */}

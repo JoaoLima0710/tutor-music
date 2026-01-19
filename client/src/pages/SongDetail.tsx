@@ -5,6 +5,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { ChordSheetWithPlayer } from '@/components/songs/ChordSheetWithPlayer';
+import { AdvancedSongPlayer } from '@/components/songs/AdvancedSongPlayer';
 import { KaraokeMode } from '@/components/songs/KaraokeMode';
 import { PerformanceMode } from '@/components/songs/PerformanceMode';
 import { SheetMusicMode } from '@/components/songs/SheetMusicMode';
@@ -482,10 +483,11 @@ export default function SongDetail() {
             {/* Chord Sheet */}
             <div>
               <h2 className="text-2xl font-bold text-white mb-4">Cifra Completa</h2>
-              <ChordSheetWithPlayer 
+              <AdvancedSongPlayer 
                 chordSheet={song.chordSheet} 
                 bpm={song.bpm}
                 title={song.title}
+                artist={song.artist}
               />
             </div>
             
@@ -638,10 +640,11 @@ export default function SongDetail() {
           {/* Chord Sheet */}
           <div>
             <h3 className="text-lg font-bold text-white mb-3">Cifra</h3>
-            <ChordSheetWithPlayer 
+            <AdvancedSongPlayer 
               chordSheet={song.chordSheet} 
               bpm={song.bpm}
               title={song.title}
+              artist={song.artist}
             />
           </div>
           

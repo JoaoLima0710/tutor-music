@@ -123,6 +123,31 @@ class AudioServiceWithSamples {
     return intervals.map(interval => this.getNoteFromInterval(root, interval));
   }
 
+  async playNote(note: string, duration: number = 0.5): Promise<void> {
+    try {
+      await this.initialize();
+      if (!this.instrument) {
+        console.error('❌ Instrument not loaded');
+        return;
+      }
+
+      // Ensure note has octave (default to 4 if not specified)
+      let noteWithOctave = note;
+      if (!/\d/.test(note)) {
+        noteWithOctave = note + '4';
+      }
+
+      console.log('🎵 Playing note:', noteWithOctave);
+
+      const currentTime = this.audioContext!.currentTime;
+      this.instrument.play(noteWithOctave, currentTime, { duration });
+
+      console.log('✅ Note played successfully');
+    } catch (error) {
+      console.error('❌ Error playing note:', error);
+    }
+  }
+
   async playScale(scaleName: string, root: string, intervals: number[], duration: number = 0.5): Promise<void> {
     try {
       await this.initialize();

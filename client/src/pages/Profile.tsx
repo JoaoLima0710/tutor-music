@@ -1,20 +1,33 @@
 import { useState } from 'react';
+import { useLocation } from 'wouter';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useChordStore } from '@/stores/useChordStore';
-import { Trophy, Target, Flame, Guitar, Music2, TrendingUp } from 'lucide-react';
+import { useUserStore } from '@/stores/useUserStore';
+import { Trophy, Target, Flame, Guitar, Music2, TrendingUp, LogOut } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { toast } from 'sonner';
 
 export default function Profile() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [, setLocation] = useLocation();
   
   const { xp, level, xpToNextLevel, currentStreak, maxStreak, achievements } = useGamificationStore();
   const { getPracticedCount } = useChordStore();
+  const { user, logout } = useUserStore();
   
-  const userName = "João";
+  const userName = user?.name || "Usuário";
+  
+  const handleLogout = () => {
+    logout();
+    toast.success('Logout realizado com sucesso!');
+    setLocation('/auth');
+  };
   const xpPercentage = (xp / xpToNextLevel) * 100;
   const unlockedAchievements = achievements.filter(a => a.unlocked).length;
   const practicedChords = getPracticedCount();
@@ -27,7 +40,7 @@ export default function Profile() {
   ];
   
   return (
-    <>
+    <ProtectedRoute>
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
         <Sidebar 
@@ -40,9 +53,19 @@ export default function Profile() {
         
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto p-8 space-y-8">
-            <header>
-              <h1 className="text-4xl font-bold text-white mb-2">Meu Perfil</h1>
-              <p className="text-gray-400">Acompanhe seu progresso e estatísticas</p>
+            <header className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-white mb-2">Meu Perfil</h1>
+                <p className="text-gray-400">Acompanhe seu progresso e estatísticas</p>
+              </div>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </Button>
             </header>
             
             {/* Profile Card */}
@@ -182,6 +205,6 @@ export default function Profile() {
         
         <MobileBottomNav />
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

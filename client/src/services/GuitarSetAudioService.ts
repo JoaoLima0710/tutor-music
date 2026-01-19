@@ -1,0 +1,420 @@
+/**
+ * GuitarSetAudioService
+ * 
+ * Usa samples reais extraídos do dataset GuitarSet para reprodução de áudio.
+ * Oferece som autêntico de guitarra gravada por profissionais.
+ */
+
+import type { InstrumentType } from './AudioServiceWithSamples';
+
+interface ChordManifest {
+  [chordName: string]: {
+    file: string;
+    duration: number;
+  };
+}
+
+interface NoteManifest {
+  [noteName: string]: {
+    file: string;
+    duration: number;
+  };
+}
+
+class GuitarSetAudioService {
+  private audioContext: AudioContext | null = null;
+  private isInitialized = false;
+  private isLoading = false;
+  private chordBuffers: Map<string, AudioBuffer> = new Map();
+  private noteBuffers: Map<string, AudioBuffer> = new Map();
+  private chordManifest: ChordManifest | null = null;
+  private noteManifest: NoteManifest | null = null;
+  private activeSources: Set<AudioBufferSourceNode> = new Set();
+  private gainNode: GainNode | null = null;
+
+  async initialize(): Promise<boolean> {
+    if (this.isInitialized) {
+      return true;
+    }
+
+    if (this.isLoading) {
+      console.log('⏳ Already loading GuitarSet samples...');
+      return false;
+    }
+
+    this.isLoading = true;
+
+    try {
+      // Create AudioContext
+      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Create gain node for volume control
+      this.gainNode = this.audioContext.createGain();
+      this.gainNode.connect(this.audioContext.destination);
+      this.gainNode.gain.value = 0.8; // Default volume
+
+      console.log('🎵 AudioContext created for GuitarSet samples');
+
+      // Load manifests
+      await this.loadManifests();
+
+      // Preload essential samples (chords)
+      await this.preloadChords();
+
+      this.isInitialized = true;
+      console.log('✅ GuitarSetAudioService initialized');
+      return true;
+    } catch (error) {
+      console.error('❌ Error initializing GuitarSetAudioService:', error);
+      return false;
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private async loadManifests(): Promise<void> {
+    try {
+      // Load chord manifest
+      const chordManifestResponse = await fetch('/samples/chords/manifest.json');
+      if (chordManifestResponse.ok) {
+        this.chordManifest = await chordManifestResponse.json();
+        console.log(`📋 Loaded chord manifest: ${Object.keys(this.chordManifest!).length} chords`);
+      } else {
+        console.warn('⚠️ Chord manifest not found');
+      }
+
+      // Load note manifest (if exists)
+      try {
+        const noteManifestResponse = await fetch('/samples/notes/manifest.json');
+        if (noteManifestResponse.ok) {
+          this.noteManifest = await noteManifestResponse.json();
+          console.log(`📋 Loaded note manifest: ${Object.keys(this.noteManifest!).length} notes`);
+        }
+      } catch (e) {
+        // Notes manifest is optional
+        console.log('ℹ️ Note manifest not available');
+      }
+    } catch (error) {
+      console.error('❌ Error loading manifests:', error);
+    }
+  }
+
+  private async preloadChords(): Promise<void> {
+    if (!this.chordManifest || !this.audioContext) return;
+
+    console.log('📦 Preloading essential chord samples...');
+
+    // Preload common chords (C, D, E, G, A, Am, Em)
+    const essentialChords = ['C', 'D', 'E', 'G', 'A', 'Am', 'Em'];
+    
+    const loadPromises = essentialChords.map(async (chord) => {
+      if (this.chordManifest![chord]) {
+        await this.loadChordSample(chord);
+      }
+    });
+
+    await Promise.all(loadPromises);
+    console.log('✅ Essential chords preloaded');
+  }
+
+  private async loadChordSample(chordName: string): Promise<AudioBuffer | null> {
+    if (this.chordBuffers.has(chordName)) {
+      return this.chordBuffers.get(chordName)!;
+    }
+
+    if (!this.chordManifest || !this.chordManifest[chordName]) {
+      console.warn(`⚠️ Chord sample not found: ${chordName}`);
+      return null;
+    }
+
+    if (!this.audioContext) {
+      console.error('❌ AudioContext not initialized');
+      return null;
+    }
+
+    try {
+      const file = this.chordManifest[chordName].file;
+      const response = await fetch(`/samples/chords/${file}`);
+      
+      if (!response.ok) {
+        console.warn(`⚠️ Failed to load chord sample: ${file}`);
+        return null;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+      
+      this.chordBuffers.set(chordName, audioBuffer);
+      console.log(`✅ Loaded chord sample: ${chordName}`);
+      
+      return audioBuffer;
+    } catch (error) {
+      console.error(`❌ Error loading chord sample ${chordName}:`, error);
+      return null;
+    }
+  }
+
+  private async loadNoteSample(noteName: string): Promise<AudioBuffer | null> {
+    if (this.noteBuffers.has(noteName)) {
+      return this.noteBuffers.get(noteName)!;
+    }
+
+    if (!this.noteManifest || !this.noteManifest[noteName]) {
+      console.warn(`⚠️ Note sample not found: ${noteName}`);
+      return null;
+    }
+
+    if (!this.audioContext) {
+      console.error('❌ AudioContext not initialized');
+      return null;
+    }
+
+    try {
+      const file = this.noteManifest[noteName].file;
+      const response = await fetch(`/samples/notes/${file}`);
+      
+      if (!response.ok) {
+        console.warn(`⚠️ Failed to load note sample: ${file}`);
+        return null;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+      
+      this.noteBuffers.set(noteName, audioBuffer);
+      console.log(`✅ Loaded note sample: ${noteName}`);
+      
+      return audioBuffer;
+    } catch (error) {
+      console.error(`❌ Error loading note sample ${noteName}:`, error);
+      return null;
+    }
+  }
+
+  private playBuffer(buffer: AudioBuffer, startTime?: number, duration?: number): void {
+    if (!this.audioContext || !this.gainNode) {
+      console.error('❌ AudioContext not initialized');
+      return;
+    }
+
+    // Resume context if suspended (important for mobile)
+    if (this.audioContext.state === 'suspended') {
+      this.audioContext.resume();
+    }
+
+    const source = this.audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(this.gainNode);
+
+    // Track active sources for cleanup
+    this.activeSources.add(source);
+
+    source.onended = () => {
+      this.activeSources.delete(source);
+    };
+
+    const actualStartTime = startTime ?? this.audioContext.currentTime;
+    source.start(actualStartTime);
+
+    // Stop after duration if specified
+    if (duration) {
+      source.stop(actualStartTime + duration);
+    }
+  }
+
+  async playChord(chordName: string, duration?: number): Promise<void> {
+    console.log('🎸 GuitarSet: Playing chord:', chordName);
+
+    const initialized = await this.initialize();
+    if (!initialized) {
+      console.error('❌ GuitarSetAudioService not initialized');
+      return;
+    }
+
+    // Normalize chord name (handle variations)
+    const normalizedChord = this.normalizeChordName(chordName);
+    
+    // Load sample if not already loaded
+    let buffer = await this.loadChordSample(normalizedChord);
+    
+    if (!buffer) {
+      console.warn(`⚠️ Chord sample not available: ${normalizedChord}, trying fallback...`);
+      // Try without suffix (e.g., "C" instead of "Cmaj")
+      const root = normalizedChord.replace(/[m7#b]/g, '');
+      buffer = await this.loadChordSample(root);
+      
+      if (!buffer) {
+        console.error(`❌ No sample available for chord: ${chordName}`);
+        return;
+      }
+    }
+
+    // Play the buffer
+    this.playBuffer(buffer, undefined, duration);
+    console.log('✅ Chord played:', normalizedChord);
+  }
+
+  async playChordStrummed(chordName: string, duration?: number): Promise<void> {
+    // For strummed, we play the same sample but can add slight delay between strings
+    // For now, just play normally (the samples are already strummed)
+    await this.playChord(chordName, duration);
+  }
+
+  async playScale(scaleName: string, root: string, intervals: number[], duration: number = 0.5): Promise<void> {
+    console.log('🎵 GuitarSet: Playing scale:', scaleName, 'from', root);
+
+    const initialized = await this.initialize();
+    if (!initialized) {
+      console.error('❌ GuitarSetAudioService not initialized');
+      return;
+    }
+
+    // Convert intervals to note names
+    const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const rootIndex = NOTES.indexOf(root.toUpperCase());
+    
+    if (rootIndex === -1) {
+      console.error('❌ Invalid root note:', root);
+      return;
+    }
+
+    // Generate scale notes
+    const scaleNotes = intervals.map(interval => {
+      const noteIndex = (rootIndex + interval) % 12;
+      return NOTES[noteIndex];
+    });
+
+    // Add octave return
+    scaleNotes.push(root.toUpperCase());
+
+    // Play notes in sequence
+    const startTime = this.audioContext!.currentTime;
+    
+    for (let i = 0; i < scaleNotes.length; i++) {
+      const noteName = scaleNotes[i];
+      const noteWithOctave = noteName + '4'; // Use octave 4 for consistency
+      
+      // Try to load note sample
+      let buffer = await this.loadNoteSample(noteWithOctave);
+      
+      if (!buffer) {
+        // Fallback: try without octave
+        buffer = await this.loadNoteSample(noteName);
+      }
+
+      if (buffer) {
+        const noteStartTime = startTime + (i * duration);
+        this.playBuffer(buffer, noteStartTime, duration);
+      } else {
+        console.warn(`⚠️ Note sample not available: ${noteWithOctave}`);
+      }
+    }
+
+    console.log('✅ Scale played:', scaleNotes.length, 'notes');
+  }
+
+  async playNote(note: string, duration?: number): Promise<void> {
+    console.log('🎵 GuitarSet: Playing note:', note);
+
+    const initialized = await this.initialize();
+    if (!initialized) {
+      console.error('❌ GuitarSetAudioService not initialized');
+      return;
+    }
+
+    // Try to load note sample
+    let buffer = await this.loadNoteSample(note);
+    
+    if (!buffer) {
+      // Fallback: try without octave
+      const noteWithoutOctave = note.replace(/\d+$/, '');
+      buffer = await this.loadNoteSample(noteWithoutOctave);
+    }
+
+    if (!buffer) {
+      console.warn(`⚠️ Note sample not available: ${note}`);
+      return;
+    }
+
+    this.playBuffer(buffer, undefined, duration);
+    console.log('✅ Note played:', note);
+  }
+
+  private normalizeChordName(chordName: string): string {
+    // Parse chord name (e.g., "C", "Am", "G7", "C#m")
+    const match = chordName.match(/^([A-G][#b]?)(.*)/);
+    if (!match) {
+      return chordName;
+    }
+
+    const root = match[1];
+    let suffix = match[2] || '';
+
+    // Normalize suffix
+    if (suffix === 'm' || suffix === 'min') {
+      suffix = 'm';
+    } else if (suffix === '7') {
+      suffix = '7';
+    } else if (suffix === '' || suffix === 'maj' || suffix === 'major') {
+      suffix = ''; // Major chord has no suffix in our naming
+    }
+
+    return root + suffix;
+  }
+
+  async setInstrument(instrument: InstrumentType): Promise<void> {
+    // GuitarSet samples are always guitar, so this is a no-op
+    // But we keep the interface for compatibility
+    console.log('ℹ️ GuitarSet samples are always guitar, ignoring instrument change:', instrument);
+  }
+
+  getInstrument(): InstrumentType {
+    return 'nylon-guitar'; // GuitarSet samples are guitar
+  }
+
+  stopAll(): void {
+    console.log('🛑 Stopping all GuitarSet audio...');
+    
+    // Stop all active sources
+    this.activeSources.forEach(source => {
+      try {
+        source.stop();
+      } catch (e) {
+        // Source may have already ended
+      }
+    });
+    
+    this.activeSources.clear();
+    console.log('✅ All audio stopped');
+  }
+
+  setEQ(bassGain: number, midGain: number, trebleGain: number): void {
+    // EQ not implemented for samples (would require audio processing)
+    // Could be added with BiquadFilterNode if needed
+    console.log('ℹ️ EQ not available for GuitarSet samples');
+  }
+
+  async dispose(): Promise<void> {
+    console.log('🗑️ Disposing GuitarSetAudioService...');
+    
+    this.stopAll();
+    
+    if (this.gainNode) {
+      this.gainNode.disconnect();
+      this.gainNode = null;
+    }
+
+    if (this.audioContext) {
+      await this.audioContext.close();
+      this.audioContext = null;
+    }
+
+    this.chordBuffers.clear();
+    this.noteBuffers.clear();
+    this.isInitialized = false;
+    
+    console.log('✅ GuitarSetAudioService disposed');
+  }
+}
+
+export const guitarSetAudioService = new GuitarSetAudioService();

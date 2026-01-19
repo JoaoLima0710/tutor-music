@@ -22,10 +22,21 @@ import { ChordPractice } from "./pages/ChordPractice";
 import Theory from "./pages/Theory";
 import Explore from "./pages/Explore";
 import { TrainingDashboard } from "./pages/TrainingDashboard";
+import Auth from "./pages/Auth";
+import { useUserStore } from "./stores/useUserStore";
+import { useEffect } from "react";
 
 function Router() {
+  const { isAuthenticated, refreshUser } = useUserStore();
+
+  useEffect(() => {
+    // Verificar autenticação ao carregar
+    refreshUser();
+  }, [refreshUser]);
+
   return (
     <Switch>
+      <Route path="/auth" component={Auth} />
       <Route path="/" component={Home} />
       <Route path="/chords" component={Chords} />
       <Route path="/scales" component={Scales} />

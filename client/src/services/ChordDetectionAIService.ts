@@ -98,18 +98,40 @@ export class ChordDetectionAIService {
 
 
   /**
-   * Carrega o modelo de ML (placeholder por enquanto)
+   * Carrega o modelo de ML (tenta carregar treinado, fallback para placeholder)
    */
   private async loadModel(): Promise<void> {
     try {
-      // Por enquanto, criamos um modelo simples como placeholder
-      // Em produÃ§Ã£o, carregaremos um modelo treinado
-      this.model = await this.createPlaceholderModel();
-
-      console.log('âœ… Modelo de detecÃ§Ã£o carregado (placeholder)');
+      // Tentar carregar modelo treinado primeiro (de localStorage ou URL)
+      const trainedModelLoaded = await this.loadTrainedModel();
+      
+      // Se não encontrou em localStorage, tentar carregar de URL pública
+      if (!trainedModelLoaded) {
+        try {
+          const publicModelUrl = '/models/chord-detection/model.json';
+          await this.loadModelFromUrl(publicModelUrl);
+          console.log('✅ Modelo treinado carregado de URL pública');
+          return;
+        } catch (urlError) {
+          console.log('⚠️ Modelo treinado não encontrado em URL pública, usando placeholder');
+        }
+      }
+      
+      if (!this.model) {
+        // Fallback: criar modelo placeholder
+        this.model = await this.createPlaceholderModel();
+        console.log('✅ Modelo placeholder criado');
+      }
     } catch (error) {
-      console.error('âŒ Erro ao carregar modelo:', error);
-      throw error;
+      console.error('❌ Erro ao carregar modelo:', error);
+      // Fallback para placeholder em caso de erro
+      try {
+        this.model = await this.createPlaceholderModel();
+        console.log('✅ Modelo placeholder criado como fallback');
+      } catch (fallbackError) {
+        console.error('❌ Erro ao criar modelo placeholder:', fallbackError);
+        throw error;
+      }
     }
   }
 

@@ -1,0 +1,126 @@
+{
+  "A#": {
+    "file": "A#.wav",
+    "duration": 2.0
+  },
+  "A#7": {
+    "file": "A#7.wav",
+    "duration": 2.0
+  },
+  "A#m": {
+    "file": "A#m.wav",
+    "duration": 2.0
+  },
+  "A": {
+    "file": "A.wav",
+    "duration": 2.0
+  },
+  "A7": {
+    "file": "A7.wav",
+    "duration": 2.0
+  },
+  "Am": {
+    "file": "Am.wav",
+    "duration": 2.0
+  },
+  "B": {
+    "file": "B.wav",
+    "duration": 2.0
+  },
+  "Bm": {
+    "file": "Bm.wav",
+    "duration": 2.0
+  },
+  "C#": {
+    "file": "C#.wav",
+    "duration": 2.0
+  },
+  "C#7": {
+    "file": "C#7.wav",
+    "duration": 2.0
+  },
+  "C#m": {
+    "file": "C#m.wav",
+    "duration": 2.0
+  },
+  "C": {
+    "file": "C.wav",
+    "duration": 2.0
+  },
+  "C7": {
+    "file": "C7.wav",
+    "duration": 2.0
+  },
+  "Cm": {
+    "file": "Cm.wav",
+    "duration": 2.0
+  },
+  "D#": {
+    "file": "D#.wav",
+    "duration": 2.0
+  },
+  "D#7": {
+    "file": "D#7.wav",
+    "duration": 2.0
+  },
+  "D#m": {
+    "file": "D#m.wav",
+    "duration": 2.0
+  },
+  "D": {
+    "file": "D.wav",
+    "duration": 2.0
+  },
+  "D7": {
+    "file": "D7.wav",
+    "duration": 2.0
+  },
+  "Dm": {
+    "file": "Dm.wav",
+    "duration": 2.0
+  },
+  "E": {
+    "file": "E.wav",
+    "duration": 2.0
+  },
+  "Em": {
+    "file": "Em.wav",
+    "duration": 2.0
+  },
+  "F#": {
+    "file": "F#.wav",
+    "duration": 2.0
+  },
+  "F#7": {
+    "file": "F#7.wav",
+    "duration": 2.0
+  },
+  "F#m": {
+    "file": "F#m.wav",
+    "duration": 2.0
+  },
+  "F": {
+    "file": "F.wav",
+    "duration": 2.0
+  },
+  "Fm": {
+    "file": "Fm.wav",
+    "duration": 2.0
+  },
+  "G#": {
+    "file": "G#.wav",
+    "duration": 2.0
+  },
+  "G#m": {
+    "file": "G#m.wav",
+    "duration": 2.0
+  },
+  "G": {
+    "file": "G.wav",
+    "duration": 2.0
+  },
+  "Gm": {
+    "file": "Gm.wav",
+    "duration": 2.0
+  }
+}

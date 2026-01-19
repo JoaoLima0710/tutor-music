@@ -177,6 +177,31 @@ class AudioService {
     });
   }
 
+  async playNote(note: string, duration: number = 0.5): Promise<void> {
+    try {
+      await this.initialize();
+      if (!this.synth) {
+        console.error('❌ Synth not available');
+        return;
+      }
+
+      // Ensure note has octave (default to 4 if not specified)
+      let noteWithOctave = note;
+      if (!/\d/.test(note)) {
+        noteWithOctave = note + '4';
+      }
+
+      console.log('🎵 Playing note:', noteWithOctave);
+
+      const now = Tone.now();
+      this.synth.triggerAttackRelease(noteWithOctave, duration, now);
+
+      console.log('✅ Note played successfully');
+    } catch (error) {
+      console.error('❌ Error playing note:', error);
+    }
+  }
+
   async playScale(scaleName: string, root: string, intervals: number[], duration: number = 0.3): Promise<void> {
     try {
       await this.initialize();

@@ -52,6 +52,8 @@ export interface SentimentAnalysis {
   keywords: string[];
 }
 
+import { freeLLMService, FreeLLMProvider } from './FreeLLMService';
+
 class LLMIntegrationService {
   private config: LLMConfig = {
     provider: 'openai',
@@ -61,6 +63,21 @@ class LLMIntegrationService {
   };
 
   private conversationHistory: Map<string, any[]> = new Map();
+  private useFreeLLM: boolean = true; // Usar LLMs gratuitos por padrão
+
+  /**
+   * Ativa/desativa uso de LLMs gratuitos
+   */
+  setUseFreeLLM(use: boolean): void {
+    this.useFreeLLM = use;
+  }
+
+  /**
+   * Configura provedor gratuito
+   */
+  setFreeLLMProvider(provider: FreeLLMProvider, apiKey?: string): void {
+    freeLLMService.updateConfig({ provider, apiKey });
+  }
 
   /**
    * Chamada principal para LLM
@@ -68,12 +85,55 @@ class LLMIntegrationService {
   async callLLM(request: LLMRequest): Promise<LLMResponse> {
     const { messages, config, context } = request;
 
-    // Simulação de chamada para LLM (em produção usaria API real)
+    // Usar LLMs gratuitos se ativado
+    if (this.useFreeLLM) {
+      try {
+        const enhancedMessages = this.enhanceMessagesWithContext(messages, context);
+        
+        // Converter para formato do FreeLLMService
+        const freeLLMMessages = enhancedMessages.map(m => ({
+          role: m.role as 'system' | 'user' | 'assistant',
+          content: m.content,
+        }));
+
+        const freeResponse = await freeLLMService.callLLM(freeLLMMessages, {
+          temperature: config.temperature,
+          maxTokens: config.maxTokens,
+        });
+
+        // Converter resposta para formato esperado
+        const response: LLMResponse = {
+          content: freeResponse.content,
+          usage: freeResponse.usage || {
+            promptTokens: 0,
+            completionTokens: 0,
+            totalTokens: 0,
+          },
+          metadata: {
+            model: freeResponse.provider,
+            finishReason: 'stop',
+            confidence: 0.8,
+          },
+        };
+
+        // Armazenar no histórico
+        if (context?.userProfile?.id) {
+          this.updateConversationHistory(context.userProfile.id, [...enhancedMessages, {
+            role: 'assistant',
+            content: response.content
+          }]);
+        }
+
+        return response;
+      } catch (error) {
+        console.warn('Erro ao usar LLM gratuito, usando fallback:', error);
+        // Continuar com simulação se falhar
+      }
+    }
+
+    // Fallback para simulação
     const enhancedMessages = this.enhanceMessagesWithContext(messages, context);
-
-    // Simular latência de rede
     await this.simulateNetworkDelay();
-
     const response = await this.simulateLLMResponse(enhancedMessages, config);
 
     // Armazenar no histórico

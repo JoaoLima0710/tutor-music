@@ -22,6 +22,7 @@ import { useGestureNavigation } from '@/hooks/useGestureNavigation';
 import { themeCustomizationService } from '@/services/ThemeCustomizationService';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useSongUnlockStore, checkAndUnlockSongs } from '@/stores/useSongUnlockStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { songs } from '@/data/songs';
 
 export default function Home() {
@@ -42,8 +43,9 @@ export default function Home() {
   
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { getUnlockedSongs, getNextUnlockableSongs, getLockedSongs } = useSongUnlockStore();
+  const { user } = useUserStore();
   
-  const userName = "João";
+  const userName = user?.name || "Usuário";
   
   // Check and unlock songs when component mounts or progress changes
   useEffect(() => {

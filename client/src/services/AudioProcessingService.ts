@@ -49,11 +49,13 @@ export class AudioProcessingService {
   private audioBuffer: Float32Array;
   private circularBuffer: Float32Array;
   private bufferIndex = 0;
+  private recentChunks: Float32Array[] = []; // Últimos 3 chunks para análise acumulada
+  private maxRecentChunks = 3;
 
-  // Configurações padrão
+  // Configurações padrão (otimizadas para baixa latência)
   private config: AudioProcessingConfig = {
     sampleRate: 44100,
-    bufferSize: 2048, // ~46ms de áudio a 44.1kHz
+    bufferSize: 1024, // ~23ms de áudio a 44.1kHz (reduzido para menor latência)
     channels: 1,
     echoCancellation: true,
     noiseSuppression: true,
@@ -107,19 +109,26 @@ export class AudioProcessingService {
         }
       });
 
-      // Criar contexto de áudio
+      // Criar contexto de áudio (otimizado para baixa latência)
       this.audioContext = new AudioContext({
         sampleRate: this.config.sampleRate,
         latencyHint: 'interactive' // Baixa latência
       });
+      
+      // Otimizar para processamento em tempo real
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
 
       // Criar nós de áudio
       this.microphone = this.audioContext.createMediaStreamSource(this.stream);
       this.analyser = this.audioContext.createAnalyser();
 
-      // Configurar analyser
+      // Configurar analyser (otimizado para baixa latência)
       this.analyser.fftSize = this.config.bufferSize * 2;
-      this.analyser.smoothingTimeConstant = 0.1;
+      this.analyser.smoothingTimeConstant = 0.3; // Aumentado para suavizar variações
+      this.analyser.minDecibels = -90;
+      this.analyser.maxDecibels = -10;
 
       // Criar processor para processamento em tempo real
       this.processor = this.audioContext.createScriptProcessor(
@@ -192,11 +201,21 @@ export class AudioProcessingService {
       // Analisar qualidade do sinal
       const quality = this.analyzeSignalQuality(chunk);
 
-      // Detecção de acordes com IA
+      // Detecção de acordes com IA (otimizada)
       let chordDetection: ChordClassificationResult | undefined;
-      if (chunk.rms > 0.01 && !chunk.isSilent) { // Só detectar se há sinal
+      
+      // Filtro mais inteligente: só detectar se há sinal significativo
+      const hasSignificantSignal = chunk.rms > 0.02 && chunk.peak > 0.05 && !chunk.isSilent;
+      
+      if (hasSignificantSignal) {
         try {
-          chordDetection = await chordDetectionAIService.detectChord(chunk.audioData);
+          // Usar buffer acumulado para melhor análise (últimos 3 chunks)
+          const accumulatedBuffer = this.getAccumulatedBuffer();
+          
+          // Detectar apenas se o buffer acumulado tem duração suficiente (~70ms)
+          if (accumulatedBuffer.length >= this.config.bufferSize * 3) {
+            chordDetection = await chordDetectionAIService.detectChord(accumulatedBuffer);
+          }
         } catch (error) {
           console.warn('Erro na detecção de acordes:', error);
         }
@@ -239,6 +258,12 @@ export class AudioProcessingService {
 
     for (let i = 0; i < this.config.bufferSize; i++) {
       audioData[i] = this.circularBuffer[(chunkStart + i) % this.circularBuffer.length];
+    }
+    
+    // Manter histórico de chunks recentes para análise acumulada
+    this.recentChunks.push(new Float32Array(audioData));
+    if (this.recentChunks.length > this.maxRecentChunks) {
+      this.recentChunks.shift();
     }
 
     // Calcular métricas básicas
@@ -389,6 +414,26 @@ export class AudioProcessingService {
 
     // Estabilidade = 1 - coeficiente de variação (normalizado)
     return Math.max(0, 1 - cv * 2);
+  }
+
+  /**
+   * Obtém buffer acumulado dos últimos chunks (para melhor análise)
+   */
+  private getAccumulatedBuffer(): Float32Array {
+    if (this.recentChunks.length === 0) {
+      return new Float32Array(this.config.bufferSize);
+    }
+    
+    const totalLength = this.recentChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    const accumulated = new Float32Array(totalLength);
+    
+    let offset = 0;
+    for (const chunk of this.recentChunks) {
+      accumulated.set(chunk, offset);
+      offset += chunk.length;
+    }
+    
+    return accumulated;
   }
 
   /**

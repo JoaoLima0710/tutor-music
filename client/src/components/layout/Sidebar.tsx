@@ -1,6 +1,9 @@
-import { Home, Guitar, Music2, Trophy, Target, User, Flame, Music, Clock, Settings, Book } from 'lucide-react';
+import { Home, Guitar, Music2, Trophy, Target, User, Flame, Music, Clock, Settings, Book, LogOut } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Progress } from '@/components/ui/progress';
+import { useUserStore } from '@/stores/useUserStore';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface SidebarProps {
   userName: string;
@@ -11,7 +14,14 @@ interface SidebarProps {
 }
 
 export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak }: SidebarProps) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { logout, isAuthenticated } = useUserStore();
+
+  const handleLogout = () => {
+    logout();
+    toast.success('Logout realizado com sucesso!');
+    setLocation('/auth');
+  };
   
   const navItems = [
     { path: '/', label: 'Início', icon: Home },
@@ -101,7 +111,17 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
       </nav>
       
       {/* Footer */}
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-white/10 space-y-2">
+        {isAuthenticated && (
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            className="w-full justify-start text-gray-400 hover:text-red-400 hover:bg-red-500/10"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
+        )}
         <div className="text-xs text-gray-500 text-center">
           MusicTutor © 2026
         </div>
