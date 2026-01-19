@@ -165,9 +165,14 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
         <div className="overflow-x-auto">
           <div className="inline-block min-w-full">
             <div className="bg-gradient-to-br from-[#2a1a0e] to-[#1a0f05] rounded-xl p-4 border-2 border-amber-800/50">
-              {/* Header com números dos trastes */}
+              {/* Header com números dos trastes - CORRIGIDO: 0 = corda solta, 1 = primeira casa */}
               <div className="flex mb-2">
                 <div className="w-16 flex-shrink-0"></div>
+                {/* Corda solta (0) */}
+                <div className="flex-1 text-center text-xs font-bold text-amber-200 min-w-[40px]">
+                  Solta
+                </div>
+                {/* Trastes 1-24 */}
                 {Array.from({ length: displayFrets }, (_, i) => i + 1).map((fret) => (
                   <div
                     key={fret}

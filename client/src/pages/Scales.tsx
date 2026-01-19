@@ -224,103 +224,11 @@ export default function Scales() {
 
       {/* Main Content */}
       <main className="lg:ml-72 pb-20 lg:pb-8">
-        <div className="container py-8 space-y-8">
-          <header>
+        <div className="container py-6 space-y-6">
+          <header className="mb-4">
             <h1 className="text-4xl font-bold text-white mb-2">Escalas Musicais</h1>
             <p className="text-gray-400">Aprenda e pratique escalas no braço do violão</p>
           </header>
-          
-          {/* Estatísticas de Progressão - Melhoradas com Labels Visíveis */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-6 rounded-xl bg-gradient-to-br from-[#06b6d4]/20 to-[#0891b2]/10 border border-[#06b6d4]/30">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">🔓</span>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Desbloqueadas</span>
-              </div>
-              <div className="text-4xl font-bold text-[#06b6d4] mb-1">{stats.totalUnlocked}</div>
-              <div className="text-sm text-gray-500">Escalas disponíveis</div>
-            </div>
-            <div className="p-6 rounded-xl bg-gradient-to-br from-[#10b981]/20 to-[#059669]/10 border border-[#10b981]/30">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">🏆</span>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Dominadas</span>
-              </div>
-              <div className="text-4xl font-bold text-[#10b981] mb-1">{stats.totalMastered}</div>
-              <div className="text-sm text-gray-500">Escalas completas</div>
-            </div>
-            <div className="p-6 rounded-xl bg-gradient-to-br from-[#8b5cf6]/20 to-[#7c3aed]/10 border border-[#8b5cf6]/30">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">🎸</span>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Práticas</span>
-              </div>
-              <div className="text-4xl font-bold text-[#8b5cf6] mb-1">{stats.totalPracticed}</div>
-              <div className="text-sm text-gray-500">Sessões realizadas</div>
-            </div>
-            <div className="p-6 rounded-xl bg-gradient-to-br from-[#f59e0b]/20 to-[#d97706]/10 border border-[#f59e0b]/30">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">🎯</span>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Precisão</span>
-              </div>
-              <div className="text-4xl font-bold text-[#f59e0b] mb-1">{stats.averageAccuracy}%</div>
-              <div className="text-sm text-gray-500">Taxa de acerto</div>
-            </div>
-          </div>
-
-          {/* Escalas Desbloqueadas */}
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-              <span>🔓</span>
-              <span>Escalas Disponíveis</span>
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              {unlockedScales.map((scale) => {
-                const progress = getScaleProgress(scale.id);
-                const mastered = isScaleMastered(scale.id);
-                return (
-              <Button
-                key={scale.id}
-                onClick={() => setSelectedScale(scale)}
-                variant={selectedScale.id === scale.id ? 'default' : 'outline'}
-                className={
-                  selectedScale.id === scale.id
-                    ? 'bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-white h-auto py-3'
-                    : 'bg-[#1a1a2e]/60 border-white/20 text-gray-300 hover:bg-[#2a2a3e] h-auto py-3'
-                }
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <span className="font-bold">{scale.name}</span>
-                  <span className="text-xs opacity-70 capitalize">{scale.difficulty}</span>
-                  {mastered && <span className="text-xs text-[#10b981]">✅ Dominada</span>}
-                </div>
-              </Button>
-                );
-              })}
-            </div>
-          </div>
-          
-          {/* Escalas Bloqueadas */}
-          {lockedScales.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-500 mb-4 flex items-center gap-2">
-                <span>🔒</span>
-                <span>Escalas Bloqueadas</span>
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                {lockedScales.map((scale) => (
-                  <div
-                    key={scale.id}
-                    className="p-3 rounded-lg bg-[#1a1a2e]/30 border border-white/10 opacity-50 cursor-not-allowed"
-                  >
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="font-bold text-gray-500">{scale.name}</span>
-                      <span className="text-xs text-gray-600 capitalize">{scale.difficulty}</span>
-                      <span className="text-xs text-gray-600">🔒 Bloqueada</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Learning Path Navigation */}
           <div className="p-6 rounded-2xl bg-gradient-to-br from-[#1a1a2e]/80 to-[#2a2a3e]/60 border border-white/20 shadow-xl">
