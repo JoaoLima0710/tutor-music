@@ -6,8 +6,8 @@ import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { toast } from 'sonner';
 
 /**
- * Calculate fretboard positions for any scale dynamically
- * This replaces the hardcoded C Major positions
+ * Calculate fretboard positions for any scale using a proper box pattern
+ * This creates a didactically correct and technically sound scale pattern
  */
 function calculateScalePositions(root: string, intervals: number[]): Array<{
   note: string;
@@ -17,7 +17,7 @@ function calculateScalePositions(root: string, intervals: number[]): Array<{
   color: string;
 }> {
   const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  const STRINGS = ['E', 'B', 'G', 'D', 'A', 'E']; // From high to low
+  const STRINGS = ['E', 'B', 'G', 'D', 'A', 'E']; // From high E (index 0) to low E (index 5)
 
   // Convert root to uppercase and find index
   const rootNote = root.toUpperCase();
@@ -28,18 +28,25 @@ function calculateScalePositions(root: string, intervals: number[]): Array<{
     return [];
   }
 
-  // Generate scale notes
-  const scaleNotes = intervals.map(interval => {
+  // Generate scale notes in order
+  const scaleNotes: string[] = [];
+  intervals.forEach(interval => {
     const noteIndex = (rootIndex + interval) % 12;
-    return NOTES[noteIndex];
+    scaleNotes.push(NOTES[noteIndex]);
   });
-
-  // Add octave note
+  // Add octave return
   scaleNotes.push(rootNote);
 
   console.log('🎼 Scale notes for', root, ':', scaleNotes);
 
-  // Calculate positions using musical theory
+  // Find starting position (root note) - prefer lower strings, lower frets
+  const startPosition = findRootPosition(rootNote, STRINGS, NOTES);
+  if (!startPosition) {
+    console.error('Could not find starting position for root:', rootNote);
+    return [];
+  }
+
+  // Build scale pattern using box pattern logic
   const positions: Array<{
     note: string;
     string: number;
@@ -48,111 +55,227 @@ function calculateScalePositions(root: string, intervals: number[]): Array<{
     color: string;
   }> = [];
 
-  scaleNotes.forEach((note, sequence) => {
-    // Find the best position for this note
-    const position = findBestNotePosition(note, sequence, positions);
+  // Add root note as first position
+  positions.push({
+    note: rootNote,
+    string: startPosition.string,
+    fret: startPosition.fret,
+    sequence: 1,
+    color: NOTE_COLORS[0]
+  });
+
+  // Build the rest of the scale following a logical pattern
+  // Strategy: Move across strings and up/down frets in a natural way
+  let currentString = startPosition.string;
+  let currentFret = startPosition.fret;
+  const usedPositions = new Set<string>();
+  usedPositions.add(`${currentString}-${currentFret}`);
+
+  // For each scale note (skip first, already added)
+  for (let i = 1; i < scaleNotes.length; i++) {
+    const targetNote = scaleNotes[i];
+    const position = findNextLogicalPosition(
+      targetNote,
+      currentString,
+      currentFret,
+      usedPositions,
+      STRINGS,
+      NOTES,
+      positions
+    );
+
     if (position) {
       positions.push({
-        ...position,
-        sequence: sequence + 1,
-        color: NOTE_COLORS[sequence % NOTE_COLORS.length]
+        note: targetNote,
+        string: position.string,
+        fret: position.fret,
+        sequence: i + 1,
+        color: NOTE_COLORS[i % NOTE_COLORS.length]
       });
+
+      currentString = position.string;
+      currentFret = position.fret;
+      usedPositions.add(`${position.string}-${position.fret}`);
+    } else {
+      // Fallback: find any available position
+      const fallback = findAnyPosition(targetNote, usedPositions, STRINGS, NOTES);
+      if (fallback) {
+        positions.push({
+          note: targetNote,
+          string: fallback.string,
+          fret: fallback.fret,
+          sequence: i + 1,
+          color: NOTE_COLORS[i % NOTE_COLORS.length]
+        });
+        currentString = fallback.string;
+        currentFret = fallback.fret;
+        usedPositions.add(`${fallback.string}-${fallback.fret}`);
+      }
     }
-  });
+  }
 
   return positions;
 }
 
 /**
- * Find the best position for a note on the fretboard
+ * Find root position - prefer lower strings (5th or 6th), lower frets (0-5)
  */
-function findBestNotePosition(note: string, sequence: number, existingPositions: any[]): any {
-  const STRINGS = ['E', 'B', 'G', 'D', 'A', 'E']; // High to low
-  const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-
-  // Find all possible positions for this note
-  const possiblePositions: Array<{string: number, fret: number, priority: number}> = [];
-
-  STRINGS.forEach((stringNote, stringIndex) => {
+function findRootPosition(rootNote: string, STRINGS: string[], NOTES: string[]): { string: number; fret: number } | null {
+  // Try 6th string (low E) first - most common starting position
+  for (let stringIndex = 5; stringIndex >= 0; stringIndex--) {
+    const stringNote = STRINGS[stringIndex];
     const stringRootIndex = NOTES.indexOf(stringNote);
-    const targetIndex = NOTES.indexOf(note);
+    const targetIndex = NOTES.indexOf(rootNote);
 
     if (stringRootIndex !== -1 && targetIndex !== -1) {
-      // Calculate fret position
       let fret = (targetIndex - stringRootIndex + 12) % 12;
-
-      // Also try octave up
-      const fretOctave = fret + 12;
-
-      // Calculate priority (prefer lower frets, avoid overlaps)
-      const priority = calculatePositionPriority(fret, stringIndex, existingPositions);
-
-      possiblePositions.push({
-        string: stringIndex,
-        fret: fret,
-        priority: priority
-      });
-
-      // Add octave option with lower priority
-      const octavePriority = calculatePositionPriority(fretOctave, stringIndex, existingPositions) - 10;
-      possiblePositions.push({
-        string: stringIndex,
-        fret: fretOctave,
-        priority: octavePriority
-      });
+      
+      // Prefer open position or lower frets (0-5)
+      if (fret <= 5) {
+        return { string: stringIndex, fret };
+      }
+      
+      // Also try octave down (12 frets lower)
+      const fretLower = fret - 12;
+      if (fretLower >= 0 && fretLower <= 5) {
+        return { string: stringIndex, fret: fretLower };
+      }
     }
-  });
+  }
 
-  // Sort by priority and return best position
-  possiblePositions.sort((a, b) => b.priority - a.priority);
+  // Fallback: any position
+  for (let stringIndex = 5; stringIndex >= 0; stringIndex--) {
+    const stringNote = STRINGS[stringIndex];
+    const stringRootIndex = NOTES.indexOf(stringNote);
+    const targetIndex = NOTES.indexOf(rootNote);
 
-  if (possiblePositions.length > 0) {
-    const best = possiblePositions[0];
-    return {
-      note: note,
-      string: best.string,
-      fret: best.fret
-    };
+    if (stringRootIndex !== -1 && targetIndex !== -1) {
+      const fret = (targetIndex - stringRootIndex + 12) % 12;
+      if (fret <= 12) {
+        return { string: stringIndex, fret };
+      }
+    }
   }
 
   return null;
 }
 
 /**
- * Calculate priority for a position (higher = better)
+ * Find next logical position - prefer moving to adjacent strings, similar frets
  */
-function calculatePositionPriority(fret: number, stringIndex: number, existingPositions: any[]): number {
-  let priority = 100;
+function findNextLogicalPosition(
+  targetNote: string,
+  currentString: number,
+  currentFret: number,
+  usedPositions: Set<string>,
+  STRINGS: string[],
+  NOTES: string[],
+  existingPositions: any[]
+): { string: number; fret: number } | null {
+  const targetIndex = NOTES.indexOf(targetNote);
+  if (targetIndex === -1) return null;
 
-  // Prefer frets between 0-12 (easier to play)
-  if (fret >= 0 && fret <= 12) {
-    priority += 20;
-  } else if (fret > 12 && fret <= 24) {
-    priority += 10;
-  } else {
-    priority -= 10; // Penalize very high frets
+  const candidates: Array<{ string: number; fret: number; score: number }> = [];
+
+  // Check adjacent strings first (prefer moving to next string)
+  for (let offset = -1; offset <= 1; offset++) {
+    const stringIndex = currentString + offset;
+    if (stringIndex < 0 || stringIndex >= STRINGS.length) continue;
+
+    const stringNote = STRINGS[stringIndex];
+    const stringRootIndex = NOTES.indexOf(stringNote);
+    if (stringRootIndex === -1) continue;
+
+    let fret = (targetIndex - stringRootIndex + 12) % 12;
+    const key = `${stringIndex}-${fret}`;
+
+    if (usedPositions.has(key)) continue;
+
+    // Calculate score: prefer positions close to current fret, on adjacent strings
+    let score = 100;
+    
+    // Prefer moving to next string (ascending)
+    if (offset === 1) score += 30;
+    else if (offset === 0) score += 10; // Same string
+    else score += 5; // Previous string
+
+    // Prefer frets close to current (within 4 frets)
+    const fretDistance = Math.abs(fret - currentFret);
+    if (fretDistance <= 2) score += 40;
+    else if (fretDistance <= 4) score += 20;
+    else if (fretDistance <= 6) score += 10;
+    else score -= 20;
+
+    // Prefer lower frets (0-8)
+    if (fret <= 8) score += 15;
+    else if (fret <= 12) score += 5;
+    else score -= 10;
+
+    // Prefer ascending pattern (fret should be >= current or slightly lower)
+    if (fret >= currentFret - 2) score += 20;
+
+    candidates.push({ string: stringIndex, fret, score });
   }
 
-  // Prefer middle strings for better playability
-  if (stringIndex >= 2 && stringIndex <= 4) {
-    priority += 15;
-  } else if (stringIndex === 1 || stringIndex === 5) {
-    priority += 5;
-  }
+  // Also check octave positions
+  for (let stringIndex = 0; stringIndex < STRINGS.length; stringIndex++) {
+    const stringNote = STRINGS[stringIndex];
+    const stringRootIndex = NOTES.indexOf(stringNote);
+    if (stringRootIndex === -1) continue;
 
-  // Avoid positions too close to existing ones (prevent crowding)
-  existingPositions.forEach(existing => {
-    if (existing.string === stringIndex) {
-      const distance = Math.abs(existing.fret - fret);
-      if (distance < 2) {
-        priority -= 20; // Heavy penalty for very close positions
-      } else if (distance < 4) {
-        priority -= 10; // Moderate penalty
-      }
+    let fret = (targetIndex - stringRootIndex + 12) % 12;
+    const fretOctave = fret + 12;
+    const key = `${stringIndex}-${fretOctave}`;
+
+    if (!usedPositions.has(key) && fretOctave <= 12) {
+      let score = 50;
+      const stringDistance = Math.abs(stringIndex - currentString);
+      if (stringDistance <= 1) score += 20;
+      if (fretOctave <= 8) score += 10;
+      candidates.push({ string: stringIndex, fret: fretOctave, score });
     }
-  });
+  }
 
-  return priority;
+  if (candidates.length === 0) return null;
+
+  // Sort by score and return best
+  candidates.sort((a, b) => b.score - a.score);
+  return { string: candidates[0].string, fret: candidates[0].fret };
+}
+
+/**
+ * Fallback: find any available position for a note
+ */
+function findAnyPosition(
+  targetNote: string,
+  usedPositions: Set<string>,
+  STRINGS: string[],
+  NOTES: string[]
+): { string: number; fret: number } | null {
+  const targetIndex = NOTES.indexOf(targetNote);
+  if (targetIndex === -1) return null;
+
+  for (let stringIndex = 0; stringIndex < STRINGS.length; stringIndex++) {
+    const stringNote = STRINGS[stringIndex];
+    const stringRootIndex = NOTES.indexOf(stringNote);
+    if (stringRootIndex === -1) continue;
+
+    let fret = (targetIndex - stringRootIndex + 12) % 12;
+    const key = `${stringIndex}-${fret}`;
+
+    if (!usedPositions.has(key) && fret <= 12) {
+      return { string: stringIndex, fret };
+    }
+
+    // Try octave
+    const fretOctave = fret + 12;
+    const keyOctave = `${stringIndex}-${fretOctave}`;
+    if (!usedPositions.has(keyOctave) && fretOctave <= 12) {
+      return { string: stringIndex, fret: fretOctave };
+    }
+  }
+
+  return null;
 }
 
 interface ScaleFretboardProps {
@@ -343,6 +466,16 @@ export function ScaleFretboard({ scaleName, scaleNotes, tonic, intervals }: Scal
             />
           ))}
 
+          {/* Traste 0 (nut) - linha mais grossa */}
+          <line
+            x1="120"
+            y1="50"
+            x2="120"
+            y2="370"
+            stroke="#8b7355"
+            strokeWidth="4"
+            opacity="0.8"
+          />
           {/* Trastes (linhas verticais) - mais realistas */}
           {[1, 2, 3, 4, 5, 6, 7, 8].map((fret) => (
             <g key={`fret-${fret}`}>
@@ -368,7 +501,17 @@ export function ScaleFretboard({ scaleName, scaleNotes, tonic, intervals }: Scal
             </g>
           ))}
 
-          {/* Números dos trastes */}
+          {/* Números dos trastes - incluindo traste 0 (casa aberta) */}
+          <text
+            x={120 - 35}
+            y="380"
+            fill="#9ca3af"
+            fontSize="16"
+            fontWeight="600"
+            textAnchor="middle"
+          >
+            0
+          </text>
           {[1, 2, 3, 4, 5, 6, 7, 8].map((fret) => (
             <text
               key={`fret-label-${fret}`}
@@ -398,7 +541,7 @@ export function ScaleFretboard({ scaleName, scaleNotes, tonic, intervals }: Scal
             </text>
           ))}
 
-          {/* Setas conectando as notas */}
+          {/* Setas conectando as notas - apenas se a distância for razoável */}
           {scalePattern.slice(0, -1).map((note, index) => {
             const nextNote = scalePattern[index + 1];
             const x1 = 120 + note.fret * 70 - 35;
@@ -406,33 +549,62 @@ export function ScaleFretboard({ scaleName, scaleNotes, tonic, intervals }: Scal
             const x2 = 120 + nextNote.fret * 70 - 35;
             const y2 = 80 + nextNote.string * 50;
 
+            // Calcular distância
+            const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            
+            // Só mostrar seta se a distância for razoável (não muito longa)
+            // e se as notas estiverem em strings adjacentes ou próximas
+            const stringDistance = Math.abs(nextNote.string - note.string);
+            const fretDistance = Math.abs(nextNote.fret - note.fret);
+            
+            // Mostrar seta apenas se:
+            // 1. Strings adjacentes (distância <= 1) OU
+            // 2. Mesma string e frets próximos (distância <= 3) OU
+            // 3. Distância visual não muito grande (< 200px)
+            const shouldShowArrow = 
+              (stringDistance <= 1 && fretDistance <= 5) ||
+              (stringDistance === 0 && fretDistance <= 3) ||
+              (distance < 200 && stringDistance <= 2);
+
+            if (!shouldShowArrow) return null;
+
             return (
               <g key={`arrow-${index}`}>
                 <defs>
                   <marker
                     id={`arrowhead-${index}`}
-                    markerWidth="10"
-                    markerHeight="10"
-                    refX="9"
-                    refY="3"
+                    markerWidth="8"
+                    markerHeight="8"
+                    refX="7"
+                    refY="2.5"
                     orient="auto"
                   >
                     <polygon
-                      points="0 0, 10 3, 0 6"
+                      points="0 0, 8 2.5, 0 5"
                       fill="#10b981"
                     />
                   </marker>
                 </defs>
+                {/* Linha de fundo (mais grossa, mais escura) */}
+                <line
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke="#065f46"
+                  strokeWidth="5"
+                  opacity="0.3"
+                />
+                {/* Linha principal */}
                 <line
                   x1={x1}
                   y1={y1}
                   x2={x2}
                   y2={y2}
                   stroke="#10b981"
-                  strokeWidth="3"
-                  strokeDasharray="5,5"
+                  strokeWidth="2.5"
                   markerEnd={`url(#arrowhead-${index})`}
-                  opacity="0.7"
+                  opacity="0.85"
                 />
               </g>
             );
@@ -552,58 +724,86 @@ export function ScaleFretboard({ scaleName, scaleNotes, tonic, intervals }: Scal
         </svg>
       </div>
 
-      {/* Legenda: Como Ler Este Diagrama */}
+      {/* Legenda: Como Ler Este Diagrama - MELHORADA */}
       <div className="bg-gradient-to-br from-[#1a1a2e]/80 to-[#16162a]/60 rounded-2xl p-6 border border-white/10">
-        <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <h4 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
           📖 Como Ler Este Diagrama
         </h4>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-lg">
               1
             </div>
             <div>
-              <p className="text-white font-semibold">Comece pela primeira nota</p>
-              <p className="text-gray-400 text-sm">Procure o círculo com o número ① e a mão apontando 👉</p>
+              <p className="text-white font-bold text-base mb-1">Localize a Tônica</p>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Procure a nota marcada com ⭐ (estrela dourada). Esta é a nota fundamental da escala. Geralmente está na 6ª ou 5ª corda.
+              </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-lg">
               2
             </div>
             <div>
-              <p className="text-white font-semibold">Siga as setas verdes</p>
-              <p className="text-gray-400 text-sm">As setas tracejadas mostram o caminho de uma nota para a próxima</p>
+              <p className="text-white font-bold text-base mb-1">Siga a Sequência Numérica</p>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Toque as notas na ordem: ① → ② → ③ → ④ → ⑤ → ⑥ → ⑦ → ⑧. Os números estão dentro dos círculos coloridos.
+              </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-pink-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-lg">
               3
             </div>
             <div>
-              <p className="text-white font-semibold">Toque na ordem dos números</p>
-              <p className="text-gray-400 text-sm">① → ② → ③ → ④... até completar a escala</p>
+              <p className="text-white font-bold text-base mb-1">Use as Setas como Guia</p>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                As setas verdes mostram o caminho entre notas próximas. Elas aparecem apenas quando faz sentido musicalmente.
+              </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-lg">
               4
             </div>
             <div>
-              <p className="text-white font-semibold">Use o botão "Tocar Sequência"</p>
-              <p className="text-gray-400 text-sm">Ouça como deve soar e veja as notas acenderem em amarelo</p>
+              <p className="text-white font-bold text-base mb-1">Pratique com Áudio</p>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Use o botão "Tocar Sequência" para ouvir como a escala deve soar. As notas acenderão em amarelo durante a reprodução.
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-white/10">
-          <p className="text-sm text-gray-400">
-            💡 <span className="font-semibold text-gray-300">Dica:</span> As letras à esquerda (E, B, G, D, A, E) são os nomes das cordas. Os números embaixo (1, 2, 3...) são os trastes do violão.
-          </p>
+        <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">🎸</span>
+            <div>
+              <p className="text-white font-semibold text-sm mb-1">Estrutura do Diagrama</p>
+              <p className="text-gray-400 text-sm">
+                <strong className="text-gray-300">Cordas (esquerda):</strong> E, B, G, D, A, E - da mais aguda (topo) para a mais grave (fundo)
+              </p>
+              <p className="text-gray-400 text-sm mt-1">
+                <strong className="text-gray-300">Trastes (embaixo):</strong> 0 (casa aberta), 1, 2, 3... - números indicam em qual traste pressionar
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3 mt-4">
+            <span className="text-2xl">💡</span>
+            <div>
+              <p className="text-white font-semibold text-sm mb-1">Dica de Execução</p>
+              <p className="text-gray-400 text-sm">
+                A escala segue um padrão "box" tradicional. Tente manter os dedos próximos e mover-se suavemente entre as cordas. 
+                Pratique devagar primeiro, depois aumente a velocidade.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
