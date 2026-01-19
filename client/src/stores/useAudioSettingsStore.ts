@@ -1,8 +1,25 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type AudioEngineType = 'synthesis' | 'samples' | 'guitarset';
-export type InstrumentType = 'nylon-guitar' | 'steel-guitar' | 'piano';
+export type AudioEngineType = 'synthesis' | 'samples' | 'guitarset' | 'philharmonia';
+export type InstrumentType = 
+  | 'nylon-guitar' 
+  | 'steel-guitar' 
+  | 'piano'
+  | 'violin'
+  | 'viola'
+  | 'cello'
+  | 'double-bass'
+  | 'flute'
+  | 'oboe'
+  | 'clarinet'
+  | 'saxophone'
+  | 'trumpet'
+  | 'french-horn'
+  | 'trombone'
+  | 'guitar'
+  | 'mandolin'
+  | 'banjo';
 export type EQPreset = 'balanced' | 'bass-boost' | 'treble-boost' | 'custom';
 
 interface AudioSettingsState {

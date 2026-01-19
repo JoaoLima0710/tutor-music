@@ -114,16 +114,28 @@ export function usePWA() {
       // Check for updates on load
       reg.update();
 
+      // Verificar se já há um service worker waiting (atualização pendente)
+      if (reg.waiting) {
+        console.log('[PWA] Service worker waiting encontrado - atualização disponível');
+        setUpdateAvailable(true);
+      }
+
       // Listen for updates
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
         
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New version available
-              setUpdateAvailable(true);
-              showUpdateNotification(newWorker);
+            if (newWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                // New version available
+                console.log('[PWA] Nova versão instalada e disponível');
+                setUpdateAvailable(true);
+                showUpdateNotification(newWorker);
+              } else {
+                // First install
+                console.log('[PWA] Service worker instalado pela primeira vez');
+              }
             }
           });
         }
@@ -171,13 +183,40 @@ export function usePWA() {
   const checkForUpdates = async () => {
     if (registration) {
       try {
+        console.log('[PWA] Verificando atualizações...');
         await registration.update();
-        toast.info('Verificando atualizações...', {
-          description: 'Aguarde um momento',
-        });
+        
+        // Verificar se há um service worker waiting
+        if (registration.waiting) {
+          console.log('[PWA] Atualização encontrada!');
+          setUpdateAvailable(true);
+          toast.success('Atualização encontrada!', {
+            description: 'Uma nova versão está disponível',
+          });
+        } else {
+          console.log('[PWA] Nenhuma atualização disponível');
+          // Verificar novamente após um delay
+          setTimeout(() => {
+            if (!registration.waiting) {
+              toast.info('Você está usando a versão mais recente', {
+                description: 'Não há atualizações disponíveis',
+              });
+            }
+          }, 1000);
+        }
       } catch (error) {
         console.error('[PWA] Update check failed:', error);
+        toast.error('Erro ao verificar atualizações', {
+          description: 'Tente novamente mais tarde',
+        });
       }
+    } else {
+      // Se não há registration, tentar registrar novamente
+      console.log('[PWA] Tentando registrar service worker...');
+      await registerServiceWorker();
+      toast.info('Verificando atualizações...', {
+        description: 'Aguarde um momento',
+      });
     }
   };
 

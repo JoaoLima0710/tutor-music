@@ -19,11 +19,23 @@ export function UpdateBanner() {
 
     // Mostrar banner se houver atualização e não foi dispensada
     if (updateAvailable && dismissed !== 'true') {
+      console.log('[UpdateBanner] Mostrando banner de atualização');
       setIsVisible(true);
     } else {
       setIsVisible(false);
     }
   }, [updateAvailable]);
+
+  // Verificar atualizações periodicamente (a cada 5 minutos)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (registration) {
+        registration.update().catch(console.error);
+      }
+    }, 5 * 60 * 1000); // 5 minutos
+
+    return () => clearInterval(interval);
+  }, [registration]);
 
   const handleUpdate = async () => {
     setIsUpdating(true);

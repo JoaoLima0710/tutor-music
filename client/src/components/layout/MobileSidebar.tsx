@@ -1,7 +1,10 @@
-import { X, Home, Guitar, Music2, Trophy, Target, User, Flame, Music, Clock, Mic2, BookOpen, Settings } from 'lucide-react';
+import { X, Home, Guitar, Music2, Trophy, Target, User, Flame, Music, Clock, Mic2, BookOpen, Settings, RefreshCw, Download } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { usePWA } from '@/hooks/usePWA';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface MobileSidebarProps {
   isOpen: boolean;
@@ -23,6 +26,9 @@ export function MobileSidebar({
   streak
 }: MobileSidebarProps) {
   const [location] = useLocation();
+  const { updateAvailable, checkForUpdates, registration } = usePWA();
+  const [isChecking, setIsChecking] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   
   const navItems = [
     { path: '/', label: 'Início', icon: Home },
@@ -39,6 +45,79 @@ export function MobileSidebar({
   ];
   
   const xpPercentage = (currentXP / xpToNextLevel) * 100;
+
+  const handleCheckForUpdates = async () => {
+    setIsChecking(true);
+    try {
+      await checkForUpdates();
+      
+      // Aguardar um pouco para o service worker verificar atualizações
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Verificar novamente se há atualização disponível
+      // O estado updateAvailable será atualizado pelo hook usePWA
+      if (registration?.waiting) {
+        toast.success('Atualização encontrada!', {
+          description: 'Clique em "Atualizar Agora" para aplicar',
+          duration: 5000,
+        });
+      } else {
+        toast.info('Você está usando a versão mais recente', {
+          description: 'Não há atualizações disponíveis no momento',
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao verificar atualizações:', error);
+      toast.error('Erro ao verificar atualizações', {
+        description: 'Tente novamente mais tarde',
+      });
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  const handleForceUpdate = async () => {
+    setIsUpdating(true);
+    
+    try {
+      // Enviar mensagem para o service worker para ativar a nova versão
+      if (registration?.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        toast.info('Atualizando aplicativo...', {
+          description: 'Aguarde um momento',
+        });
+        
+        // Aguardar um pouco para o service worker processar
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Recarregar a página para aplicar a atualização
+        window.location.reload();
+      } else {
+        // Se não há service worker waiting, forçar recarregamento
+        toast.info('Recarregando aplicativo...', {
+          description: 'Isso pode buscar atualizações',
+        });
+        
+        // Limpar cache e recarregar
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar:', error);
+      toast.error('Erro ao atualizar', {
+        description: 'Tente recarregar a página manualmente',
+      });
+      setIsUpdating(false);
+    }
+  };
   
   if (!isOpen) return null;
   
@@ -106,7 +185,7 @@ export function MobileSidebar({
         </div>
         
         {/* Navigation */}
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.path;
@@ -130,6 +209,42 @@ export function MobileSidebar({
             );
           })}
         </nav>
+        
+        {/* Botão de Atualização - Fixo no final, sempre visível */}
+        <div className="p-4 pt-2 border-t border-white/10 bg-[#0f0f1a]">
+          {/* Botão Verificar Atualizações - Sempre visível */}
+          <div
+            onClick={handleCheckForUpdates}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 active:scale-95"
+          >
+            <RefreshCw className={`w-5 h-5 ${isChecking ? 'animate-spin' : ''}`} />
+            <span className="font-medium">
+              {isChecking ? 'Verificando...' : 'Verificar Atualizações'}
+            </span>
+          </div>
+          
+          {/* Botão Atualizar Agora - Aparece quando há atualização */}
+          {(updateAvailable || registration?.waiting) && (
+            <div
+              onClick={handleForceUpdate}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer bg-gradient-to-r from-[#10b981] to-[#059669] text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] mt-2 active:scale-95"
+            >
+              <Download className={`w-5 h-5 ${isUpdating ? 'animate-pulse' : ''}`} />
+              <span className="font-medium">
+                {isUpdating ? 'Atualizando...' : 'Atualizar Agora'}
+              </span>
+            </div>
+          )}
+          
+          {/* Botão Forçar Recarregamento - Sempre disponível */}
+          <div
+            onClick={handleForceUpdate}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 mt-2 active:scale-95"
+          >
+            <RefreshCw className="w-5 h-5" />
+            <span className="font-medium text-sm">Forçar Recarregamento</span>
+          </div>
+        </div>
       </aside>
     </>
   );

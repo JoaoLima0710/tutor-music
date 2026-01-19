@@ -44,17 +44,18 @@ export default function Settings() {
     setTrebleGain,
   } = useAudioSettingsStore();
 
-  const handleAudioEngineChange = (engine: 'synthesis' | 'samples' | 'guitarset') => {
+  const handleAudioEngineChange = (engine: 'synthesis' | 'samples' | 'guitarset' | 'philharmonia') => {
     setAudioEngine(engine);
     const messages = {
       synthesis: 'Usando síntese de áudio (leve)',
       samples: 'Usando samples Soundfont (autêntico)',
-      guitarset: 'Usando samples reais do GuitarSet (profissional)'
+      guitarset: 'Usando samples reais do GuitarSet (profissional)',
+      philharmonia: 'Usando samples do Philharmonia Orchestra (orquestral)'
     };
     toast.success(messages[engine]);
   };
 
-  const handleInstrumentChange = (newInstrument: 'nylon-guitar' | 'steel-guitar' | 'piano') => {
+  const handleInstrumentChange = (newInstrument: any) => {
     setInstrument(newInstrument);
     toast.success(`Instrumento alterado para ${getInstrumentLabel(newInstrument)}`);
   };
@@ -69,8 +70,47 @@ export default function Settings() {
       'nylon-guitar': 'Violão Nylon',
       'steel-guitar': 'Violão Aço',
       'piano': 'Piano',
+      'violin': 'Violino',
+      'viola': 'Viola',
+      'cello': 'Violoncelo',
+      'double-bass': 'Contrabaixo',
+      'flute': 'Flauta',
+      'oboe': 'Oboé',
+      'clarinet': 'Clarinete',
+      'saxophone': 'Saxofone',
+      'trumpet': 'Trompete',
+      'french-horn': 'Trompa',
+      'trombone': 'Trombone',
+      'guitar': 'Guitarra',
+      'mandolin': 'Bandolim',
+      'banjo': 'Banjo',
     };
     return labels[inst] || inst;
+  };
+
+  const getAvailableInstruments = () => {
+    if (audioEngine === 'philharmonia') {
+      return [
+        'violin',
+        'viola',
+        'cello',
+        'double-bass',
+        'flute',
+        'oboe',
+        'clarinet',
+        'saxophone',
+        'trumpet',
+        'french-horn',
+        'trombone',
+        'guitar',
+        'mandolin',
+        'banjo',
+      ];
+    } else if (audioEngine === 'guitarset') {
+      return ['nylon-guitar']; // GuitarSet só tem guitarra
+    } else {
+      return ['nylon-guitar', 'steel-guitar', 'piano'];
+    }
   };
 
   return (
@@ -144,7 +184,7 @@ export default function Settings() {
               <div className="space-y-6">
                 <div className="p-6 bg-white/5 rounded-2xl">
                   <h3 className="text-lg font-bold text-white mb-4">Motor de Áudio</h3>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className={`grid gap-3 ${audioEngine === 'philharmonia' ? 'grid-cols-4' : 'grid-cols-3'}`}>
                     <Button
                       onClick={() => handleAudioEngineChange('synthesis')}
                       className={`h-20 flex flex-col items-center justify-center gap-1 ${
@@ -181,19 +221,32 @@ export default function Settings() {
                       <span className="text-xs font-semibold">GuitarSet</span>
                       <span className="text-[10px] text-gray-500">Profissional</span>
                     </Button>
+                    <Button
+                      onClick={() => handleAudioEngineChange('philharmonia')}
+                      className={`h-20 flex flex-col items-center justify-center gap-1 ${
+                        audioEngine === 'philharmonia'
+                          ? 'bg-gradient-to-br from-[#a855f7] to-[#9333ea] text-white border-2 border-purple-400 shadow-lg shadow-purple-500/50'
+                          : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
+                      }`}
+                    >
+                      <span className="text-xl">🎻</span>
+                      <span className="text-xs font-semibold">Orquestra</span>
+                      <span className="text-[10px] text-gray-500">Clássico</span>
+                    </Button>
                   </div>
                   <p className="text-xs text-gray-400 mt-3">
                     {audioEngine === 'synthesis' && 'Som gerado em tempo real, mais leve e rápido'}
                     {audioEngine === 'samples' && 'Samples de instrumentos via Soundfont, som autêntico'}
                     {audioEngine === 'guitarset' && 'Samples reais extraídos do dataset GuitarSet, qualidade profissional'}
+                    {audioEngine === 'philharmonia' && 'Samples de instrumentos orquestrais do Philharmonia Orchestra, qualidade profissional'}
                   </p>
                 </div>
 
                 {/* Instrument Selection */}
                 <div className="p-6 bg-white/5 rounded-2xl">
                   <h3 className="text-lg font-bold text-white mb-4">Instrumento</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    {(['nylon-guitar', 'steel-guitar', 'piano'] as const).map((inst) => (
+                  <div className={`grid gap-4 ${audioEngine === 'philharmonia' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                    {getAvailableInstruments().map((inst) => (
                       <Button
                         key={inst}
                         onClick={() => handleInstrumentChange(inst)}
@@ -204,7 +257,7 @@ export default function Settings() {
                         }`}
                       >
                         <Music className="w-6 h-6" />
-                        <span className="font-semibold">{getInstrumentLabel(inst)}</span>
+                        <span className="font-semibold text-sm">{getInstrumentLabel(inst)}</span>
                       </Button>
                     ))}
                   </div>
@@ -390,7 +443,7 @@ export default function Settings() {
               {/* Audio Engine */}
               <div className="p-4 bg-white/5 rounded-xl">
                 <h3 className="text-base font-bold text-white mb-3">Motor de Áudio</h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className={`grid gap-2 ${audioEngine === 'philharmonia' ? 'grid-cols-4' : 'grid-cols-3'}`}>
                   <Button
                     onClick={() => handleAudioEngineChange('synthesis')}
                     className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${
@@ -424,19 +477,31 @@ export default function Settings() {
                     <span className="text-lg">🎸</span>
                     <span className="font-semibold">GuitarSet</span>
                   </Button>
+                  <Button
+                    onClick={() => handleAudioEngineChange('philharmonia')}
+                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${
+                      audioEngine === 'philharmonia'
+                        ? 'bg-gradient-to-br from-[#a855f7] to-[#9333ea] text-white border border-purple-400'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                    }`}
+                  >
+                    <span className="text-lg">🎻</span>
+                    <span className="font-semibold">Orquestra</span>
+                  </Button>
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
                   {audioEngine === 'synthesis' && 'Som gerado em tempo real'}
                   {audioEngine === 'samples' && 'Samples Soundfont'}
                   {audioEngine === 'guitarset' && 'Samples reais profissionais'}
+                  {audioEngine === 'philharmonia' && 'Samples orquestrais profissionais'}
                 </p>
               </div>
 
               {/* Instrument */}
               <div className="p-4 bg-white/5 rounded-xl">
                 <h3 className="text-base font-bold text-white mb-3">Instrumento</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['nylon-guitar', 'steel-guitar', 'piano'] as const).map((inst) => (
+                <div className={`grid gap-2 ${audioEngine === 'philharmonia' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                  {getAvailableInstruments().map((inst) => (
                     <Button
                       key={inst}
                       onClick={() => handleInstrumentChange(inst)}
@@ -447,7 +512,7 @@ export default function Settings() {
                       }`}
                     >
                       <Music className="w-4 h-4" />
-                      <span className="font-semibold">{getInstrumentLabel(inst).split(' ')[1]}</span>
+                      <span className="font-semibold text-xs">{getInstrumentLabel(inst).split(' ')[0]}</span>
                     </Button>
                   ))}
                 </div>

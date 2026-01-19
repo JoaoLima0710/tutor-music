@@ -1,6 +1,7 @@
 import { audioService } from './AudioService';
 import { audioServiceWithSamples } from './AudioServiceWithSamples';
 import { guitarSetAudioService } from './GuitarSetAudioService';
+import { philharmoniaAudioService } from './PhilharmoniaAudioService';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
 import type { InstrumentType } from './AudioServiceWithSamples';
 import type { AudioEngineType } from '@/stores/useAudioSettingsStore';
@@ -17,6 +18,8 @@ class AudioManager {
   private initializationPromise: Promise<boolean> | null = null;
   private subscribers: Set<(status: any) => void> = new Set();
   private isMobileDevice = false;
+  private isMobile = false;
+  private isTablet = false;
   private audioContextState: AudioContextState = 'suspended';
   private lastAudioTime = 0;
   private mobileOptimizations = false;
@@ -279,22 +282,44 @@ class AudioManager {
   }
 
   /**
-   * Ensure audio context is running (crucial for mobile)
+   * Ensure audio context is running (crucial for mobile and tablets)
    */
   private async ensureAudioContext(): Promise<void> {
     if (!this.activeService) return;
 
     try {
-      if (this.currentEngine === 'samples' && this.activeService.audioContext) {
-        if (this.activeService.audioContext.state === 'suspended') {
-          await this.activeService.audioContext.resume();
+      // Check for AudioContext in different service types
+      let audioContext: AudioContext | null = null;
+      
+      if (this.activeService.audioContext) {
+        audioContext = this.activeService.audioContext;
+      } else if (this.currentEngine === 'guitarset' && (this.activeService as any).audioContext) {
+        audioContext = (this.activeService as any).audioContext;
+      } else if (this.currentEngine === 'philharmonia' && (this.activeService as any).audioContext) {
+        audioContext = (this.activeService as any).audioContext;
+      }
+
+      if (audioContext) {
+        if (audioContext.state === 'suspended') {
+          console.log(`📱 ${this.isTablet ? 'Tablet' : 'Mobile'}: Resuming suspended AudioContext...`);
+          await audioContext.resume();
           this.audioContextState = 'running';
-          console.log('✅ Audio context resumed');
+          console.log('✅ Audio context resumed, state:', audioContext.state);
+          
+          // Additional delay for tablets to ensure context is fully ready
+          if (this.isTablet) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+        } else if (audioContext.state === 'running') {
+          this.audioContextState = 'running';
         }
 
-        // Test audio context with a brief tone (helps with mobile audio issues)
-        if (this.mobileOptimizations && this.activeService.audioContext.state === 'running') {
-          await this.testAudioContext();
+        // Test audio context with a brief tone (helps with mobile/tablet audio issues)
+        if ((this.mobileOptimizations || this.isTablet) && audioContext.state === 'running') {
+          // Skip test for tablets to avoid unnecessary delay
+          if (!this.isTablet) {
+            await this.testAudioContext();
+          }
         }
       }
     } catch (error) {
@@ -345,6 +370,9 @@ class AudioManager {
       if (engine === 'guitarset') {
         console.log('🎸 Creating GuitarSet samples service...');
         this.activeService = guitarSetAudioService;
+      } else if (engine === 'philharmonia') {
+        console.log('🎼 Creating Philharmonia Orchestra service...');
+        this.activeService = philharmoniaAudioService;
       } else if (engine === 'samples') {
         console.log('🎼 Creating Soundfont service...');
         this.activeService = audioServiceWithSamples;
@@ -396,10 +424,16 @@ class AudioManager {
       throw new Error('Audio service not initialized - call initialize() first');
     }
 
-    console.log('🎸 Setting instrument to:', instrument);
+    console.log('🎸 Setting instrument to:', instrument, 'on engine:', this.currentEngine);
 
     try {
-      await this.activeService.setInstrument(instrument);
+      // Map InstrumentType to PhilharmoniaInstrument if using philharmonia engine
+      if (this.currentEngine === 'philharmonia') {
+        const philharmoniaInstrument = this.mapToPhilharmoniaInstrument(instrument);
+        await philharmoniaAudioService.setInstrument(philharmoniaInstrument);
+      } else {
+        await this.activeService.setInstrument(instrument);
+      }
       console.log('✅ Instrument set successfully');
     } catch (error) {
       console.error('❌ Error setting instrument:', error);
@@ -408,42 +442,82 @@ class AudioManager {
   }
 
   /**
-   * Play chord with exclusive service usage and mobile optimizations
+   * Map InstrumentType to PhilharmoniaInstrument
+   */
+  private mapToPhilharmoniaInstrument(instrument: InstrumentType): string {
+    const mapping: Record<string, string> = {
+      'violin': 'violin',
+      'viola': 'viola',
+      'cello': 'cello',
+      'double-bass': 'double_bass',
+      'flute': 'flute',
+      'oboe': 'oboe',
+      'clarinet': 'clarinet',
+      'saxophone': 'saxophone',
+      'trumpet': 'trumpet',
+      'french-horn': 'french_horn',
+      'trombone': 'trombone',
+      'guitar': 'guitar',
+      'mandolin': 'mandolin',
+      'banjo': 'banjo',
+      // Fallbacks
+      'nylon-guitar': 'guitar',
+      'steel-guitar': 'guitar',
+      'piano': 'violin', // Piano not available, fallback to violin
+    };
+    
+    return mapping[instrument] || 'violin';
+  }
+
+  /**
+   * Play chord with exclusive service usage and tablet/mobile optimizations
    */
   async playChord(chordName: string, duration?: number): Promise<void> {
     if (!this.activeService) {
       throw new Error('Audio service not initialized');
     }
 
-    // Mobile optimization: Check timing to prevent overlaps
+    // Tablet/Mobile optimization: Check timing to prevent overlaps
+    // Increased delay for tablets to ensure smooth playback
     const now = Date.now();
-    if (this.mobileOptimizations && (now - this.lastAudioTime) < 100) {
-      console.log('📱 Mobile: Delaying chord play to prevent overlap');
-      await new Promise(resolve => setTimeout(resolve, 150));
+    const minDelay = this.isTablet ? 200 : 100; // Longer delay for tablets
+    if (this.mobileOptimizations && (now - this.lastAudioTime) < minDelay) {
+      const delayTime = this.isTablet ? 250 : 150;
+      console.log(`📱 ${this.isTablet ? 'Tablet' : 'Mobile'}: Delaying chord play to prevent overlap`);
+      await new Promise(resolve => setTimeout(resolve, delayTime));
     }
 
-    console.log('🎸 Playing chord:', chordName, 'with', this.currentEngine, 'engine', this.mobileOptimizations ? '(Mobile)' : '');
+    console.log('🎸 Playing chord:', chordName, 'with', this.currentEngine, 'engine', this.isTablet ? '(Tablet)' : this.mobileOptimizations ? '(Mobile)' : '');
 
     try {
-      // Ensure audio context for mobile
-      if (this.mobileOptimizations) {
+      // Ensure audio context is active (critical for tablets)
+      if (this.mobileOptimizations || this.isTablet) {
         await this.ensureAudioContext();
+        // Additional small delay for tablets to ensure context is ready
+        if (this.isTablet) {
+          await new Promise(resolve => setTimeout(resolve, 20));
+        }
       }
 
-      await this.activeService.playChord(chordName, duration);
+      // For tablets, don't limit duration - let chords play fully
+      const actualDuration = this.isTablet ? undefined : duration;
+      
+      await this.activeService.playChord(chordName, actualDuration);
       this.lastAudioTime = Date.now();
 
       console.log('✅ Chord played successfully');
     } catch (error) {
       console.error('❌ Error playing chord:', error);
 
-      // Mobile fallback: Try to reinitialize and retry once
-      if (this.mobileOptimizations && !error.message.includes('not initialized')) {
-        console.log('📱 Mobile: Attempting recovery...');
+      // Tablet/Mobile fallback: Try to reinitialize and retry once
+      if ((this.mobileOptimizations || this.isTablet) && !error.message.includes('not initialized')) {
+        console.log(`📱 ${this.isTablet ? 'Tablet' : 'Mobile'}: Attempting recovery...`);
         try {
           await this.reinitialize();
-          await new Promise(resolve => setTimeout(resolve, 200));
-          await this.activeService.playChord(chordName, duration);
+          const retryDelay = this.isTablet ? 300 : 200;
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          const actualDuration = this.isTablet ? undefined : duration;
+          await this.activeService.playChord(chordName, actualDuration);
           console.log('✅ Chord recovered successfully');
           return;
         } catch (retryError) {
@@ -624,6 +698,7 @@ class AudioManager {
       if (audioService.stopAll) audioService.stopAll();
       if (audioServiceWithSamples.stopAll) audioServiceWithSamples.stopAll();
       if (guitarSetAudioService.stopAll) guitarSetAudioService.stopAll();
+      if (philharmoniaAudioService.stopAll) philharmoniaAudioService.stopAll();
 
       // Mobile-specific: Reset audio context state
       if (this.mobileOptimizations) {
@@ -671,6 +746,7 @@ class AudioManager {
       await audioService.dispose();
       await audioServiceWithSamples.dispose();
       await guitarSetAudioService.dispose();
+      await philharmoniaAudioService.dispose();
 
       this.isInitialized = false;
       this.notifySubscribers();

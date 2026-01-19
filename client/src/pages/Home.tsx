@@ -207,193 +207,14 @@ export default function Home() {
     <>
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
-        {level <= 3 ? (
-          <>
-            <SimplifiedNav
-              userName={userName}
-              userLevel={level}
-              currentXP={xp}
-              xpToNextLevel={xpToNextLevel}
-              streak={currentStreak}
-            />
-            <div className="pt-20 flex-1 overflow-y-auto">
-              <div className="max-w-6xl mx-auto p-8 space-y-8">
-                {/* Header */}
-            <header className="flex items-start justify-between">
-              <div>
-                <h1 className="text-4xl font-bold text-white mb-2">
-                  Boa tarde, {userName} 👋
-                </h1>
-                <p className="text-gray-300 text-base font-medium">
-                  {unlockedSongs.length} músicas desbloqueadas • {nextUnlockable.length} prontas para desbloquear
-                </p>
-              </div>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative p-3 rounded-2xl backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10 hover:border-[#a855f7]/40 transition-all"
-              >
-                <Bell className="w-6 h-6 text-white" />
-                <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-[#a855f7] rounded-full border-2 border-[#0f0f1a] shadow-[0_0_10px_rgba(168,85,247,0.8)]"></span>
-              </Button>
-            </header>
-            
-            {/* Daily Training - PRIMEIRO */}
-            <section>
-              <DailyTraining />
-            </section>
-            
-            {/* Daily Goal */}
-            <section>
-              <DailyGoalCard current={15} total={30} streak={currentStreak} />
-            </section>
-            
-            {/* Today's Challenge */}
-            <section>
-              <ChallengeCard 
-                title="Desbloquear Nova Música"
-                description={`Complete ${nextUnlockable.length > 0 ? 'uma música já disponível' : 'os requisitos para desbloquear mais músicas'}`}
-                xp={200}
-              />
-            </section>
-            
-            {/* Continue Learning */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Continue de onde parou</h2>
-                  <p className="text-sm text-gray-400 mt-1">Retome suas lições em andamento</p>
-                </div>
-                <button 
-                  onClick={() => setLocation('/chords')}
-                  className="text-sm text-[#06b6d4] font-semibold hover:text-[#22d3ee] transition-colors flex items-center gap-1"
-                >
-                  <span>Ver tudo</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-              
-              <ContinueLearning lessons={continueLearningData} />
-            </section>
-            
-            {/* Training Modules */}
-            <section>
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-white mb-1">Treino de Hoje</h2>
-                <p className="text-sm text-gray-400">Módulos de prática</p>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {todayModules.map((module, index) => (
-                  <TrainingModule key={index} {...module} />
-                ))}
-              </div>
-            </section>
-            
-            {/* AI Assistant */}
-            <section>
-              <AIAssistant />
-            </section>
-            
-            {/* Featured: Next Songs to Unlock */}
-            {nextUnlockable.length > 0 && (
-              <section>
-                <div className="relative overflow-hidden rounded-3xl p-8 backdrop-blur-xl bg-gradient-to-br from-[#8b5cf6]/30 via-[#a855f7]/20 to-transparent border border-[#8b5cf6]/40 shadow-[0_0_35px_rgba(139,92,246,0.3)]">
-                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#8b5cf6] via-[#a855f7] to-[#8b5cf6] opacity-10 blur-3xl"></div>
-                  
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Sparkles className="w-6 h-6 text-[#c084fc]" />
-                      <h2 className="text-2xl font-bold text-white">Próximas Músicas para Desbloquear</h2>
-                    </div>
-                    <p className="text-gray-300 mb-6">
-                      Você já completou os requisitos! Clique para desbloquear e começar a tocar.
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {nextUnlockable.slice(0, 3).map((song) => (
-                        <div
-                          key={song.id}
-                          onClick={() => setLocation(`/songs/${song.id}`)}
-                          className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#8b5cf6]/50 cursor-pointer transition-all hover:scale-105"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-bold text-white">{song.title}</h3>
-                            <Play className="w-4 h-4 text-[#8b5cf6]" />
-                          </div>
-                          <p className="text-sm text-gray-400 mb-3">{song.artist}</p>
-                          <div className="flex flex-wrap gap-1">
-                            {song.chords.slice(0, 3).map((chord, i) => (
-                              <span key={i} className="px-2 py-0.5 rounded bg-[#8b5cf6]/20 text-[#c084fc] text-xs font-mono">
-                                {chord}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <Button
-                      onClick={() => setLocation('/songs')}
-                      className="mt-6 bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] text-white font-semibold"
-                    >
-                      Ver Todas as Músicas
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                </div>
-              </section>
-            )}
-            
-            {/* Unlocked Songs */}
-            {unlockedSongs.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">Suas Músicas Desbloqueadas</h2>
-                    <p className="text-sm text-gray-400 mt-1">Continue praticando suas músicas favoritas</p>
-                  </div>
-                  <button 
-                    onClick={() => setLocation('/songs')}
-                    className="text-sm text-[#06b6d4] font-semibold hover:text-[#22d3ee] transition-colors flex items-center gap-1"
-                  >
-                    <span>Ver todas</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {unlockedSongs.slice(0, 6).map((song) => (
-                    <SongCard
-                      key={song.id}
-                      song={song}
-                      onClick={() => setLocation(`/songs/${song.id}`)}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-            
-            {/* First Song Path */}
-            <section>
-              <FirstSongPath />
-            </section>
-            
-                <div className="h-8"></div>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <Sidebar 
-              userName={userName}
-              userLevel={level}
-              currentXP={xp}
-              xpToNextLevel={xpToNextLevel}
-              streak={currentStreak}
-            />
-            <div className="flex-1 overflow-y-auto">
+        <Sidebar 
+          userName={userName}
+          userLevel={level}
+          currentXP={xp}
+          xpToNextLevel={xpToNextLevel}
+          streak={currentStreak}
+        />
+        <div className="flex-1 overflow-y-auto">
               <div className="max-w-6xl mx-auto p-8 space-y-8">
                 {/* Header */}
                 <header className="flex items-start justify-between">
@@ -560,8 +381,6 @@ export default function Home() {
                 <div className="h-8"></div>
               </div>
             </div>
-          </>
-        )}
       </div>
       
       {/* MOBILE VERSION */}

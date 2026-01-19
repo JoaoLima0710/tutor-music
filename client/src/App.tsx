@@ -1,7 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InstallPWA } from '@/components/InstallPWA';
-import { OfflineStatus } from '@/components/offline/OfflineStatus';
 import { UpdateBanner } from '@/components/UpdateBanner';
 import { usePWA } from '@/hooks/usePWA';
 import NotFound from "@/pages/NotFound";

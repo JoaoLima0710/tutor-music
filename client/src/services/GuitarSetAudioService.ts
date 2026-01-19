@@ -34,6 +34,10 @@ class GuitarSetAudioService {
 
   async initialize(): Promise<boolean> {
     if (this.isInitialized) {
+      // Ensure AudioContext is resumed (important for tablets)
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
       return true;
     }
 
@@ -45,20 +49,29 @@ class GuitarSetAudioService {
     this.isLoading = true;
 
     try {
-      // Create AudioContext
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Create AudioContext with optimized settings for tablets
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      this.audioContext = new AudioContextClass({
+        sampleRate: 44100, // Standard sample rate
+        latencyHint: 'interactive', // Low latency for responsive playback
+      });
       
       // Create gain node for volume control
       this.gainNode = this.audioContext.createGain();
       this.gainNode.connect(this.audioContext.destination);
       this.gainNode.gain.value = 0.8; // Default volume
 
-      console.log('🎵 AudioContext created for GuitarSet samples');
+      // Ensure AudioContext is running (critical for tablets)
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+
+      console.log('🎵 AudioContext created for GuitarSet samples, state:', this.audioContext.state);
 
       // Load manifests
       await this.loadManifests();
 
-      // Preload essential samples (chords)
+      // Preload essential samples (chords) - critical for smooth playback
       await this.preloadChords();
 
       this.isInitialized = true;
@@ -105,15 +118,23 @@ class GuitarSetAudioService {
     console.log('📦 Preloading essential chord samples...');
 
     // Preload common chords (C, D, E, G, A, Am, Em)
-    const essentialChords = ['C', 'D', 'E', 'G', 'A', 'Am', 'Em'];
+    // Expanded list for better tablet performance
+    const essentialChords = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'Am', 'Dm', 'Em', 'Gm', 'C7', 'D7', 'G7', 'A7'];
     
-    const loadPromises = essentialChords.map(async (chord) => {
+    // Load chords sequentially for tablets to prevent buffer issues
+    // This ensures each chord is fully loaded before starting the next
+    for (const chord of essentialChords) {
       if (this.chordManifest![chord]) {
-        await this.loadChordSample(chord);
+        try {
+          await this.loadChordSample(chord);
+          // Small delay between loads to prevent overwhelming the tablet's audio system
+          await new Promise(resolve => setTimeout(resolve, 10));
+        } catch (error) {
+          console.warn(`⚠️ Failed to preload chord ${chord}:`, error);
+        }
       }
-    });
+    }
 
-    await Promise.all(loadPromises);
     console.log('✅ Essential chords preloaded');
   }
 
@@ -197,9 +218,11 @@ class GuitarSetAudioService {
       return;
     }
 
-    // Resume context if suspended (important for mobile)
+    // Resume context if suspended (critical for tablets)
     if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
+      this.audioContext.resume().catch(err => {
+        console.error('❌ Failed to resume AudioContext:', err);
+      });
     }
 
     const source = this.audioContext.createBufferSource();
@@ -213,12 +236,26 @@ class GuitarSetAudioService {
       this.activeSources.delete(source);
     };
 
-    const actualStartTime = startTime ?? this.audioContext.currentTime;
-    source.start(actualStartTime);
+    // Use a small lookahead time for smoother playback on tablets
+    // This ensures the audio system has time to prepare
+    const lookaheadTime = 0.01; // 10ms lookahead
+    const baseTime = this.audioContext.currentTime;
+    const actualStartTime = startTime ?? (baseTime + lookaheadTime);
 
-    // Stop after duration if specified
-    if (duration) {
-      source.stop(actualStartTime + duration);
+    try {
+      source.start(actualStartTime);
+
+      // Only stop if duration is specified AND is shorter than buffer duration
+      // This prevents cutting off chords prematurely on tablets
+      if (duration && duration < buffer.duration) {
+        source.stop(actualStartTime + duration);
+      } else {
+        // Let the buffer play to completion for full chord sound
+        // This is especially important for tablets where audio can be cut off
+      }
+    } catch (error) {
+      console.error('❌ Error starting audio source:', error);
+      this.activeSources.delete(source);
     }
   }
 
@@ -231,10 +268,21 @@ class GuitarSetAudioService {
       return;
     }
 
+    // Ensure AudioContext is active before playing (critical for tablets)
+    if (this.audioContext && this.audioContext.state === 'suspended') {
+      try {
+        await this.audioContext.resume();
+        // Small delay to ensure context is fully active
+        await new Promise(resolve => setTimeout(resolve, 10));
+      } catch (error) {
+        console.error('❌ Failed to resume AudioContext:', error);
+      }
+    }
+
     // Normalize chord name (handle variations)
     const normalizedChord = this.normalizeChordName(chordName);
     
-    // Load sample if not already loaded
+    // Load sample if not already loaded (pre-loading is critical for smooth playback)
     let buffer = await this.loadChordSample(normalizedChord);
     
     if (!buffer) {
@@ -249,9 +297,13 @@ class GuitarSetAudioService {
       }
     }
 
-    // Play the buffer
-    this.playBuffer(buffer, undefined, duration);
-    console.log('✅ Chord played:', normalizedChord);
+    // For tablets: Don't limit duration, let the full chord play
+    // This prevents "choppy" sound from premature stopping
+    const fullDuration = duration || buffer.duration;
+    
+    // Play the buffer with full duration to prevent cutting off
+    this.playBuffer(buffer, undefined, fullDuration);
+    console.log('✅ Chord played:', normalizedChord, 'duration:', fullDuration.toFixed(2), 's');
   }
 
   async playChordStrummed(chordName: string, duration?: number): Promise<void> {
