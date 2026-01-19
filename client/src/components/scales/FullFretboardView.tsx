@@ -3,12 +3,14 @@
  * 
  * Inspirado em https://f2k.mjgibson.com/
  * Mostra TODAS as notas da escala em TODO o braço do violão
- * Útil para entender como a escala se espalha pelo braço inteiro
+ * Com funcionalidade de tocar notas do GuitarSet ao clicar
  */
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Maximize2, Minimize2, Info } from 'lucide-react';
+import { Maximize2, Minimize2, Info, Volume2 } from 'lucide-react';
+import { unifiedAudioService } from '@/services/UnifiedAudioService';
+import { toast } from 'sonner';
 
 interface FullFretboardViewProps {
   scaleName: string;
@@ -20,25 +22,38 @@ const STRINGS = ['E', 'B', 'G', 'D', 'A', 'E']; // Da corda mais aguda (1) para 
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const MAX_FRETS = 24; // Mostrar até o traste 24
 
+// Oitavas padrão para cada corda (corda aberta)
+// Corda 1 (E agudo): E4, Corda 2 (B): B3, Corda 3 (G): G3, Corda 4 (D): D3, Corda 5 (A): A2, Corda 6 (E grave): E2
+const STRING_OCTAVES = [4, 3, 3, 3, 2, 2];
+
 export function FullFretboardView({ scaleName, root, intervals }: FullFretboardViewProps) {
   const [showAllFrets, setShowAllFrets] = useState(false);
   const [highlightRoot, setHighlightRoot] = useState(true);
+  const [playingNote, setPlayingNote] = useState<string | null>(null);
 
   // Gerar todas as notas da escala
-  const rootIndex = NOTES.indexOf(root);
+  const rootIndex = NOTES.indexOf(root.toUpperCase());
   const scaleNotes: string[] = [];
   intervals.forEach(interval => {
     const noteIndex = (rootIndex + interval) % 12;
     scaleNotes.push(NOTES[noteIndex]);
   });
-  scaleNotes.push(root); // Adicionar oitava
+  scaleNotes.push(root.toUpperCase()); // Adicionar oitava
 
-  // Função para obter a nota em uma posição específica
-  const getNoteAtPosition = (stringIndex: number, fret: number): string => {
+  // Função para obter a nota em uma posição específica (CORRIGIDA)
+  const getNoteAtPosition = (stringIndex: number, fret: number): { note: string; octave: number } => {
     const stringNote = STRINGS[stringIndex];
     const stringRootIndex = NOTES.indexOf(stringNote);
     const noteIndex = (stringRootIndex + fret) % 12;
-    return NOTES[noteIndex];
+    const note = NOTES[noteIndex];
+    
+    // Calcular oitava correta baseada na corda e traste
+    // Cada 12 trastes = +1 oitava
+    const octaveOffset = Math.floor((stringRootIndex + fret) / 12);
+    const baseOctave = STRING_OCTAVES[stringIndex];
+    const octave = baseOctave + octaveOffset;
+    
+    return { note, octave };
   };
 
   // Verificar se uma nota pertence à escala
@@ -48,7 +63,26 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
 
   // Verificar se é a tônica
   const isRootNote = (note: string): boolean => {
-    return note === root;
+    return note === root.toUpperCase();
+  };
+
+  // Tocar nota do GuitarSet
+  const playNote = async (stringIndex: number, fret: number) => {
+    try {
+      const { note, octave } = getNoteAtPosition(stringIndex, fret);
+      const noteWithOctave = `${note}${octave}`;
+      
+      setPlayingNote(`${stringIndex}-${fret}`);
+      
+      await unifiedAudioService.initialize();
+      await unifiedAudioService.playNote(noteWithOctave, 0.8);
+      
+      setTimeout(() => setPlayingNote(null), 800);
+    } catch (error) {
+      console.error('Erro ao tocar nota:', error);
+      toast.error('Erro ao tocar nota');
+      setPlayingNote(null);
+    }
   };
 
   const displayFrets = showAllFrets ? MAX_FRETS : 12;
@@ -107,7 +141,8 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
             <div className="text-sm text-emerald-300">
               <p className="font-semibold mb-1">Como usar esta visualização:</p>
               <ul className="list-disc list-inside space-y-1 text-emerald-200">
-                <li>Notas <span className="font-bold text-white">brancas</span> = pertencem à escala</li>
+                <li><span className="font-bold text-white">Clique em qualquer nota</span> para tocar com o GuitarSet</li>
+                <li>Notas <span className="font-bold text-emerald-400">verdes</span> = pertencem à escala</li>
                 <li>Notas <span className="font-bold text-gray-500">cinzas</span> = não pertencem à escala</li>
                 {highlightRoot && (
                   <li>Notas <span className="font-bold text-yellow-400">amarelas</span> = tônica ({root})</li>
@@ -148,6 +183,7 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
                   {/* Traste 0 (casa aberta) */}
                   <div className="flex-1 min-w-[40px] text-center">
                     <div
+                      onClick={() => playNote(stringIndex, 0)}
                       className={`
                         mx-1 py-2 rounded text-sm font-bold transition-all
                         ${isRootNote(stringNote) && highlightRoot
@@ -156,21 +192,30 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
                           ? 'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]'
                           : 'bg-gray-700/50 text-gray-400'
                         }
+                        hover:scale-110 cursor-pointer active:scale-95
+                        ${playingNote === `${stringIndex}-0` ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#2a1a0e]' : ''}
                       `}
+                      title={`${stringNote}${STRING_OCTAVES[stringIndex]} - Clique para tocar${isScaleNote(stringNote) ? ' (Pertence à escala)' : ''}${isRootNote(stringNote) ? ' (Tônica)' : ''}`}
                     >
-                      {stringNote}
+                      {playingNote === `${stringIndex}-0` ? (
+                        <Volume2 className="w-4 h-4 mx-auto animate-pulse" />
+                      ) : (
+                        stringNote
+                      )}
                     </div>
                   </div>
 
                   {/* Trastes 1-24 */}
                   {Array.from({ length: displayFrets }, (_, i) => i + 1).map((fret) => {
-                    const note = getNoteAtPosition(stringIndex, fret);
+                    const { note, octave } = getNoteAtPosition(stringIndex, fret);
                     const isScale = isScaleNote(note);
                     const isRoot = isRootNote(note);
+                    const noteKey = `${stringIndex}-${fret}`;
 
                     return (
                       <div key={fret} className="flex-1 min-w-[40px] text-center">
                         <div
+                          onClick={() => playNote(stringIndex, fret)}
                           className={`
                             mx-1 py-2 rounded text-sm font-bold transition-all
                             ${isRoot && highlightRoot
@@ -179,11 +224,16 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
                               ? 'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]'
                               : 'bg-gray-700/50 text-gray-400'
                             }
-                            hover:scale-110 cursor-pointer
+                            hover:scale-110 cursor-pointer active:scale-95
+                            ${playingNote === noteKey ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#2a1a0e]' : ''}
                           `}
-                          title={`${note} - ${isScale ? 'Pertence à escala' : 'Não pertence à escala'}${isRoot ? ' (Tônica)' : ''}`}
+                          title={`${note}${octave} - Clique para tocar${isScale ? ' (Pertence à escala)' : ''}${isRoot ? ' (Tônica)' : ''}`}
                         >
-                          {note}
+                          {playingNote === noteKey ? (
+                            <Volume2 className="w-4 h-4 mx-auto animate-pulse" />
+                          ) : (
+                            note
+                          )}
                         </div>
                       </div>
                     );

@@ -4,7 +4,6 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { Button } from '@/components/ui/button';
-import { ScaleFretboard } from '@/components/scales/ScaleFretboard';
 import { ScalePractice } from '@/components/scales/ScalePractice';
 import { IntervalTheory } from '@/components/scales/IntervalTheory';
 import { ScaleShapes } from '@/components/scales/ScaleShapes';
@@ -156,7 +155,7 @@ const LEARNING_STEPS: { id: LearningStep; name: string; icon: any; description: 
   { id: 'intervals', name: 'Intervalos', icon: BookOpen, description: 'Fundação: aprenda intervalos primeiro' },
   { id: 'theory', name: 'Teoria', icon: GraduationCap, description: 'Entenda como a escala é construída' },
   { id: 'shapes', name: 'Formas', icon: Layers, description: 'CAGED, 3NPS e diferentes posições' },
-  { id: 'fretboard', name: 'Diagrama', icon: Play, description: 'Visualize no braço do violão' },
+  { id: 'fretboard', name: 'Braço Completo', icon: Play, description: 'Visualize todas as notas no braço do violão' },
   { id: 'practice', name: 'Prática', icon: Play, description: 'Treine com padrões multidirecionais' },
   { id: 'ear', name: 'Ear Training', icon: Mic, description: 'Cante e reconheça graus da escala' },
   { id: 'improvisation', name: 'Improvisação', icon: Radio, description: 'Aplique em contexto musical' },
