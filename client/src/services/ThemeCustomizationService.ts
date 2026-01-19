@@ -207,39 +207,73 @@ class ThemeCustomizationService {
    * Salva preferências do usuário
    */
   saveUserPreferences(preferences: UserPreferences): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(preferences));
-    this.applyTheme(preferences.theme);
-    this.notifyThemeChange();
+    try {
+      // Validar preferências antes de salvar
+      if (!preferences || !preferences.theme || !preferences.layout) {
+        console.error('Preferências inválidas');
+        return;
+      }
+
+      // Salvar no localStorage de forma segura
+      const serialized = JSON.stringify(preferences);
+      localStorage.setItem(this.STORAGE_KEY, serialized);
+      
+      // Aplicar tema
+      this.applyTheme(preferences.theme);
+      
+      // Notificar mudança
+      this.notifyThemeChange();
+      
+      console.log('✅ Preferências salvas com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao salvar preferências:', error);
+      // Tentar salvar apenas o tema se houver erro de serialização
+      try {
+        if (preferences?.theme) {
+          this.applyTheme(preferences.theme);
+        }
+      } catch (fallbackError) {
+        console.error('❌ Erro ao aplicar tema:', fallbackError);
+      }
+    }
   }
 
   /**
-   * Aplica tema atual
+   * Aplica tema atual (otimizado para tablets)
    */
   applyTheme(theme: ThemeConfig): void {
-    const root = document.documentElement;
+    try {
+      const root = document.documentElement;
 
-    // Aplicar variáveis CSS
-    Object.entries(theme.colors).forEach(([key, value]) => {
-      root.style.setProperty(`--color-${key}`, value);
-    });
+      // Usar requestAnimationFrame para melhor performance em tablets
+      requestAnimationFrame(() => {
+        // Aplicar variáveis CSS em batch
+        const colorEntries = Object.entries(theme.colors);
+        colorEntries.forEach(([key, value]) => {
+          root.style.setProperty(`--color-${key}`, value);
+        });
 
-    // Aplicar modo
-    const isDark = theme.mode === 'dark' ||
-                  (theme.mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    root.classList.toggle('dark', isDark);
+        // Aplicar modo
+        const isDark = theme.mode === 'dark' ||
+                      (theme.mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        root.classList.toggle('dark', isDark);
 
-    // Aplicar outras configurações
-    root.style.setProperty('--border-radius', this.getBorderRadiusValue(theme.borderRadius));
-    root.style.setProperty('--font-size-multiplier', this.getFontSizeMultiplier(theme.fontSize));
-    root.style.setProperty('--spacing-multiplier', this.getSpacingMultiplier(theme.spacing));
+        // Aplicar outras configurações
+        root.style.setProperty('--border-radius', this.getBorderRadiusValue(theme.borderRadius));
+        root.style.setProperty('--font-size-multiplier', this.getFontSizeMultiplier(theme.fontSize));
+        root.style.setProperty('--spacing-multiplier', this.getSpacingMultiplier(theme.spacing));
 
-    // Animações
-    if (theme.animations === 'none') {
-      root.style.setProperty('--animation-duration', '0s');
-    } else if (theme.animations === 'minimal') {
-      root.style.setProperty('--animation-duration', '0.1s');
-    } else {
-      root.style.setProperty('--animation-duration', '0.3s');
+        // Animações
+        if (theme.animations === 'none') {
+          root.style.setProperty('--animation-duration', '0s');
+        } else if (theme.animations === 'minimal') {
+          root.style.setProperty('--animation-duration', '0.1s');
+        } else {
+          root.style.setProperty('--animation-duration', '0.3s');
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao aplicar tema:', error);
     }
   }
 
@@ -291,11 +325,23 @@ class ThemeCustomizationService {
    */
   updateColorPalette(paletteName: string): void {
     const palette = this.DEFAULT_COLOR_PALETTES[paletteName as keyof typeof this.DEFAULT_COLOR_PALETTES];
-    if (!palette) return;
+    if (!palette) {
+      console.warn(`Paleta ${paletteName} não encontrada`);
+      return;
+    }
 
-    const preferences = this.getUserPreferences();
-    preferences.theme.colors = palette;
-    this.saveUserPreferences(preferences);
+    try {
+      const preferences = this.getUserPreferences();
+      preferences.theme.colors = palette;
+      // Aplicar tema imediatamente para preview
+      this.applyTheme(preferences.theme);
+      // Salvar de forma assíncrona para não bloquear UI
+      setTimeout(() => {
+        this.saveUserPreferences(preferences);
+      }, 100);
+    } catch (error) {
+      console.error('Erro ao atualizar paleta de cores:', error);
+    }
   }
 
   /**

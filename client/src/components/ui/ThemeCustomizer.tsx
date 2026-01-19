@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,8 @@ import {
   Save,
   RotateCcw,
   Download,
-  Upload
+  Upload,
+  Loader2
 } from 'lucide-react';
 import {
   themeCustomizationService,
@@ -22,6 +23,7 @@ import {
   UserPreferences,
   ThemeColors
 } from '@/services/ThemeCustomizationService';
+import { toast } from 'sonner';
 
 interface ThemeCustomizerProps {
   isOpen: boolean;
@@ -33,6 +35,8 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
   const [layouts, setLayouts] = useState<LayoutPreset[]>([]);
   const [colorPalettes, setColorPalettes] = useState<Record<string, ThemeColors>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,19 +44,52 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
     }
   }, [isOpen]);
 
-  const loadData = () => {
-    setPreferences(themeCustomizationService.getUserPreferences());
-    setLayouts(themeCustomizationService.getAvailableLayouts());
-    setColorPalettes(themeCustomizationService.getAvailableColorPalettes());
-    setHasUnsavedChanges(false);
-  };
-
-  const handleSave = () => {
-    if (preferences) {
-      themeCustomizationService.saveUserPreferences(preferences);
-      setHasUnsavedChanges(false);
+  const loadData = useCallback(() => {
+    setIsLoading(true);
+    try {
+      // Usar setTimeout para não bloquear a UI no tablet
+      setTimeout(() => {
+        const prefs = themeCustomizationService.getUserPreferences();
+        const layoutsData = themeCustomizationService.getAvailableLayouts();
+        const palettes = themeCustomizationService.getAvailableColorPalettes();
+        
+        setPreferences(prefs);
+        setLayouts(layoutsData);
+        setColorPalettes(palettes);
+        setHasUnsavedChanges(false);
+        setIsLoading(false);
+      }, 50);
+    } catch (error) {
+      console.error('Erro ao carregar dados do tema:', error);
+      toast.error('Erro ao carregar configurações de tema');
+      setIsLoading(false);
     }
-  };
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    if (!preferences) return;
+    
+    setIsSaving(true);
+    try {
+      // Aplicar tema imediatamente
+      themeCustomizationService.saveUserPreferences(preferences);
+      
+      // Pequeno delay para feedback visual
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      setHasUnsavedChanges(false);
+      toast.success('Tema salvo com sucesso! 🎨', {
+        description: 'Suas preferências foram aplicadas'
+      });
+    } catch (error) {
+      console.error('Erro ao salvar tema:', error);
+      toast.error('Erro ao salvar tema', {
+        description: 'Tente novamente'
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [preferences]);
 
   const handleReset = () => {
     const defaultPrefs = {
@@ -100,7 +137,7 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
     }
   };
 
-  const updatePreference = (path: string, value: any) => {
+  const updatePreference = useCallback((path: string, value: any) => {
     if (!preferences) return;
 
     const newPreferences = { ...preferences };
@@ -108,19 +145,43 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
     let current: any = newPreferences;
 
     for (let i = 0; i < keys.length - 1; i++) {
+      if (!current[keys[i]]) {
+        current[keys[i]] = {};
+      }
       current = current[keys[i]];
     }
 
     current[keys[keys.length - 1]] = value;
     setPreferences(newPreferences);
     setHasUnsavedChanges(true);
-  };
+    
+    // Aplicar mudanças de tema imediatamente (preview)
+    if (path.startsWith('theme.')) {
+      themeCustomizationService.applyTheme(newPreferences.theme);
+    }
+  }, [preferences]);
 
-  if (!isOpen || !preferences) return null;
+  // Memoizar paletas para melhor performance
+  const paletteEntries = useMemo(() => {
+    return Object.entries(colorPalettes);
+  }, [colorPalettes]);
+
+  if (!isOpen) return null;
+
+  if (isLoading || !preferences) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+        <div className="bg-[#0f0f1a] rounded-2xl p-8 border border-white/20">
+          <Loader2 className="w-8 h-8 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-white text-center">Carregando personalização...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-[#0f0f1a] border-l border-white/20 shadow-2xl overflow-y-auto">
+      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-[#0f0f1a] border-l border-white/20 shadow-2xl overflow-y-auto overscroll-contain">
         <div className="sticky top-0 bg-[#0f0f1a]/95 backdrop-blur-sm border-b border-white/10 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -141,12 +202,21 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
           <div className="flex items-center gap-2 mt-4">
             <Button
               onClick={handleSave}
-              disabled={!hasUnsavedChanges}
-              className="bg-green-500 hover:bg-green-600"
+              disabled={!hasUnsavedChanges || isSaving}
+              className="bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
               size="sm"
             >
-              <Save className="w-4 h-4 mr-2" />
-              Salvar
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar
+                </>
+              )}
             </Button>
             <Button onClick={handleReset} variant="outline" size="sm">
               <RotateCcw className="w-4 h-4 mr-2" />
@@ -206,33 +276,45 @@ export function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-3">
-                    {Object.entries(colorPalettes).map(([name, colors]) => (
-                      <Button
-                        key={name}
-                        onClick={() => {
-                          themeCustomizationService.updateColorPalette(name);
-                          updatePreference('theme.colors', colors);
-                        }}
-                        variant={JSON.stringify(preferences.theme.colors) === JSON.stringify(colors) ? "default" : "outline"}
-                        className="h-auto p-3 flex flex-col items-center gap-2"
-                      >
-                        <div className="flex gap-1">
-                          <div
-                            className="w-4 h-4 rounded-full border border-white/20"
-                            style={{ backgroundColor: colors.primary }}
-                          />
-                          <div
-                            className="w-4 h-4 rounded-full border border-white/20"
-                            style={{ backgroundColor: colors.secondary }}
-                          />
-                          <div
-                            className="w-4 h-4 rounded-full border border-white/20"
-                            style={{ backgroundColor: colors.accent }}
-                          />
-                        </div>
-                        <span className="text-xs capitalize">{name}</span>
-                      </Button>
-                    ))}
+                    {paletteEntries.map(([name, colors]) => {
+                      const isSelected = JSON.stringify(preferences.theme.colors) === JSON.stringify(colors);
+                      return (
+                        <Button
+                          key={name}
+                          onClick={() => {
+                            // Aplicar imediatamente para preview
+                            updatePreference('theme.colors', colors);
+                            // Também atualizar via service para garantir consistência
+                            try {
+                              themeCustomizationService.updateColorPalette(name);
+                            } catch (error) {
+                              console.warn('Erro ao atualizar paleta via service:', error);
+                            }
+                            toast.success(`Paleta ${name} aplicada!`, { duration: 1500 });
+                          }}
+                          variant={isSelected ? "default" : "outline"}
+                          className={`h-auto p-3 flex flex-col items-center gap-2 transition-all ${
+                            isSelected ? 'ring-2 ring-purple-500' : ''
+                          }`}
+                        >
+                          <div className="flex gap-1">
+                            <div
+                              className="w-4 h-4 rounded-full border border-white/20"
+                              style={{ backgroundColor: colors.primary }}
+                            />
+                            <div
+                              className="w-4 h-4 rounded-full border border-white/20"
+                              style={{ backgroundColor: colors.secondary }}
+                            />
+                            <div
+                              className="w-4 h-4 rounded-full border border-white/20"
+                              style={{ backgroundColor: colors.accent }}
+                            />
+                          </div>
+                          <span className="text-xs capitalize font-medium">{name}</span>
+                        </Button>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
