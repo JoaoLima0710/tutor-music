@@ -40,28 +40,26 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
   });
   scaleNotes.push(root.toUpperCase()); // Adicionar oitava
 
-  // Função para obter a nota em uma posição específica (CORRIGIDA)
+  // Função para obter a nota em uma posição específica (CORRIGIDA TECNICAMENTE)
   const getNoteAtPosition = (stringIndex: number, fret: number): { note: string; octave: number } => {
     const stringNote = STRINGS[stringIndex];
     const stringRootIndex = NOTES.indexOf(stringNote);
     
-    // Calcular índice da nota (considerando oitavas)
+    // Calcular índice da nota no cromático (0-11)
+    // Cada traste adiciona 1 semitom à nota da corda aberta
     const totalSemitones = stringRootIndex + fret;
     const noteIndex = totalSemitones % 12;
     const note = NOTES[noteIndex];
     
-    // Calcular oitava correta baseada na corda e traste
-    // Cada 12 trastes = +1 oitava a partir da oitava base da corda
-    const octaveOffset = Math.floor(fret / 12);
+    // Calcular oitava correta
+    // A oitava aumenta a cada 12 semitons completos a partir da oitava base da corda
+    // Exemplo: E4 (corda 1, traste 0) → E4
+    //          E4 (corda 1, traste 12) → E5 (mesma nota, oitava acima)
+    //          B3 (corda 2, traste 0) → B3
+    //          B3 (corda 2, traste 12) → B4
     const baseOctave = STRING_OCTAVES[stringIndex];
+    const octaveOffset = Math.floor(totalSemitones / 12);
     const octave = baseOctave + octaveOffset;
-    
-    // Ajuste adicional: se a nota da corda + traste ultrapassar 12 semitons, adiciona 1 oitava
-    // Exemplo: Corda E (índice 4), traste 9 = E + 9 = 13 semitons = 1 oitava + 1 semitom
-    if (stringRootIndex + fret >= 12) {
-      const additionalOctave = Math.floor((stringRootIndex + fret) / 12);
-      return { note, octave: baseOctave + additionalOctave };
-    }
     
     return { note, octave };
   };
