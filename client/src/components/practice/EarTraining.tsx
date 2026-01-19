@@ -112,28 +112,89 @@ export function EarTraining() {
     
     setIsPlaying(true);
     
-    // Garantir que o audioService está inicializado
     try {
-      await unifiedAudioService.initialize();
-    } catch (error) {
-      console.warn('AudioService já inicializado');
-    }
-    
-    try {
-      if (exerciseType === 'chords') {
-        // Tocar acorde (todas as notas juntas)
-        await Promise.all(notes.map(note => unifiedAudioService.playNote(note, 1.5)));
-      } else {
-        // Tocar sequência (uma nota por vez)
-        for (const note of notes) {
-          await unifiedAudioService.playNote(note, 0.5);
-          await new Promise(resolve => setTimeout(resolve, 600));
-        }
+      // Garantir que o audioService está inicializado
+      console.log('🎵 Inicializando audio service para treino de ouvido...');
+      
+      // Primeiro, garantir inicialização
+      const initialized = await unifiedAudioService.initialize();
+      
+      if (!initialized) {
+        console.error('❌ Falha ao inicializar serviço de áudio, tentando reinicializar...');
+        // Tentar reinicializar
+        await unifiedAudioService.reinitialize();
       }
+      
+      // Pequeno delay para garantir que tudo está pronto
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('✅ Audio service inicializado, tocando exercício:', exerciseType);
+      console.log('🎼 Notas a tocar:', notes);
+      
+      if (exerciseType === 'chords') {
+        // Para acordes, precisamos tocar as notas simultaneamente
+        // Mas como não temos um método playChord com notas específicas,
+        // vamos tocar as notas com delay muito pequeno para parecer simultâneo
+        console.log('🎸 Tocando acorde:', notes);
+        
+        const startTime = Date.now();
+        // Tocar todas as notas quase simultaneamente (delay de 10ms entre cada)
+        const playPromises = notes.map((note, index) => {
+          return new Promise<void>((resolve) => {
+            setTimeout(async () => {
+              try {
+                await unifiedAudioService.playNote(note, 1.5);
+                resolve();
+              } catch (error) {
+                console.error(`Erro ao tocar nota ${note}:`, error);
+                resolve();
+              }
+            }, index * 10); // 10ms de delay entre cada nota
+          });
+        });
+        
+        await Promise.all(playPromises);
+        console.log('✅ Acorde tocado com sucesso');
+        
+      } else if (exerciseType === 'intervals') {
+        // Para intervalos, tocar as duas notas sequencialmente
+        console.log('🎵 Tocando intervalo:', notes);
+        
+        for (let i = 0; i < notes.length; i++) {
+          const note = notes[i];
+          console.log(`🎼 Tocando nota ${i + 1}/${notes.length}:`, note);
+          
+          await unifiedAudioService.playNote(note, 0.8);
+          
+          // Delay entre notas (exceto após a última)
+          if (i < notes.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 400));
+          }
+        }
+        console.log('✅ Intervalo tocado com sucesso');
+        
+      } else {
+        // Para melodias, tocar sequência de notas
+        console.log('🎶 Tocando melodia:', notes);
+        
+        for (let i = 0; i < notes.length; i++) {
+          const note = notes[i];
+          console.log(`🎼 Tocando nota ${i + 1}/${notes.length}:`, note);
+          
+          await unifiedAudioService.playNote(note, 0.6);
+          
+          // Delay entre notas (exceto após a última)
+          if (i < notes.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+        console.log('✅ Melodia tocada com sucesso');
+      }
+      
     } catch (error) {
-      console.error('Erro ao tocar exercício:', error);
+      console.error('❌ Erro ao tocar exercício:', error);
       toast.error('Erro ao reproduzir áudio', {
-        description: 'Verifique se o áudio está habilitado no navegador'
+        description: error instanceof Error ? error.message : 'Verifique se o áudio está habilitado no navegador'
       });
     } finally {
       setIsPlaying(false);
