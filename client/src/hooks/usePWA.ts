@@ -141,22 +141,9 @@ export function usePWA() {
   };
 
   const showUpdateNotification = (newWorker: ServiceWorker) => {
-    toast.success('Nova versão disponível! 🎉', {
-      description: 'Clique em "Atualizar" para usar a versão mais recente',
-      duration: Infinity,
-      action: {
-        label: 'Atualizar Agora',
-        onClick: () => {
-          newWorker.postMessage({ type: 'SKIP_WAITING' });
-        },
-      },
-      cancel: {
-        label: 'Depois',
-        onClick: () => {
-          toast.dismiss();
-        },
-      },
-    });
+    // Não mostrar toast, o banner vai cuidar disso
+    // O banner é mais visível e persistente
+    console.log('[PWA] Nova versão disponível, banner será exibido');
   };
 
   const installApp = async () => {

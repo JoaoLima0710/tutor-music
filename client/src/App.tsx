@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InstallPWA } from '@/components/InstallPWA';
 import { OfflineStatus } from '@/components/offline/OfflineStatus';
+import { UpdateBanner } from '@/components/UpdateBanner';
 import { usePWA } from '@/hooks/usePWA';
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
@@ -65,6 +66,7 @@ function App() {
       <ThemeProvider>
         <TooltipProvider>
           <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+            <UpdateBanner />
             <Router />
             <InstallPWA />
             <Toaster />
