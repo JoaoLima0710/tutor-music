@@ -325,7 +325,8 @@ export function ScaleFretboard({ scaleName, scaleNotes, tonic, intervals }: Scal
   // ============================================
   // 🎸 VERSÃO 3.0 - COMPLETE REWRITE 🎸
   // ============================================
-  console.log('%c🎸 ScaleFretboard - VERSION 3.0 LOADED - COMPLETE REWRITE', 'color: #10b981; font-size: 16px; font-weight: bold;');
+  console.log('%c🎸🎸🎸 VERSION 3.0 LOADED - COMPLETE REWRITE 🎸🎸🎸', 'color: #10b981; font-size: 20px; font-weight: bold; background: #000; padding: 10px;');
+  console.log('%cSe você NÃO vê esta mensagem, o código antigo ainda está rodando!', 'color: #ef4444; font-size: 14px; font-weight: bold;');
   console.log('🎸 Scale:', scaleName, 'Root:', tonic, 'Intervals:', intervals);
   console.log('🎸 Scale positions calculated:', scalePattern);
   console.log('🎸 Pattern details:', scalePattern.map(p => `${p.sequence}: ${p.note} @ string ${p.string} fret ${p.fret}`));

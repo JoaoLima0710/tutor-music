@@ -1,7 +1,7 @@
 // Service Worker for MusicTutor PWA
 // Version: 1.0.0
 
-const CACHE_VERSION = 'musictutor-v1.0.0';
+const CACHE_VERSION = 'musictutor-v3.0.0';
 const CACHE_NAME = `${CACHE_VERSION}-static`;
 const DATA_CACHE_NAME = `${CACHE_VERSION}-data`;
 
