@@ -6,7 +6,6 @@ import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { ChordSheetWithPlayer } from '@/components/songs/ChordSheetWithPlayer';
 import { AdvancedSongPlayer } from '@/components/songs/AdvancedSongPlayer';
-import { KaraokeMode } from '@/components/songs/KaraokeMode';
 import { PerformanceMode } from '@/components/songs/PerformanceMode';
 import { SheetMusicMode } from '@/components/songs/SheetMusicMode';
 import { Metronome } from '@/components/practice/Metronome';
@@ -16,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useSongStore } from '@/stores/useSongStore';
 import { useSongUnlockStore } from '@/stores/useSongUnlockStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { getSongById } from '@/data/songs';
 import { PdfExportService } from '@/services/PdfExportService';
 import { cifraClubService } from '@/services/CifraClubService';
@@ -23,7 +23,7 @@ import { songAnalysisService } from '@/services/SongAnalysisService';
 import { getRecommendedPreset } from '@/services/MetronomePresets';
 import { SongSkillTreeComponent } from '@/components/songs/SongSkillTree';
 import { toast } from 'sonner';
-import { ArrowLeft, Heart, Play, Music, Clock, TrendingUp, Lightbulb, Mic, Maximize2, Download, ExternalLink, Lock, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Heart, Play, Music, Clock, TrendingUp, Lightbulb, Mic, Download, ExternalLink, Lock, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const genreColors: Record<string, string> = {
@@ -48,7 +48,6 @@ export default function SongDetail() {
   const [showMetronome, setShowMetronome] = useState(false);
   const [showPracticeMode, setShowPracticeMode] = useState(false);
   const [showRecorder, setShowRecorder] = useState(false);
-  const [showKaraoke, setShowKaraoke] = useState(false);
   const [showPerformanceMode, setShowPerformanceMode] = useState(false);
   const [showSheetMusic, setShowSheetMusic] = useState(false);
   const [transposition, setTransposition] = useState(0); // Semitons: -12 to +12
@@ -58,8 +57,9 @@ export default function SongDetail() {
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { isFavorite, toggleFavorite, markAsPracticed } = useSongStore();
   const { isSongUnlocked, getUnlockRequirements } = useSongUnlockStore();
+  const { user } = useUserStore();
   
-  const userName = "João";
+  const userName = user?.name || "Usuário";
   const songId = params?.id || '';
   const song = getSongById(songId);
   
@@ -342,13 +342,6 @@ export default function SongDetail() {
                     >
                       <Play className="w-5 h-5 mr-2" />
                       {isUnlocked ? 'Modo Performance' : 'Bloqueada'}
-                    </Button>
-                    <Button
-                      onClick={() => setShowKaraoke(true)}
-                      className="bg-gradient-to-r from-[#ec4899] to-[#db2777] text-white font-semibold text-lg py-6"
-                    >
-                      <Maximize2 className="w-5 h-5 mr-2" />
-                      Karaokê
                     </Button>
                   </div>
                   
@@ -670,17 +663,6 @@ export default function SongDetail() {
         
         <MobileBottomNav />
       </div>
-      
-      {/* Karaoke Mode */}
-      {showKaraoke && (
-        <KaraokeMode
-          chordSheet={song.chordSheet}
-          bpm={song.bpm}
-          title={song.title}
-          artist={song.artist}
-          onClose={() => setShowKaraoke(false)}
-        />
-      )}
       
       {/* Performance Mode */}
       {showPerformanceMode && (

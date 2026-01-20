@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
@@ -8,15 +9,15 @@ import { ChordTheory } from '@/components/chords/ChordTheory';
 import { Button } from '@/components/ui/button';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useChordStore } from '@/stores/useChordStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { chords, getChordsByDifficulty } from '@/data/chords';
-import { Play, Check, Lock, Volume2, StopCircle } from 'lucide-react';
+import { Play, Check, StopCircle } from 'lucide-react';
 import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
 import type { InstrumentType } from '@/services/AudioServiceWithSamples';
 
-const INSTRUMENT_STORAGE_KEY = 'musictutor-instrument-preference';
-
 export default function Chords() {
+  const [, setLocation] = useLocation();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [selectedChord, setSelectedChord] = useState(chords[0]);
   const [filter, setFilter] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
@@ -27,8 +28,9 @@ export default function Chords() {
   
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { progress, setCurrentChord } = useChordStore();
+  const { user } = useUserStore();
   
-  const userName = "João";
+  const userName = user?.name || "Usuário";
   
   const filteredChords = filter === 'all' ? chords : getChordsByDifficulty(filter);
   
@@ -59,8 +61,7 @@ export default function Chords() {
   };
   
   const handlePractice = () => {
-    // Navigate to practice mode with selected chord
-    window.location.href = `/practice?chord=${selectedChord.id}`;
+    setLocation(`/practice?chord=${selectedChord.id}`);
   };
   
   return (
@@ -396,15 +397,18 @@ export default function Chords() {
                     Parar
                   </Button>
                 )}
-                <Button className="flex-1 bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white font-semibold">
+                <Button 
+                  onClick={handlePractice}
+                  className="flex-1 bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white font-semibold"
+                >
                   Praticar
                 </Button>
               </div>
             </div>
           </div>
           
-          {/* Chord Grid */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Chord Grid - 2 colunas para melhor legibilidade mobile */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {filteredChords.map((chord) => {
               const isCompleted = progress[chord.id]?.practiced;
               const isSelected = selectedChord.id === chord.id;
@@ -414,17 +418,18 @@ export default function Chords() {
                   key={chord.id}
                   onClick={() => handleChordClick(chord)}
                   className={`
-                    p-4 rounded-xl transition-all
+                    p-3 rounded-xl transition-all
                     ${isSelected
-                      ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6]'
-                      : 'bg-[#1a1a2e]'
+                      ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] ring-2 ring-purple-400'
+                      : 'bg-[#1a1a2e] hover:bg-[#232338]'
                     }
                   `}
                 >
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white mb-1">{chord.name}</div>
+                    <div className="text-xl font-bold text-white">{chord.name}</div>
+                    <div className="text-xs text-gray-400 truncate">{chord.fullName}</div>
                     {isCompleted && (
-                      <Check className="w-4 h-4 text-green-400 mx-auto" />
+                      <Check className="w-4 h-4 text-green-400 mx-auto mt-1" />
                     )}
                   </div>
                 </button>

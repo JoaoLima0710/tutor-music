@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useGamificationStore } from '@/stores/useGamificationStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
 import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { Settings as SettingsIcon, Music, Volume2, Waves, Sliders } from 'lucide-react';
@@ -15,13 +16,12 @@ import { AudioCacheSettings } from '@/components/AudioCacheSettings';
 import { LLMSettings } from '@/components/ai/LLMSettings';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
-
-const userName = 'João';
 
 export default function Settings() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
+  const { user } = useUserStore();
+  const userName = user?.name || "Usuário";
   
   const {
     audioEngine,
@@ -126,7 +126,7 @@ export default function Settings() {
         />
         
         <main className="flex-1 overflow-y-auto">
-          <div className="container py-8">
+          <div className="max-w-5xl mx-auto p-8 space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#06b6d4] to-[#0891b2] flex items-center justify-center">

@@ -1,59 +1,96 @@
 import { Progress } from '@/components/ui/progress';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Play } from 'lucide-react';
 import { useLocation } from 'wouter';
-
-interface Lesson {
-  id: number;
-  title: string;
-  subtitle: string;
-  progress: number;
-  color: string;
-  iconBg: string;
-  icon: string;
-}
+import { useProgressionStore } from '@/stores/useProgressionStore';
+import { lessonModules, LessonModule } from '@/data/lessons';
 
 interface ContinueLearningProps {
-  lessons: Lesson[];
+  maxItems?: number;
 }
 
-export function ContinueLearning({ lessons }: ContinueLearningProps) {
+export function ContinueLearning({ maxItems = 3 }: ContinueLearningProps) {
   const [, setLocation] = useLocation();
+  const { modules, skills, educationalLevel } = useProgressionStore();
   
-  const handleLessonClick = (lessonId: number) => {
-    // Map lesson IDs to routes
-    const routeMap: Record<number, string> = {
-      1: '/chords',
-      2: '/scales',
-      3: '/practice'
+  // Pegar módulos do nível atual com progresso
+  const currentLevelModules = lessonModules.filter(m => m.level === educationalLevel);
+  
+  // Criar lista de itens baseada no progresso real
+  const learningItems = currentLevelModules.slice(0, maxItems).map((module, index) => {
+    // Calcular progresso baseado nas habilidades do módulo
+    const moduleSkills = skills.filter(s => 
+      module.lessons.some(l => l.skillsToUnlock.includes(s.id))
+    );
+    const avgProgress = moduleSkills.length > 0
+      ? Math.round(moduleSkills.reduce((sum, s) => sum + s.progress, 0) / moduleSkills.length)
+      : 0;
+    
+    // Contar lições completadas
+    const totalLessons = module.lessons.length;
+    const completedLessons = Math.floor((avgProgress / 100) * totalLessons);
+    
+    return {
+      id: module.id,
+      title: module.title,
+      subtitle: `Lição ${completedLessons + 1} de ${totalLessons}`,
+      progress: avgProgress,
+      icon: module.icon,
+      color: module.color,
+      route: getModuleRoute(module.id),
     };
-    setLocation(routeMap[lessonId] || '/chords');
-  };
+  });
+  
+  function getModuleRoute(moduleId: string): string {
+    const routeMap: Record<string, string> = {
+      'module-1-fundamentals': '/tuner',
+      'module-2-first-chords': '/chords',
+      'module-3-rhythm': '/practice',
+      'module-4-first-song': '/songs',
+    };
+    return routeMap[moduleId] || '/chords';
+  }
+  
+  if (learningItems.length === 0) {
+    return (
+      <div className="p-6 rounded-2xl bg-[#1a1a2e]/60 border border-white/10 text-center">
+        <p className="text-gray-400">Comece sua jornada musical!</p>
+        <button 
+          onClick={() => setLocation('/chords')}
+          className="mt-3 px-4 py-2 rounded-lg bg-purple-500 text-white text-sm font-medium"
+        >
+          Começar Agora
+        </button>
+      </div>
+    );
+  }
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {lessons.map((lesson) => (
+      {learningItems.map((item) => (
         <div
-          key={lesson.id}
-          onClick={() => handleLessonClick(lesson.id)}
-          className="group relative overflow-hidden rounded-2xl p-5 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10 hover:border-white/20 transition-all cursor-pointer"
+          key={item.id}
+          onClick={() => setLocation(item.route)}
+          className="group relative overflow-hidden rounded-2xl p-5 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10 hover:border-purple-500/50 transition-all cursor-pointer"
         >
           <div className="flex items-start gap-4 mb-4">
-            <div className={`w-12 h-12 rounded-xl ${lesson.iconBg} flex items-center justify-center text-2xl`}>
-              {lesson.icon}
+            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-2xl`}>
+              {item.icon}
             </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-white mb-1">{lesson.title}</h4>
-              <p className="text-sm text-gray-400">{lesson.subtitle}</p>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-white mb-1 truncate">{item.title}</h4>
+              <p className="text-sm text-gray-400">{item.subtitle}</p>
             </div>
-            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+            <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center group-hover:bg-purple-500 transition-colors">
+              <Play className="w-4 h-4 text-purple-400 group-hover:text-white transition-colors" />
+            </div>
           </div>
           
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-400">Progresso</span>
-              <span className={`${lesson.color} font-semibold`}>{lesson.progress}%</span>
+              <span className="text-purple-400 font-semibold">{item.progress}%</span>
             </div>
-            <Progress value={lesson.progress} className="h-2 bg-white/10" />
+            <Progress value={item.progress} className="h-2 bg-white/10" />
           </div>
         </div>
       ))}

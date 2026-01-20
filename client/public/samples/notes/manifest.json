@@ -1,14 +1,14 @@
 {
   "A#2": {
-    "file": "A#2.wav",
+    "file": "Asharp2.wav",
     "duration": 1.5
   },
   "A#3": {
-    "file": "A#3.wav",
+    "file": "Asharp3.wav",
     "duration": 1.5
   },
   "A#4": {
-    "file": "A#4.wav",
+    "file": "Asharp4.wav",
     "duration": 1.5
   },
   "A2": {
@@ -36,15 +36,15 @@
     "duration": 1.5
   },
   "C#3": {
-    "file": "C#3.wav",
+    "file": "Csharp3.wav",
     "duration": 1.5
   },
   "C#4": {
-    "file": "C#4.wav",
+    "file": "Csharp4.wav",
     "duration": 1.5
   },
   "C#5": {
-    "file": "C#5.wav",
+    "file": "Csharp5.wav",
     "duration": 1.5
   },
   "C3": {
@@ -60,15 +60,15 @@
     "duration": 1.5
   },
   "D#3": {
-    "file": "D#3.wav",
+    "file": "Dsharp3.wav",
     "duration": 1.5
   },
   "D#4": {
-    "file": "D#4.wav",
+    "file": "Dsharp4.wav",
     "duration": 1.5
   },
   "D#5": {
-    "file": "D#5.wav",
+    "file": "Dsharp5.wav",
     "duration": 1.5
   },
   "D3": {
@@ -100,19 +100,19 @@
     "duration": 1.5
   },
   "F#2": {
-    "file": "F#2.wav",
+    "file": "Fsharp2.wav",
     "duration": 1.5
   },
   "F#3": {
-    "file": "F#3.wav",
+    "file": "Fsharp3.wav",
     "duration": 1.5
   },
   "F#4": {
-    "file": "F#4.wav",
+    "file": "Fsharp4.wav",
     "duration": 1.5
   },
   "F#5": {
-    "file": "F#5.wav",
+    "file": "Fsharp5.wav",
     "duration": 1.5
   },
   "F2": {
@@ -132,19 +132,19 @@
     "duration": 1.5
   },
   "G#2": {
-    "file": "G#2.wav",
+    "file": "Gsharp2.wav",
     "duration": 1.5
   },
   "G#3": {
-    "file": "G#3.wav",
+    "file": "Gsharp3.wav",
     "duration": 1.5
   },
   "G#4": {
-    "file": "G#4.wav",
+    "file": "Gsharp4.wav",
     "duration": 1.5
   },
   "G#5": {
-    "file": "G#5.wav",
+    "file": "Gsharp5.wav",
     "duration": 1.5
   },
   "G2": {

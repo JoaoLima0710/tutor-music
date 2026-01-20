@@ -649,14 +649,15 @@ class AudioManager {
       }
 
       // Use the active service's playNote method directly
+      // Passar a duração fornecida ou usar padrão apenas se não especificada
       if (this.activeService.playNote) {
-        await this.activeService.playNote(noteWithOctave, duration || 0.5);
+        await this.activeService.playNote(noteWithOctave, duration);
         this.lastAudioTime = Date.now();
-        console.log('✅ Note played successfully');
+        console.log('✅ Note played successfully', duration ? `(${duration}s)` : '');
       } else {
         // Fallback: Use playScale with single note
         const rootNote = note.replace(/\d+$/, '');
-        await this.playScale(note, rootNote, [0], duration || 0.5);
+        await this.playScale(note, rootNote, [0], duration);
         console.log('✅ Note played via scale fallback');
       }
     } catch (error) {
@@ -669,7 +670,7 @@ class AudioManager {
           await this.reinitialize();
           await new Promise(resolve => setTimeout(resolve, 200));
           if (this.activeService?.playNote) {
-            await this.activeService.playNote(noteWithOctave, duration || 0.5);
+            await this.activeService.playNote(noteWithOctave, duration);
             console.log('✅ Note recovered successfully');
             return;
           }

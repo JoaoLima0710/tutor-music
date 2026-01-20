@@ -6,6 +6,7 @@ import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { GuitarTuner } from '@/components/tuner/GuitarTuner';
 import { VocalRangeAnalyzer } from '@/components/tuner/VocalRangeAnalyzer';
 import { useGamificationStore } from '@/stores/useGamificationStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Guitar, Mic2 } from 'lucide-react';
 
@@ -13,8 +14,9 @@ export default function Tuner() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
+  const { user } = useUserStore();
   
-  const userName = "João";
+  const userName = user?.name || "Usuário";
   
   return (
     <>
@@ -102,13 +104,23 @@ export default function Tuner() {
       </div>
 
       {/* MOBILE VERSION */}
-      <div className="lg:hidden flex flex-col h-screen bg-[#0f0f1a] text-white">
+      <div className="lg:hidden min-h-screen bg-[#0f0f1a] text-white">
+        <MobileSidebar
+          isOpen={isMobileSidebarOpen}
+          onClose={() => setIsMobileSidebarOpen(false)}
+          userName={userName}
+          userLevel={level}
+          currentXP={xp}
+          xpToNextLevel={xpToNextLevel}
+          streak={currentStreak}
+        />
+        
         <MobileHeader 
           userName={userName}
           onMenuClick={() => setIsMobileSidebarOpen(true)}
         />
         
-        <div className="flex-1 overflow-y-auto pb-20 px-4 pt-4">
+        <main className="px-4 py-4 pb-24 space-y-6">
           {/* Header */}
           <header className="mb-6">
             <div className="flex items-center gap-3 mb-2">
@@ -168,19 +180,9 @@ export default function Tuner() {
               </li>
             </ul>
           </div>
-        </div>
+        </main>
 
         <MobileBottomNav />
-        
-        <MobileSidebar
-          isOpen={isMobileSidebarOpen}
-          onClose={() => setIsMobileSidebarOpen(false)}
-          userName={userName}
-          userLevel={level}
-          currentXP={xp}
-          xpToNextLevel={xpToNextLevel}
-          streak={currentStreak}
-        />
       </div>
     </>
   );

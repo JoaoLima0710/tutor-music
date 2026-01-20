@@ -133,7 +133,7 @@ class FreeLLMService {
     messages: LLMMessage[],
     config: FreeLLMConfig
   ): Promise<LLMResponse> {
-    const apiKey = config.apiKey || process.env.VITE_GROQ_API_KEY;
+    const apiKey = config.apiKey || import.meta.env.VITE_GROQ_API_KEY;
     if (!apiKey) {
       throw new Error('Groq API key não configurada');
     }
@@ -183,7 +183,7 @@ class FreeLLMService {
     messages: LLMMessage[],
     config: FreeLLMConfig
   ): Promise<LLMResponse> {
-    const apiKey = config.apiKey || process.env.VITE_HUGGINGFACE_API_KEY;
+    const apiKey = config.apiKey || import.meta.env.VITE_HUGGINGFACE_API_KEY;
     const model = config.model || 'microsoft/DialoGPT-medium'; // Modelo conversacional
 
     // Hugging Face usa formato diferente - converter mensagens
@@ -234,7 +234,7 @@ class FreeLLMService {
     messages: LLMMessage[],
     config: FreeLLMConfig
   ): Promise<LLMResponse> {
-    const apiKey = config.apiKey || process.env.VITE_GEMINI_API_KEY;
+    const apiKey = config.apiKey || import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error('Gemini API key não configurada');
     }
@@ -386,9 +386,9 @@ class FreeLLMService {
    */
   getAvailableProviders(): Array<{ provider: FreeLLMProvider; available: boolean; name: string }> {
     return [
-      { provider: 'groq', available: !!(this.config.apiKey || process.env.VITE_GROQ_API_KEY), name: 'Groq (Rápido)' },
+      { provider: 'groq', available: !!(this.config.apiKey || import.meta.env.VITE_GROQ_API_KEY), name: 'Groq (Rápido)' },
       { provider: 'huggingface', available: true, name: 'Hugging Face (Gratuito)' },
-      { provider: 'gemini', available: !!(this.config.apiKey || process.env.VITE_GEMINI_API_KEY), name: 'Google Gemini' },
+      { provider: 'gemini', available: !!(this.config.apiKey || import.meta.env.VITE_GEMINI_API_KEY), name: 'Google Gemini' },
       { provider: 'ollama', available: true, name: 'Ollama (Local)' },
       { provider: 'simulated', available: true, name: 'Simulado (Fallback)' },
     ];

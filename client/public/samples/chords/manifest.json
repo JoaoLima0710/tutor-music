@@ -1,14 +1,14 @@
 {
   "A#": {
-    "file": "A#.wav",
+    "file": "Asharp.wav",
     "duration": 2.0
   },
   "A#7": {
-    "file": "A#7.wav",
+    "file": "Asharp7.wav",
     "duration": 2.0
   },
   "A#m": {
-    "file": "A#m.wav",
+    "file": "Asharpm.wav",
     "duration": 2.0
   },
   "A": {
@@ -32,15 +32,15 @@
     "duration": 2.0
   },
   "C#": {
-    "file": "C#.wav",
+    "file": "Csharp.wav",
     "duration": 2.0
   },
   "C#7": {
-    "file": "C#7.wav",
+    "file": "Csharp7.wav",
     "duration": 2.0
   },
   "C#m": {
-    "file": "C#m.wav",
+    "file": "Csharpm.wav",
     "duration": 2.0
   },
   "C": {
@@ -56,15 +56,15 @@
     "duration": 2.0
   },
   "D#": {
-    "file": "D#.wav",
+    "file": "Dsharp.wav",
     "duration": 2.0
   },
   "D#7": {
-    "file": "D#7.wav",
+    "file": "Dsharp7.wav",
     "duration": 2.0
   },
   "D#m": {
-    "file": "D#m.wav",
+    "file": "Dsharpm.wav",
     "duration": 2.0
   },
   "D": {
@@ -88,15 +88,15 @@
     "duration": 2.0
   },
   "F#": {
-    "file": "F#.wav",
+    "file": "Fsharp.wav",
     "duration": 2.0
   },
   "F#7": {
-    "file": "F#7.wav",
+    "file": "Fsharp7.wav",
     "duration": 2.0
   },
   "F#m": {
-    "file": "F#m.wav",
+    "file": "Fsharpm.wav",
     "duration": 2.0
   },
   "F": {
@@ -108,11 +108,11 @@
     "duration": 2.0
   },
   "G#": {
-    "file": "G#.wav",
+    "file": "Gsharp.wav",
     "duration": 2.0
   },
   "G#m": {
-    "file": "G#m.wav",
+    "file": "Gsharpm.wav",
     "duration": 2.0
   },
   "G": {

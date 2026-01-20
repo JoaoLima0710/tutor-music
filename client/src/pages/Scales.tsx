@@ -11,9 +11,9 @@ import { EarTraining } from '@/components/scales/EarTraining';
 import { ScaleImprovisation } from '@/components/scales/ScaleImprovisation';
 import { FullFretboardView } from '@/components/scales/FullFretboardView';
 import { useGamificationStore } from '@/stores/useGamificationStore';
-import { Play, Volume2, StopCircle, BookOpen, Layers, Mic, Radio, GraduationCap } from 'lucide-react';
+import { useUserStore } from '@/stores/useUserStore';
+import { Play, StopCircle, BookOpen, Layers, Mic, Radio, GraduationCap, ChevronDown, Lock, Check } from 'lucide-react';
 import { unifiedAudioService } from '@/services/UnifiedAudioService';
-import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
 import { useScaleProgressionStore } from '@/stores/useScaleProgressionStore';
 
 const scales = [
@@ -166,9 +166,13 @@ export default function Scales() {
   const [selectedScale, setSelectedScale] = useState(scales[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState<LearningStep>('fretboard');
+  const [showScaleSelector, setShowScaleSelector] = useState(false);
   
   const { xp, level, xpToNextLevel, currentStreak, addXP } = useGamificationStore();
   const { isScaleUnlocked, isScaleMastered, getScaleProgress, getStats } = useScaleProgressionStore();
+  const { user } = useUserStore();
+  
+  const userName = user?.name || "Usuário";
   
   // Filtrar escalas desbloqueadas
   const unlockedScales = scales.filter(scale => isScaleUnlocked(scale.id));
@@ -191,44 +195,85 @@ export default function Scales() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f0f1a] via-[#1a1a2e] to-[#0f0f1a] text-white">
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
+    <>
+      {/* DESKTOP VERSION */}
+      <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
         <Sidebar
-          userName="João"
+          userName={userName}
           userLevel={level}
           currentXP={xp}
           xpToNextLevel={xpToNextLevel}
           streak={currentStreak}
         />
-      </div>
+        
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-6xl mx-auto p-8 space-y-6">
+            <header>
+              <h1 className="text-4xl font-bold text-white mb-2">Escalas Musicais</h1>
+              <p className="text-gray-400">Aprenda e pratique escalas no braço do violão</p>
+            </header>
 
-      {/* Mobile Header */}
-      <div className="lg:hidden">
-        <MobileHeader
-          userName="João"
-          onMenuClick={() => setIsMobileSidebarOpen(true)}
-        />
-      </div>
-
-      {/* Mobile Sidebar */}
-      <MobileSidebar
-        isOpen={isMobileSidebarOpen}
-        onClose={() => setIsMobileSidebarOpen(false)}
-        userName="João"
-        userLevel={level}
-        currentXP={xp}
-        xpToNextLevel={xpToNextLevel}
-        streak={currentStreak}
-      />
-
-      {/* Main Content */}
-      <main className="lg:ml-72 pb-20 lg:pb-8">
-        <div className="container py-6 space-y-6">
-          <header className="mb-4">
-            <h1 className="text-4xl font-bold text-white mb-2">Escalas Musicais</h1>
-            <p className="text-gray-400">Aprenda e pratique escalas no braço do violão</p>
-          </header>
+          {/* Seletor de Escala */}
+          <div className="relative">
+            <button
+              onClick={() => setShowScaleSelector(!showScaleSelector)}
+              className="w-full p-4 rounded-2xl bg-gradient-to-r from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-between hover:border-emerald-400/50 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold">
+                  {selectedScale.root}
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-bold text-white">{selectedScale.name}</h3>
+                  <p className="text-sm text-gray-400">{selectedScale.difficulty === 'beginner' ? 'Iniciante' : selectedScale.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}</p>
+                </div>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showScaleSelector ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {/* Dropdown de Escalas */}
+            {showScaleSelector && (
+              <div className="absolute z-50 top-full left-0 right-0 mt-2 p-3 rounded-2xl bg-[#1a1a2e] border border-white/20 shadow-xl max-h-80 overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {scales.map((scale) => {
+                    const isUnlocked = isScaleUnlocked(scale.id);
+                    const isMastered = isScaleMastered(scale.id);
+                    const isSelected = selectedScale.id === scale.id;
+                    
+                    return (
+                      <button
+                        key={scale.id}
+                        onClick={() => {
+                          if (isUnlocked) {
+                            setSelectedScale(scale);
+                            setShowScaleSelector(false);
+                          }
+                        }}
+                        disabled={!isUnlocked}
+                        className={`
+                          p-3 rounded-xl text-left transition-all flex items-center gap-3
+                          ${isSelected ? 'bg-emerald-500/30 border border-emerald-400' : 'hover:bg-white/5'}
+                          ${!isUnlocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                        `}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold
+                          ${isSelected ? 'bg-emerald-500 text-white' : 'bg-white/10 text-gray-300'}
+                        `}>
+                          {scale.root}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-white text-sm truncate">{scale.name}</div>
+                          <div className="text-xs text-gray-400">{scale.difficulty === 'beginner' ? 'Iniciante' : scale.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}</div>
+                        </div>
+                        {!isUnlocked && <Lock className="w-4 h-4 text-gray-500" />}
+                        {isMastered && <Check className="w-4 h-4 text-emerald-400" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Learning Path Navigation */}
           <div className="p-6 rounded-2xl bg-gradient-to-br from-[#1a1a2e]/80 to-[#2a2a3e]/60 border border-white/20 shadow-xl">
@@ -376,14 +421,108 @@ export default function Scales() {
               />
             )}
           </div>
-
         </div>
-      </main>
+      </div>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden">
+      {/* MOBILE VERSION */}
+      <div className="lg:hidden min-h-screen bg-[#0f0f1a] text-white">
+        <MobileHeader
+          userName={userName}
+          onMenuClick={() => setIsMobileSidebarOpen(true)}
+        />
+        
+        <MobileSidebar
+          isOpen={isMobileSidebarOpen}
+          onClose={() => setIsMobileSidebarOpen(false)}
+          userName={userName}
+          userLevel={level}
+          currentXP={xp}
+          xpToNextLevel={xpToNextLevel}
+          streak={currentStreak}
+        />
+        
+        <main className="px-4 py-4 pb-24 space-y-4">
+          <header>
+            <h1 className="text-2xl font-bold text-white mb-1">Escalas Musicais</h1>
+            <p className="text-sm text-gray-400">Aprenda escalas no violão</p>
+          </header>
+
+          {/* Seletor de Escala Mobile */}
+          <div className="relative">
+            <button
+              onClick={() => setShowScaleSelector(!showScaleSelector)}
+              className="w-full p-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">
+                  {selectedScale.root}
+                </div>
+                <div className="text-left">
+                  <h3 className="font-bold text-white text-sm">{selectedScale.name}</h3>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showScaleSelector ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {showScaleSelector && (
+              <div className="absolute z-50 top-full left-0 right-0 mt-2 p-2 rounded-xl bg-[#1a1a2e] border border-white/20 shadow-xl max-h-60 overflow-y-auto">
+                {scales.map((scale) => {
+                  const isUnlocked = isScaleUnlocked(scale.id);
+                  const isMastered = isScaleMastered(scale.id);
+                  const isSelected = selectedScale.id === scale.id;
+                  
+                  return (
+                    <button
+                      key={scale.id}
+                      onClick={() => {
+                        if (isUnlocked) {
+                          setSelectedScale(scale);
+                          setShowScaleSelector(false);
+                        }
+                      }}
+                      disabled={!isUnlocked}
+                      className={`w-full p-2 rounded-lg text-left flex items-center gap-2
+                        ${isSelected ? 'bg-emerald-500/30' : 'hover:bg-white/5'}
+                        ${!isUnlocked ? 'opacity-50' : ''}
+                      `}
+                    >
+                      <div className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold
+                        ${isSelected ? 'bg-emerald-500 text-white' : 'bg-white/10 text-gray-300'}
+                      `}>
+                        {scale.root}
+                      </div>
+                      <span className="text-sm text-white flex-1">{scale.name}</span>
+                      {!isUnlocked && <Lock className="w-3 h-3 text-gray-500" />}
+                      {isMastered && <Check className="w-3 h-3 text-emerald-400" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* FullFretboardView Mobile */}
+          <FullFretboardView
+            scaleName={selectedScale.name}
+            root={selectedScale.root}
+            intervals={selectedScale.intervals}
+          />
+
+          {/* Play Button Mobile */}
+          <Button
+            onClick={isPlaying ? handleStopScale : handlePlayScale}
+            className={`w-full ${isPlaying 
+              ? 'bg-gradient-to-r from-red-500 to-red-600' 
+              : 'bg-gradient-to-r from-emerald-500 to-teal-500'
+            } text-white font-semibold`}
+          >
+            {isPlaying ? <StopCircle className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+            {isPlaying ? 'Parar' : 'Tocar Escala'}
+          </Button>
+        </main>
+        
         <MobileBottomNav />
       </div>
-    </div>
+    </>
   );
 }

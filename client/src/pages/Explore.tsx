@@ -3,9 +3,9 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
-import { SimplifiedNav } from '@/components/layout/SimplifiedNav';
 import { Button } from '@/components/ui/button';
 import { useGamificationStore } from '@/stores/useGamificationStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { Guitar, Music2, Ear, Book, Compass } from 'lucide-react';
 import { useLocation } from 'wouter';
 
@@ -14,8 +14,8 @@ export default function Explore() {
   const [, setLocation] = useLocation();
   
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
-  const userName = "João";
-  const isBeginner = level <= 3;
+  const { user } = useUserStore();
+  const userName = user?.name || "Usuário";
   
   const exploreCategories = [
     {
@@ -56,29 +56,15 @@ export default function Explore() {
     <>
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
-        {isBeginner ? (
-          <>
-            <div className="pt-20 w-full">
-              <SimplifiedNav
-                userName={userName}
-                userLevel={level}
-                currentXP={xp}
-                xpToNextLevel={xpToNextLevel}
-                streak={currentStreak}
-              />
-            </div>
-          </>
-        ) : (
-          <Sidebar 
-            userName={userName}
-            userLevel={level}
-            currentXP={xp}
-            xpToNextLevel={xpToNextLevel}
-            streak={currentStreak}
-          />
-        )}
+        <Sidebar 
+          userName={userName}
+          userLevel={level}
+          currentXP={xp}
+          xpToNextLevel={xpToNextLevel}
+          streak={currentStreak}
+        />
         
-        <div className={`flex-1 overflow-y-auto ${isBeginner ? 'pt-20' : ''}`}>
+        <div className="flex-1 overflow-y-auto">
           <div className="max-w-6xl mx-auto p-8 space-y-8">
             {/* Header */}
             <header>

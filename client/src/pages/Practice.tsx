@@ -10,7 +10,8 @@ import { SpectrumVisualizer } from '@/components/practice/SpectrumVisualizer';
 import { EarTraining } from '@/components/practice/EarTraining';
 import { RealtimeChordDetector } from '@/components/chord-detection/RealtimeChordDetector';
 import { useGamificationStore } from '@/stores/useGamificationStore';
-import { Clock, Guitar, Target, Zap } from 'lucide-react';
+import { useUserStore } from '@/stores/useUserStore';
+import { Clock, Target, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -19,8 +20,9 @@ export default function Practice() {
   const [, setLocation] = useLocation();
 
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
+  const { user } = useUserStore();
 
-  const userName = "João";
+  const userName = user?.name || "Usuário";
   
   return (
     <>

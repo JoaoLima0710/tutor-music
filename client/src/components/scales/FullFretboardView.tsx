@@ -74,18 +74,30 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
     return note === root.toUpperCase();
   };
 
-  // Tocar nota do GuitarSet
+  // Tocar nota do GuitarSet com duração otimizada para melhor identificação
+  // IMPORTANTE: Para todas as notas anteriores para evitar sobreposição (som de acorde)
   const playNote = async (stringIndex: number, fret: number) => {
     try {
+      // CRÍTICO: Parar todas as notas anteriores ANTES de qualquer outra operação
+      // Isso garante que apenas uma nota toque por vez, sem sobreposição ou som de acorde
+      unifiedAudioService.stopAll();
+      
+      // Delay aumentado para garantir que TODAS as notas anteriores foram completamente paradas
+      // 100ms garante que o AudioContext processe completamente o stop e desconecte todos os nós
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const { note, octave } = getNoteAtPosition(stringIndex, fret);
       const noteWithOctave = `${note}${octave}`;
       
       setPlayingNote(`${stringIndex}-${fret}`);
       
       await unifiedAudioService.initialize();
-      await unifiedAudioService.playNote(noteWithOctave, 0.8);
       
-      setTimeout(() => setPlayingNote(null), 800);
+      // Duração aumentada para 3.0 segundos - permite identificação clara da nota
+      await unifiedAudioService.playNote(noteWithOctave, 3.0);
+      
+      // Timeout ajustado para corresponder à duração do som + margem
+      setTimeout(() => setPlayingNote(null), 3300);
     } catch (error) {
       console.error('Erro ao tocar nota:', error);
       toast.error('Erro ao tocar nota');
@@ -143,40 +155,29 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
           </div>
         </div>
 
-        <div className="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-400/30">
-          <div className="flex items-start gap-2">
-            <Info className="w-5 h-5 text-emerald-400 mt-0.5" />
-            <div className="text-sm text-emerald-300">
-              <p className="font-semibold mb-1">Como usar esta visualização:</p>
-              <ul className="list-disc list-inside space-y-1 text-emerald-200">
-                <li><span className="font-bold text-white">Clique em qualquer nota</span> para tocar com o GuitarSet</li>
-                <li>Notas <span className="font-bold text-emerald-400">verdes</span> = pertencem à escala</li>
-                <li>Notas <span className="font-bold text-gray-500">cinzas</span> = não pertencem à escala</li>
-                {highlightRoot && (
-                  <li>Notas <span className="font-bold text-yellow-400">amarelas</span> = tônica ({root})</li>
-                )}
-                <li>Use esta visualização para encontrar todas as posições possíveis de cada nota</li>
-              </ul>
-            </div>
+        <div className="mb-3 p-2 rounded-lg bg-emerald-500/10 border border-emerald-400/30">
+          <div className="flex items-center gap-4 text-xs text-emerald-200">
+            <span><strong className="text-white">Clique</strong> para tocar</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500"></span> Escala</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-600"></span> Fora</span>
+            {highlightRoot && <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-500"></span> Tônica</span>}
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-700"></span> Solta</span>
           </div>
         </div>
 
         {/* Fretboard */}
         <div className="overflow-x-auto">
-          <div className="inline-block min-w-full">
-            <div className="bg-gradient-to-br from-[#2a1a0e] to-[#1a0f05] rounded-xl p-4 border-2 border-amber-800/50">
-              {/* Header com números dos trastes - CORRIGIDO: 0 = corda solta, 1 = primeira casa */}
+          <div className="min-w-full">
+            <div className="bg-gradient-to-br from-[#2a1a0e] to-[#1a0f05] rounded-xl p-3 border-2 border-amber-800/50">
+              {/* Header com números dos trastes - CORRIGIDO: corda solta não conta, 1 = primeira casa */}
               <div className="flex mb-2">
-                <div className="w-16 flex-shrink-0"></div>
-                {/* Corda solta (0) */}
-                <div className="flex-1 text-center text-xs font-bold text-amber-200 min-w-[40px]">
-                  Solta
-                </div>
-                {/* Trastes 1-24 */}
+                {/* Coluna para corda solta (0) */}
+                <div className="w-10 flex-shrink-0 text-center text-xs font-bold text-amber-400">0</div>
+                {/* Trastes 1-24 (primeira casa = 1) */}
                 {Array.from({ length: displayFrets }, (_, i) => i + 1).map((fret) => (
                   <div
                     key={fret}
-                    className="flex-1 text-center text-xs font-bold text-amber-200 min-w-[40px]"
+                    className="flex-1 text-center text-xs font-bold text-amber-200 min-w-[32px]"
                   >
                     {fret}
                   </div>
@@ -186,36 +187,27 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
               {/* Cordas */}
               {STRINGS.map((stringNote, stringIndex) => (
                 <div key={stringIndex} className="flex items-center mb-1">
-                  {/* Nome da corda */}
-                  <div className="w-16 flex-shrink-0 text-center">
-                    <div className="text-lg font-bold text-amber-300 bg-amber-900/30 px-2 py-1 rounded">
-                      {stringNote}
-                    </div>
-                  </div>
-
-                  {/* Traste 0 (casa aberta) */}
-                  <div className="flex-1 min-w-[40px] text-center">
-                    <div
-                      onClick={() => playNote(stringIndex, 0)}
-                      className={`
-                        mx-1 py-2 rounded text-sm font-bold transition-all
-                        ${isRootNote(stringNote) && highlightRoot
-                          ? 'bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.6)]'
-                          : isScaleNote(stringNote)
-                          ? 'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]'
-                          : 'bg-gray-700/50 text-gray-400'
-                        }
-                        hover:scale-110 cursor-pointer active:scale-95
-                        ${playingNote === `${stringIndex}-0` ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#2a1a0e]' : ''}
-                      `}
-                      title={`${stringNote}${STRING_OCTAVES[stringIndex]} - Clique para tocar${isScaleNote(stringNote) ? ' (Pertence à escala)' : ''}${isRootNote(stringNote) ? ' (Tônica)' : ''}`}
-                    >
-                      {playingNote === `${stringIndex}-0` ? (
-                        <Volume2 className="w-4 h-4 mx-auto animate-pulse" />
-                      ) : (
-                        stringNote
-                      )}
-                    </div>
+                  {/* Traste 0 (corda solta) - COR MARROM */}
+                  <div
+                    onClick={() => playNote(stringIndex, 0)}
+                    className={`
+                      w-10 flex-shrink-0 py-1.5 rounded text-sm font-bold transition-all text-center
+                      ${isRootNote(stringNote) && highlightRoot
+                        ? 'bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.6)]'
+                        : isScaleNote(stringNote)
+                        ? 'bg-amber-700 text-white shadow-[0_0_10px_rgba(180,83,9,0.4)]'
+                        : 'bg-amber-800/60 text-amber-200'
+                      }
+                      hover:scale-110 cursor-pointer active:scale-95
+                      ${playingNote === `${stringIndex}-0` ? 'ring-2 ring-cyan-400 ring-offset-1 ring-offset-[#2a1a0e]' : ''}
+                    `}
+                    title={`${stringNote}${STRING_OCTAVES[stringIndex]} (Corda Solta) - Clique para tocar`}
+                  >
+                    {playingNote === `${stringIndex}-0` ? (
+                      <Volume2 className="w-4 h-4 mx-auto animate-pulse" />
+                    ) : (
+                      stringNote
+                    )}
                   </div>
 
                   {/* Trastes 1-24 */}
@@ -226,28 +218,27 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
                     const noteKey = `${stringIndex}-${fret}`;
 
                     return (
-                      <div key={fret} className="flex-1 min-w-[40px] text-center">
-                        <div
-                          onClick={() => playNote(stringIndex, fret)}
-                          className={`
-                            mx-1 py-2 rounded text-sm font-bold transition-all
-                            ${isRoot && highlightRoot
-                              ? 'bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.6)]'
-                              : isScale
-                              ? 'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]'
-                              : 'bg-gray-700/50 text-gray-400'
-                            }
-                            hover:scale-110 cursor-pointer active:scale-95
-                            ${playingNote === noteKey ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#2a1a0e]' : ''}
-                          `}
-                          title={`${note}${octave} - Clique para tocar${isScale ? ' (Pertence à escala)' : ''}${isRoot ? ' (Tônica)' : ''}`}
-                        >
-                          {playingNote === noteKey ? (
-                            <Volume2 className="w-4 h-4 mx-auto animate-pulse" />
-                          ) : (
-                            note
-                          )}
-                        </div>
+                      <div
+                        key={fret}
+                        onClick={() => playNote(stringIndex, fret)}
+                        className={`
+                          flex-1 min-w-[32px] py-1.5 mx-0.5 rounded text-sm font-bold transition-all text-center
+                          ${isRoot && highlightRoot
+                            ? 'bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.6)]'
+                            : isScale
+                            ? 'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]'
+                            : 'bg-gray-700/50 text-gray-400'
+                          }
+                          hover:scale-105 cursor-pointer active:scale-95
+                          ${playingNote === noteKey ? 'ring-2 ring-cyan-400 ring-offset-1 ring-offset-[#2a1a0e]' : ''}
+                        `}
+                        title={`${note}${octave} - Clique para tocar`}
+                      >
+                        {playingNote === noteKey ? (
+                          <Volume2 className="w-3 h-3 mx-auto animate-pulse" />
+                        ) : (
+                          note
+                        )}
                       </div>
                     );
                   })}
@@ -257,61 +248,23 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
           </div>
         </div>
 
-        {/* Legenda */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-400/30">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded bg-emerald-500"></div>
-              <span className="text-sm font-bold text-white">Notas da Escala</span>
-            </div>
-            <p className="text-xs text-gray-400">
-              Todas as notas que pertencem à escala {scaleName}
-            </p>
-          </div>
-
-          {highlightRoot && (
-            <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-400/30">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 rounded bg-yellow-500"></div>
-                <span className="text-sm font-bold text-white">Tônica ({root})</span>
-              </div>
-              <p className="text-xs text-gray-400">
-                Nota fundamental da escala - onde a escala resolve
-              </p>
-            </div>
-          )}
-
-          <div className="p-4 rounded-xl bg-gray-700/20 border border-gray-600/30">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded bg-gray-700"></div>
-              <span className="text-sm font-bold text-white">Outras Notas</span>
-            </div>
-            <p className="text-xs text-gray-400">
-              Notas que não pertencem à escala
-            </p>
-          </div>
-        </div>
-
-        {/* Notas da Escala */}
-        <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10">
-          <h4 className="text-sm font-bold text-white mb-2">Notas da Escala {scaleName}:</h4>
-          <div className="flex flex-wrap gap-2">
-            {scaleNotes.map((note, index) => (
-              <span
-                key={`${note}-${index}`}
-                className={`
-                  px-3 py-1 rounded-lg font-bold text-sm
-                  ${note === root
-                    ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-400/30'
-                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/30'
-                  }
-                `}
-              >
-                {note}
-                {note === root && ' ⭐'}
-              </span>
-            ))}
-          </div>
+        {/* Notas da Escala - Compacto */}
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-gray-400">Notas:</span>
+          {scaleNotes.map((note, index) => (
+            <span
+              key={`${note}-${index}`}
+              className={`
+                px-2 py-0.5 rounded text-xs font-bold
+                ${note === root
+                  ? 'bg-yellow-500/30 text-yellow-400'
+                  : 'bg-emerald-500/30 text-emerald-400'
+                }
+              `}
+            >
+              {note}{note === root && ' ⭐'}
+            </span>
+          ))}
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useGamificationStore } from '@/stores/useGamificationStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { Book, Music, Activity, Target, Waves, TrendingUp, Play, CheckCircle2 } from 'lucide-react';
 import { TheoryQuiz } from '@/components/theory/TheoryQuiz';
 
@@ -599,8 +600,9 @@ export default function Theory() {
   const [selectedModule, setSelectedModule] = useState<TheoryModule | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
+  const { user } = useUserStore();
   
-  const userName = "João";
+  const userName = user?.name || "Usuário";
 
   return (
     <>

@@ -4,14 +4,16 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { useGamificationStore } from '@/stores/useGamificationStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { Trophy, Lock } from 'lucide-react';
 
 export default function Achievements() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   const { xp, level, xpToNextLevel, currentStreak, achievements } = useGamificationStore();
+  const { user } = useUserStore();
   
-  const userName = "João";
+  const userName = user?.name || "Usuário";
   
   const unlockedCount = achievements.filter(a => a.unlocked).length;
   

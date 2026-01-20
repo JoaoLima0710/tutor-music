@@ -7,10 +7,11 @@ import { SongCard } from '@/components/songs/SongCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGamificationStore } from '@/stores/useGamificationStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { useSongStore } from '@/stores/useSongStore';
 import { useSongUnlockStore } from '@/stores/useSongUnlockStore';
 import { songs, genres, difficulties, getSongsByGenre, getSongsByDifficulty, searchSongs, Song } from '@/data/songs';
-import { Search, Heart, Music2, Lock } from 'lucide-react';
+import { Search, Heart, Music2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 export default function Songs() {
@@ -22,10 +23,11 @@ export default function Songs() {
   const [, setLocation] = useLocation();
   
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
+  const { user } = useUserStore();
   const { favorites } = useSongStore();
   const { isSongUnlocked, getUnlockedSongs, getLockedSongs } = useSongUnlockStore();
   
-  const userName = "João";
+  const userName = user?.name || "Usuário";
   
   // Filter songs
   let filteredSongs = songs;
@@ -212,7 +214,7 @@ export default function Songs() {
             />
           </div>
           
-          {/* Quick Filters */}
+          {/* Quick Filters - Gênero */}
           <div className="flex gap-2 overflow-x-auto pb-2">
             <Button
               size="sm"
@@ -240,6 +242,25 @@ export default function Songs() {
                 }
               >
                 {genre}
+              </Button>
+            ))}
+          </div>
+          
+          {/* Filtros de Dificuldade - Mobile */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {difficulties.map((difficulty) => (
+              <Button
+                key={difficulty}
+                size="sm"
+                onClick={() => setDifficultyFilter(difficulty === difficultyFilter ? 'all' : difficulty)}
+                variant={difficultyFilter === difficulty ? 'default' : 'outline'}
+                className={
+                  difficultyFilter === difficulty
+                    ? 'bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-white whitespace-nowrap'
+                    : 'bg-transparent border-white/20 text-gray-300 whitespace-nowrap'
+                }
+              >
+                {difficulty === 'beginner' ? 'Iniciante' : difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
               </Button>
             ))}
           </div>

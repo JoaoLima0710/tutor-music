@@ -84,43 +84,194 @@ const initialMissions: Mission[] = [
 ];
 
 const initialAchievements: Achievement[] = [
+  // TÉCNICA - Iniciante
   {
     id: 'first-chord',
     title: 'Primeira Nota',
-    description: 'Complete seu primeiro acorde',
+    description: 'Toque seu primeiro acorde corretamente',
     icon: '🎵',
     xpReward: 50,
     unlocked: false,
   },
   {
+    id: 'basic-8-chords',
+    title: 'Fundação Sólida',
+    description: 'Domine os 8 acordes básicos (Em, Am, E, A, Dm, D, C, G)',
+    icon: '🎸',
+    xpReward: 200,
+    unlocked: false,
+  },
+  {
+    id: 'chord-changes-60',
+    title: 'Dedos de Aço',
+    description: 'Faça 60 trocas de acordes em 1 minuto',
+    icon: '⚡',
+    xpReward: 150,
+    unlocked: false,
+  },
+  {
+    id: 'first-barre',
+    title: 'Pestana Perfeita',
+    description: 'Toque o acorde F com pestana por 30 segundos sem zumbido',
+    icon: '💪',
+    xpReward: 250,
+    unlocked: false,
+  },
+  {
+    id: 'rhythm-master',
+    title: 'Metrônomo Humano',
+    description: 'Mantenha ritmo constante por 3 minutos sem erros',
+    icon: '🥁',
+    xpReward: 150,
+    unlocked: false,
+  },
+  
+  // TEORIA
+  {
+    id: 'theory-basics',
+    title: 'Teórico Iniciante',
+    description: 'Complete todas as lições de teoria básica',
+    icon: '📖',
+    xpReward: 100,
+    unlocked: false,
+  },
+  {
+    id: 'harmonic-field',
+    title: 'Harmonia Desvendada',
+    description: 'Entenda o campo harmônico de C maior',
+    icon: '🔮',
+    xpReward: 200,
+    unlocked: false,
+  },
+  
+  // PERCEPÇÃO AUDITIVA
+  {
+    id: 'ear-major-minor',
+    title: 'Ouvido Iniciante',
+    description: 'Identifique 20 acordes maiores/menores consecutivos',
+    icon: '👂',
+    xpReward: 150,
+    unlocked: false,
+  },
+  {
+    id: 'ear-intervals',
+    title: 'Ouvido de Ouro',
+    description: 'Identifique 50 intervalos corretamente',
+    icon: '🏆',
+    xpReward: 250,
+    unlocked: false,
+  },
+  
+  // REPERTÓRIO
+  {
+    id: 'first-song',
+    title: 'Estreia Musical',
+    description: 'Toque sua primeira música do início ao fim',
+    icon: '🎤',
+    xpReward: 200,
+    unlocked: false,
+  },
+  {
+    id: 'three-songs',
+    title: 'Repertório Bronze',
+    description: 'Domine 3 músicas completas',
+    icon: '🥉',
+    xpReward: 300,
+    unlocked: false,
+  },
+  {
+    id: 'ten-songs',
+    title: 'Repertório Prata',
+    description: 'Domine 10 músicas de memória',
+    icon: '🥈',
+    xpReward: 500,
+    unlocked: false,
+  },
+  
+  // ESCALAS
+  {
     id: 'first-scale',
     title: 'Primeira Escala',
-    description: 'Complete sua primeira escala',
+    description: 'Toque a escala pentatônica menor completa',
     icon: '⭐',
-    xpReward: 50,
+    xpReward: 100,
     unlocked: false,
   },
   {
-    id: 'chord-collector',
-    title: 'Colecionador de Acordes',
-    description: 'Complete 10 acordes diferentes',
-    icon: '🎸',
-    xpReward: 150,
+    id: 'scale-speed',
+    title: 'Velocista',
+    description: 'Toque escala cromática a 120 BPM',
+    icon: '🚀',
+    xpReward: 200,
     unlocked: false,
   },
-  {
-    id: 'scale-collector',
-    title: 'Colecionador de Escalas',
-    description: 'Complete 10 escalas diferentes',
-    icon: '📚',
-    xpReward: 150,
-    unlocked: false,
-  },
+  
+  // CONSISTÊNCIA
   {
     id: 'week-streak',
-    title: 'Dedicado',
+    title: 'Uma Semana de Foco',
     description: 'Pratique 7 dias seguidos',
     icon: '🔥',
+    xpReward: 100,
+    unlocked: false,
+  },
+  {
+    id: 'month-streak',
+    title: 'Mês Dedicado',
+    description: 'Pratique 30 dias seguidos',
+    icon: '🌟',
+    xpReward: 500,
+    unlocked: false,
+  },
+  {
+    id: 'century-streak',
+    title: 'Centenário',
+    description: 'Pratique 100 dias seguidos',
+    icon: '👑',
+    xpReward: 1000,
+    unlocked: false,
+  },
+  {
+    id: 'early-bird',
+    title: 'Madrugador',
+    description: 'Pratique antes das 8h por 7 dias',
+    icon: '🌅',
+    xpReward: 100,
+    unlocked: false,
+  },
+  {
+    id: 'night-owl',
+    title: 'Coruja',
+    description: 'Pratique após 22h por 7 dias',
+    icon: '🦉',
+    xpReward: 100,
+    unlocked: false,
+  },
+  
+  // PROGRESSÃO DE NÍVEL
+  {
+    id: 'level-intermediate',
+    title: 'Intermediário',
+    description: 'Alcance o nível intermediário',
+    icon: '📈',
+    xpReward: 500,
+    unlocked: false,
+  },
+  {
+    id: 'level-advanced',
+    title: 'Avançado',
+    description: 'Alcance o nível avançado',
+    icon: '🎓',
+    xpReward: 1000,
+    unlocked: false,
+  },
+  
+  // SOCIAL
+  {
+    id: 'first-recording',
+    title: 'Primeira Gravação',
+    description: 'Grave sua primeira performance',
+    icon: '🎙️',
     xpReward: 100,
     unlocked: false,
   },

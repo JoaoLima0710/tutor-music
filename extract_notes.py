@@ -8,6 +8,7 @@ import jams
 from pathlib import Path
 import soundfile as sf
 from collections import defaultdict
+from scipy import signal
 
 # Mapeamento MIDI -> Nome da nota
 MIDI_TO_NOTE = {
@@ -91,11 +92,55 @@ class NoteExtractor:
                     if rms < 0.01:  # Muito silencioso
                         continue
                     
+                    # VALIDAÇÃO ESPECÍFICA PARA F2 (MIDI 41): Garantir que é nota individual, não acorde
+                    # F2 está na corda 6 (string5), primeira casa
+                    is_f2 = (midi_pitch == 41)
+                    
+                    if is_f2:
+                        # VALIDAÇÃO CRÍTICA PARA F2: Verificar se é realmente nota individual, não acorde
+                        # Análise espectral: notas individuais têm frequência fundamental clara
+                        
+                        # Calcular FFT para análise espectral
+                        fft = np.fft.rfft(segment)
+                        freqs = np.fft.rfftfreq(len(segment), 1/self.sample_rate)
+                        magnitude = np.abs(fft)
+                        
+                        # Encontrar picos de frequência
+                        peaks, _ = signal.find_peaks(magnitude, height=np.max(magnitude) * 0.1)
+                        
+                        if len(peaks) > 0:
+                            # Frequência fundamental esperada para F2 (MIDI 41) ≈ 87.31 Hz
+                            expected_freq = 440 * (2 ** ((midi_pitch - 69) / 12))
+                            
+                            # Verificar se há frequência próxima à esperada (tolerância de 10Hz)
+                            peak_freqs = freqs[peaks]
+                            fundamental_found = any(abs(f - expected_freq) < 10 for f in peak_freqs[:5])
+                            
+                            # Se não encontrar frequência fundamental clara, rejeitar (pode ser acorde)
+                            if not fundamental_found:
+                                print(f"  ⚠️ F2 rejeitado de {audio_path.name}: frequência fundamental não encontrada (esperada ~{expected_freq:.1f}Hz)")
+                                continue
+                            
+                            # Verificar se há muitas frequências fortes simultâneas (indica acorde)
+                            # Notas individuais têm 1-2 frequências dominantes, acordes têm 3+
+                            strong_peaks = peaks[magnitude[peaks] > np.max(magnitude) * 0.3]
+                            if len(strong_peaks) > 3:
+                                print(f"  ⚠️ F2 rejeitado de {audio_path.name}: muitas frequências fortes ({len(strong_peaks)}), parece acorde")
+                                continue
+                            
+                            # Verificar duração: notas individuais são mais curtas
+                            if obs.duration > 3.0:
+                                print(f"  ⚠️ F2 rejeitado de {audio_path.name}: duração muito longa ({obs.duration:.2f}s), pode ser acorde")
+                                continue
+                            
+                            print(f"  ✅ F2 validado de {audio_path.name}: frequência fundamental encontrada, duração {obs.duration:.2f}s")
+                    
                     note_name = MIDI_TO_NOTE[midi_pitch]
                     candidates[note_name].append({
                         'audio': segment,
                         'rms': rms,
-                        'source': audio_path.name
+                        'source': audio_path.name,
+                        'is_f2': is_f2
                     })
         
         # Salvar melhores samples
@@ -105,11 +150,26 @@ class NoteExtractor:
             if not samples:
                 continue
             
-            # Ordenar por RMS (volume)
-            samples.sort(key=lambda x: x['rms'], reverse=True)
+            # Para F2, priorizar samples que passaram validação de frequência
+            # Para outras notas, ordenar por RMS (volume)
+            if note == 'F2':
+                # Separar F2 validados (que passaram análise espectral)
+                f2_validated = [s for s in samples if s.get('is_f2', False)]
+                if f2_validated:
+                    # Ordenar F2 validados por RMS (volume)
+                    f2_validated.sort(key=lambda x: x['rms'], reverse=True)
+                    best = f2_validated[0]
+                    print(f"  ✅ F2: usando sample VALIDADO de {best['source']} (nota individual limpa)")
+                else:
+                    # Se não houver F2 validado, NÃO salvar (melhor não ter sample do que ter incorreto)
+                    print(f"  ❌ F2: NENHUM sample válido encontrado! Todos foram rejeitados por parecerem acordes.")
+                    print(f"  ❌ F2: É necessário reextrair F2 do dataset com critérios mais rigorosos.")
+                    continue
+            else:
+                # Ordenar por RMS (volume)
+                samples.sort(key=lambda x: x['rms'], reverse=True)
+                best = samples[0]
             
-            # Pegar o melhor
-            best = samples[0]
             audio = best['audio']
             
             # Normalizar

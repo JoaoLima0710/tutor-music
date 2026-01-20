@@ -59,7 +59,7 @@ class GuitarSetAudioService {
       // Create gain node for volume control
       this.gainNode = this.audioContext.createGain();
       this.gainNode.connect(this.audioContext.destination);
-      this.gainNode.gain.value = 0.8; // Default volume
+      this.gainNode.gain.value = 0.95; // Volume aumentado para melhor audibilidade
 
       // Ensure AudioContext is running (critical for tablets)
       if (this.audioContext.state === 'suspended') {
@@ -155,6 +155,7 @@ class GuitarSetAudioService {
 
     try {
       const file = this.chordManifest[chordName].file;
+      // Arquivos com sustenido usam 'sharp' no nome (ex: Asharp.wav)
       const response = await fetch(`/samples/chords/${file}`);
       
       if (!response.ok) {
@@ -176,12 +177,20 @@ class GuitarSetAudioService {
   }
 
   private async loadNoteSample(noteName: string): Promise<AudioBuffer | null> {
+    // CRÍTICO: Validar que é uma nota individual (deve ter oitava)
+    // Notas individuais SEMPRE têm formato como "F2", "E4", etc.
+    // Se não tiver oitava, pode ser um acorde e NÃO deve ser usado
+    if (!/\d/.test(noteName)) {
+      console.error(`❌ ERRO CRÍTICO: Tentativa de carregar sample sem oitava: ${noteName}. Isso pode ser um acorde!`);
+      return null;
+    }
+
     if (this.noteBuffers.has(noteName)) {
       return this.noteBuffers.get(noteName)!;
     }
 
     if (!this.noteManifest || !this.noteManifest[noteName]) {
-      console.warn(`⚠️ Note sample not found: ${noteName}`);
+      console.warn(`⚠️ Note sample not found in manifest: ${noteName}`);
       return null;
     }
 
@@ -192,18 +201,46 @@ class GuitarSetAudioService {
 
     try {
       const file = this.noteManifest[noteName].file;
+      
+      // Validação adicional: garantir que o arquivo está na pasta de notas
+      if (!file.endsWith('.wav')) {
+        console.error(`❌ ERRO: Arquivo de nota inválido: ${file}`);
+        return null;
+      }
+      
+      // Arquivos com sustenido usam 'sharp' no nome (ex: Asharp2.wav)
       const response = await fetch(`/samples/notes/${file}`);
       
       if (!response.ok) {
-        console.warn(`⚠️ Failed to load note sample: ${file}`);
+        console.warn(`⚠️ Failed to load note sample: ${file} (HTTP ${response.status})`);
         return null;
       }
 
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
       
+      // Validação crítica para F2: verificar se o sample está correto
+      if (noteName === 'F2') {
+        // F2 problemático geralmente tem duração > 3s (característica de acorde)
+        if (audioBuffer.duration > 3.0) {
+          console.error(`❌ F2 DETECTADO COMO ACORDE: duração de ${audioBuffer.duration.toFixed(2)}s é muito longa para nota individual!`);
+          console.error(`❌ O sample F2.wav precisa ser reextraído do dataset com uma nota individual limpa.`);
+          // Retornar null para não usar sample incorreto
+          return null;
+        }
+        console.log(`✅ F2 validado: duração=${audioBuffer.duration.toFixed(2)}s (correto para nota individual)`);
+      }
+      
+      // Validação geral: verificar se o buffer tem duração razoável (notas individuais são mais curtas que acordes)
+      
+      // Validação geral: verificar se o buffer tem duração razoável (notas individuais são mais curtas que acordes)
+      // Acordes geralmente têm mais de 2s, notas individuais são mais curtas
+      if (audioBuffer.duration > 3.0) {
+        console.warn(`⚠️ AVISO: Sample ${noteName} tem duração muito longa (${audioBuffer.duration.toFixed(2)}s). Pode ser um acorde ao invés de nota individual!`);
+      }
+      
       this.noteBuffers.set(noteName, audioBuffer);
-      console.log(`✅ Loaded note sample: ${noteName}`);
+      console.log(`✅ Loaded note sample: ${noteName} (duration: ${audioBuffer.duration.toFixed(2)}s)`);
       
       return audioBuffer;
     } catch (error) {
@@ -218,6 +255,16 @@ class GuitarSetAudioService {
       return;
     }
 
+    // CRÍTICO: Garantir que todas as fontes anteriores foram paradas
+    // Fazer uma limpeza final antes de criar nova fonte
+    const activeCount = this.activeSources.size;
+    if (activeCount > 0) {
+      console.warn(`⚠️ Ainda há ${activeCount} fontes ativas, parando todas...`);
+      this.stopAll();
+      // Pequeno delay para garantir que o stop foi processado
+      // Não podemos usar await aqui, mas o lookahead time ajuda
+    }
+
     // Resume context if suspended (critical for tablets)
     if (this.audioContext.state === 'suspended') {
       this.audioContext.resume().catch(err => {
@@ -225,36 +272,97 @@ class GuitarSetAudioService {
       });
     }
 
+    // Criar NOVA fonte de áudio - cada nota precisa de sua própria fonte
     const source = this.audioContext.createBufferSource();
     source.buffer = buffer;
-    source.connect(this.gainNode);
+    
+    // Criar um GainNode separado para envelope ADSR (melhor controle de volume)
+    // Cada fonte tem seu próprio envelope para evitar interferência
+    const envelopeGain = this.audioContext.createGain();
+    
+    // Conectar: source -> envelopeGain -> gainNode -> destination
+    source.connect(envelopeGain);
+    envelopeGain.connect(this.gainNode);
 
     // Track active sources for cleanup
     this.activeSources.add(source);
 
     source.onended = () => {
+      // Limpar quando a fonte terminar
+      try {
+        source.disconnect();
+        envelopeGain.disconnect();
+      } catch (e) {
+        // Pode já estar desconectado
+      }
       this.activeSources.delete(source);
     };
 
-    // Use a small lookahead time for smoother playback on tablets
-    // This ensures the audio system has time to prepare
-    const lookaheadTime = 0.01; // 10ms lookahead
+    // Use a small lookahead time for smoother playback
+    // Isso garante que o sistema de áudio tenha tempo para preparar
+    const lookaheadTime = 0.05; // 50ms lookahead - mais tempo para garantir limpeza
     const baseTime = this.audioContext.currentTime;
     const actualStartTime = startTime ?? (baseTime + lookaheadTime);
 
-    try {
-      source.start(actualStartTime);
+    // Calcular duração real - usar a maior entre a duração solicitada e a do buffer
+    const bufferDuration = buffer.duration;
+    let actualDuration = duration;
+    
+    // Se não especificada duração, usar a duração completa do buffer
+    if (!actualDuration) {
+      actualDuration = bufferDuration;
+    } else if (actualDuration > bufferDuration) {
+      // Se a duração solicitada for maior que o buffer, usar o buffer completo
+      actualDuration = bufferDuration;
+    }
 
-      // Only stop if duration is specified AND is shorter than buffer duration
-      // This prevents cutting off chords prematurely on tablets
-      if (duration && duration < buffer.duration) {
-        source.stop(actualStartTime + duration);
-      } else {
-        // Let the buffer play to completion for full chord sound
-        // This is especially important for tablets where audio can be cut off
+    // Envelope ultra-simplificado para notas individuais
+    // Mínima complexidade para evitar qualquer sobreposição ou som de acorde
+    const attackTime = 0.003; // 3ms - ataque quase instantâneo
+    const releaseTime = Math.min(0.2, actualDuration * 0.06); // Release suave, máximo 200ms
+    
+    const envelopeStart = actualStartTime;
+    const envelopePeak = envelopeStart + attackTime;
+    const envelopeEnd = envelopeStart + actualDuration;
+    const envelopeReleaseStart = Math.max(envelopePeak, envelopeEnd - releaseTime);
+
+    try {
+      // Envelope mínimo: Ataque quase instantâneo + Sustain máximo + Release suave
+      // Garante que cada nota seja PERFEITAMENTE clara, única e identificável
+      // Sem qualquer complexidade que possa causar sobreposição
+      
+      // Iniciar em 0
+      envelopeGain.gain.setValueAtTime(0, envelopeStart);
+      
+      // Ataque quase instantâneo para volume máximo
+      envelopeGain.gain.linearRampToValueAtTime(1.0, envelopePeak);
+      
+      // Sustain - volume máximo durante quase toda a nota
+      if (envelopeReleaseStart > envelopePeak) {
+        envelopeGain.gain.setValueAtTime(1.0, envelopeReleaseStart);
       }
+      
+      // Release suave apenas no final - fade out natural
+      envelopeGain.gain.linearRampToValueAtTime(0, envelopeEnd);
+
+      // Iniciar a fonte
+      source.start(actualStartTime);
+      
+      // Parar a fonte no final exato da duração
+      // O envelope já fez o fade out, então não haverá click
+      source.stop(envelopeEnd);
+      
+      console.log(`🎵 Playing buffer: start=${actualStartTime.toFixed(3)}, end=${envelopeEnd.toFixed(3)}, duration=${actualDuration.toFixed(3)}`);
+      
     } catch (error) {
       console.error('❌ Error starting audio source:', error);
+      // Limpar em caso de erro
+      try {
+        source.disconnect();
+        envelopeGain.disconnect();
+      } catch (e) {
+        // Ignorar
+      }
       this.activeSources.delete(source);
     }
   }
@@ -346,15 +454,39 @@ class GuitarSetAudioService {
       const noteName = scaleNotes[i];
       const noteWithOctave = noteName + '4'; // Use octave 4 for consistency
       
-      // Try to load note sample
+      // CRÍTICO: Validar que a nota tem oitava antes de carregar
+      if (!/\d/.test(noteWithOctave)) {
+        console.error(`❌ ERRO: Nota sem oitava na escala: ${noteWithOctave}`);
+        continue;
+      }
+
+      // Try to load note sample - APENAS com oitava
       let buffer = await this.loadNoteSample(noteWithOctave);
       
+      // Tentar variações de oitava se não encontrar
       if (!buffer) {
-        // Fallback: try without octave
-        buffer = await this.loadNoteSample(noteName);
+        const noteBase = noteWithOctave.replace(/\d+$/, '');
+        const currentOctave = parseInt(noteWithOctave.match(/\d+$/)?.[0] || '4');
+        const variations = [
+          `${noteBase}${currentOctave + 1}`,
+          `${noteBase}${currentOctave - 1}`,
+        ];
+        
+        for (const variation of variations) {
+          if (variation.match(/\d/) && this.noteManifest?.[variation]) {
+            buffer = await this.loadNoteSample(variation);
+            if (buffer) break;
+          }
+        }
       }
 
       if (buffer) {
+        // Validação: garantir que não é acorde
+        if (buffer.duration > 3.0) {
+          console.error(`❌ ERRO: Sample ${noteWithOctave} parece ser acorde (duração: ${buffer.duration.toFixed(2)}s)`);
+          continue;
+        }
+        
         const noteStartTime = startTime + (i * duration);
         this.playBuffer(buffer, noteStartTime, duration);
       } else {
@@ -366,7 +498,7 @@ class GuitarSetAudioService {
   }
 
   async playNote(note: string, duration?: number): Promise<void> {
-    console.log('🎵 GuitarSet: Playing note:', note);
+    console.log('🎵 GuitarSet: Playing note:', note, 'duration:', duration || 'full');
 
     const initialized = await this.initialize();
     if (!initialized) {
@@ -374,22 +506,68 @@ class GuitarSetAudioService {
       return;
     }
 
-    // Try to load note sample
-    let buffer = await this.loadNoteSample(note);
+    // CRÍTICO: Parar todas as notas anteriores para evitar sobreposição
+    // Isso garante que apenas uma nota toque por vez, sem soar como acorde
+    this.stopAll();
     
-    if (!buffer) {
-      // Fallback: try without octave
-      const noteWithoutOctave = note.replace(/\d+$/, '');
-      buffer = await this.loadNoteSample(noteWithoutOctave);
+    // Delay adicional para garantir que o stop foi completamente processado
+    // Isso é especialmente importante para evitar qualquer resíduo de áudio anterior
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // Ensure AudioContext is active before playing (critical for tablets)
+    if (this.audioContext && this.audioContext.state === 'suspended') {
+      try {
+        await this.audioContext.resume();
+        // Small delay to ensure context is fully active
+        await new Promise(resolve => setTimeout(resolve, 10));
+      } catch (error) {
+        console.error('❌ Failed to resume AudioContext:', error);
+      }
     }
 
-    if (!buffer) {
-      console.warn(`⚠️ Note sample not available: ${note}`);
+    // Verificar novamente se não há fontes ativas (segurança extra)
+    if (this.activeSources.size > 0) {
+      console.warn(`⚠️ Ainda há ${this.activeSources.size} fontes ativas após stopAll, limpando...`);
+      this.stopAll();
+      await new Promise(resolve => setTimeout(resolve, 30));
+    }
+
+    // CRÍTICO: Validar formato da nota antes de carregar
+    // Notas individuais DEVEM ter oitava (ex: F2, E4)
+    if (!/\d/.test(note)) {
+      console.error(`❌ ERRO CRÍTICO: Nota sem oitava: ${note}. Não é possível tocar nota individual sem oitava!`);
       return;
     }
 
-    this.playBuffer(buffer, undefined, duration);
-    console.log('✅ Note played:', note);
+    // Carregar o sample da nota solicitada (sem substituições - cada nota é única)
+    let buffer = await this.loadNoteSample(note);
+    
+    if (!buffer) {
+      console.error(`❌ ERRO: Note sample não disponível: ${note}. Verifique se o sample existe em /samples/notes/`);
+      return;
+    }
+    
+    // Validação final: garantir que não é um acorde
+    // Se o sample tiver duração > 3s, provavelmente é um acorde e não deve ser tocado
+    if (buffer.duration > 3.0) {
+      console.error(`❌ ERRO CRÍTICO: Sample ${note} tem duração de ${buffer.duration.toFixed(2)}s, muito longa para nota individual! Este sample parece ser um acorde e não será tocado.`);
+      console.error(`❌ AÇÃO NECESSÁRIA: O sample ${note}.wav precisa ser extraído novamente do dataset com um sample de nota individual limpa.`);
+      return;
+    }
+
+    // Para notas individuais, usar duração mínima de 3.0s se não especificada
+    // Isso garante que a nota seja claramente audível e identificável
+    const noteDuration = duration || Math.max(3.0, buffer.duration);
+    
+    // Garantir que não há fontes ativas antes de tocar
+    if (this.activeSources.size > 0) {
+      console.error('❌ ERRO CRÍTICO: Ainda há fontes ativas antes de tocar nova nota!');
+      this.stopAll();
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    
+    this.playBuffer(buffer, undefined, noteDuration);
+    console.log('✅ Note played:', note, 'duration:', noteDuration.toFixed(2), 's', 'active sources:', this.activeSources.size);
   }
 
   private normalizeChordName(chordName: string): string {
@@ -427,17 +605,48 @@ class GuitarSetAudioService {
   stopAll(): void {
     console.log('🛑 Stopping all GuitarSet audio...');
     
-    // Stop all active sources
-    this.activeSources.forEach(source => {
+    // Stop all active sources imediatamente - CRÍTICO para evitar sobreposição
+    const sourcesToStop = Array.from(this.activeSources);
+    const now = this.audioContext ? this.audioContext.currentTime : 0;
+    
+    sourcesToStop.forEach(source => {
       try {
-        source.stop();
+        // Desconectar todos os nós de áudio primeiro
+        if (source.buffer) {
+          // Desconectar todos os nós conectados
+          try {
+            source.disconnect();
+          } catch (e) {
+            // Pode já estar desconectado
+          }
+        }
+        
+        // Parar imediatamente no tempo atual (ou antes se possível)
+        // Usar um tempo ligeiramente no passado para garantir parada imediata
+        const stopTime = this.audioContext ? Math.max(0, now - 0.001) : 0;
+        source.stop(stopTime);
       } catch (e) {
-        // Source may have already ended
+        // Source may have already ended or been stopped
+        // Ignorar erro silenciosamente
       }
     });
     
+    // Limpar o set imediatamente
     this.activeSources.clear();
-    console.log('✅ All audio stopped');
+    
+    // Garantir que o gainNode também seja resetado se necessário
+    if (this.gainNode && this.audioContext) {
+      try {
+        // Resetar ganho para evitar qualquer resíduo
+        this.gainNode.gain.cancelScheduledValues(this.audioContext.currentTime);
+        this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        this.gainNode.gain.setValueAtTime(0.95, this.audioContext.currentTime + 0.001);
+      } catch (e) {
+        // Ignorar se houver erro
+      }
+    }
+    
+    console.log('✅ All audio stopped and disconnected');
   }
 
   setEQ(bassGain: number, midGain: number, trebleGain: number): void {

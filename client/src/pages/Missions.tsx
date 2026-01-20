@@ -7,6 +7,7 @@ import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useGamificationStore } from '@/stores/useGamificationStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { Target, Trophy, Clock, CheckCircle2, Lock, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -29,6 +30,8 @@ export default function Missions() {
   const [, setLocation] = useLocation();
   
   const { xp, level, xpToNextLevel, currentStreak, addXP } = useGamificationStore();
+  const { user } = useUserStore();
+  const userName = user?.name || "Usuário";
   
   const [missions, setMissions] = useState<Mission[]>([
     {
@@ -248,7 +251,7 @@ export default function Missions() {
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
         <Sidebar 
-          userName="João"
+          userName={userName}
           userLevel={level}
           currentXP={xp}
           xpToNextLevel={xpToNextLevel}
@@ -318,13 +321,23 @@ export default function Missions() {
       </div>
       
       {/* MOBILE VERSION */}
-      <div className="lg:hidden flex flex-col h-screen bg-[#0f0f1a] text-white">
+      <div className="lg:hidden min-h-screen bg-[#0f0f1a] text-white">
+        <MobileSidebar
+          isOpen={isMobileSidebarOpen}
+          onClose={() => setIsMobileSidebarOpen(false)}
+          userName={userName}
+          userLevel={level}
+          currentXP={xp}
+          xpToNextLevel={xpToNextLevel}
+          streak={currentStreak}
+        />
+        
         <MobileHeader
-          userName="João"
+          userName={userName}
           onMenuClick={() => setIsMobileSidebarOpen(true)}
         />
         
-        <main className="flex-1 overflow-y-auto pb-20 p-4 space-y-6">
+        <main className="px-4 py-4 pb-24 space-y-6">
           {/* Header */}
           <header>
             <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
@@ -375,15 +388,6 @@ export default function Missions() {
         </main>
         
         <MobileBottomNav />
-        <MobileSidebar
-          isOpen={isMobileSidebarOpen}
-          onClose={() => setIsMobileSidebarOpen(false)}
-          userName="João"
-          userLevel={level}
-          currentXP={xp}
-          xpToNextLevel={xpToNextLevel}
-          streak={currentStreak}
-        />
       </div>
     </>
   );
