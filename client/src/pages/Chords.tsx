@@ -40,9 +40,24 @@ export default function Chords() {
   };
   
   const handlePlayChord = async () => {
-    setIsPlaying(true);
-    await unifiedAudioService.playChord(selectedChord.name, 2.5);
-    setTimeout(() => setIsPlaying(false), 2500);
+    try {
+      setIsPlaying(true);
+      
+      // CRÍTICO para tablets: Inicializar áudio primeiro
+      // A inicialização precisa acontecer em resposta a um gesto do usuário
+      await unifiedAudioService.initialize();
+      
+      // Pequeno delay para garantir que o AudioContext está pronto
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      console.log('🎸 Tocando acorde:', selectedChord.name);
+      await unifiedAudioService.playChord(selectedChord.name, 2.5);
+      
+      setTimeout(() => setIsPlaying(false), 2500);
+    } catch (error) {
+      console.error('Erro ao tocar acorde:', error);
+      setIsPlaying(false);
+    }
   };
   
   // Initialize audio service with saved instrument on mount

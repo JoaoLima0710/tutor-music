@@ -245,16 +245,23 @@ class AudioManager {
 
   private async _initializeInternal(): Promise<boolean> {
     try {
-      console.log('🎵 Initializing AudioManager...', this.mobileOptimizations ? '(Mobile Mode)' : '(Desktop Mode)');
+      console.log('🎵 Initializing AudioManager...', this.isTablet ? '(Tablet Mode)' : this.isMobile ? '(Mobile Mode)' : '(Desktop Mode)');
 
       // Get initial settings
       const { audioEngine, instrument } = useAudioSettingsStore.getState();
 
-      // Mobile-specific: Force synthesis for better performance
-      const actualEngine = this.mobileOptimizations ? 'synthesis' : audioEngine;
-
-      if (this.mobileOptimizations && audioEngine !== 'synthesis') {
-        console.log('📱 Mobile: Forcing synthesis engine for better performance');
+      // IMPORTANTE: Em tablets, NÃO forçar synthesis - usar GuitarSet que tem samples reais
+      // Tablets têm problemas com Tone.js synthesis, mas funcionam bem com Web Audio API direta
+      let actualEngine: AudioEngineType = audioEngine;
+      
+      if (this.isTablet) {
+        // Tablets funcionam melhor com GuitarSet (Web Audio API pura)
+        actualEngine = 'guitarset';
+        console.log('📱 Tablet: Usando GuitarSet (samples reais) para melhor compatibilidade');
+      } else if (this.isMobile && audioEngine !== 'synthesis' && audioEngine !== 'guitarset') {
+        // Celulares podem usar synthesis ou guitarset
+        actualEngine = 'guitarset';
+        console.log('📱 Mobile: Usando GuitarSet para melhor performance');
       }
 
       // Force initial engine switch to ensure clean state
@@ -264,14 +271,20 @@ class AudioManager {
         // Set initial instrument
         await this.setInstrument(instrument);
 
-        // Mobile-specific: Ensure audio context is ready
-        if (this.mobileOptimizations) {
+        // Mobile/Tablet-specific: Ensure audio context is ready
+        if (this.mobileOptimizations || this.isTablet) {
           await this.ensureAudioContext();
         }
 
         console.log('✅ AudioManager initialized successfully with', actualEngine, 'engine');
       } else {
-        console.error('❌ AudioManager initialization failed');
+        console.error('❌ AudioManager initialization failed, trying fallback...');
+        // Fallback: tentar synthesis se guitarset falhar
+        const fallbackSuccess = await this.switchEngine('synthesis');
+        if (fallbackSuccess) {
+          console.log('✅ Fallback to synthesis successful');
+          return true;
+        }
       }
 
       return success;

@@ -88,8 +88,14 @@ export function PracticeMode({ chords, bpm, onComplete }: PracticeModeProps) {
       setScore(prev => prev + 1);
       setFeedback('correct');
       
-      // Play chord sound
-      await unifiedAudioService.playChord(currentChord, 1);
+      // CRÍTICO para tablets: Inicializar áudio primeiro
+      try {
+        await unifiedAudioService.initialize();
+        await new Promise(resolve => setTimeout(resolve, 50));
+        await unifiedAudioService.playChord(currentChord, 1.5);
+      } catch (error) {
+        console.error('Erro ao tocar acorde:', error);
+      }
       
       // Move to next chord after delay
       setTimeout(async () => {
@@ -124,7 +130,15 @@ export function PracticeMode({ chords, bpm, onComplete }: PracticeModeProps) {
   };
   
   const handlePlayChord = async () => {
-    await unifiedAudioService.playChord(currentChord, 2);
+    try {
+      // CRÍTICO para tablets: Inicializar áudio primeiro
+      await unifiedAudioService.initialize();
+      await new Promise(resolve => setTimeout(resolve, 50));
+      console.log('🎸 Tocando acorde:', currentChord);
+      await unifiedAudioService.playChord(currentChord, 2);
+    } catch (error) {
+      console.error('Erro ao tocar acorde:', error);
+    }
   };
   
   return (

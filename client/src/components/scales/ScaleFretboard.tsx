@@ -354,8 +354,10 @@ export function ScaleFretboard({ scaleName, scaleNotes, tonic, intervals }: Scal
     setIsPlaying(true);
 
     try {
-      // Garantir que o audio service está inicializado
+      // CRÍTICO para tablets: Inicializar áudio primeiro
       await unifiedAudioService.initialize();
+      // Delay extra para tablets garantirem AudioContext ativo
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       console.log('🎵 Tocando escala com', scalePattern.length, 'notas');
 
@@ -372,10 +374,10 @@ export function ScaleFretboard({ scaleName, scaleNotes, tonic, intervals }: Scal
         console.log('🎼 Tocando nota:', noteToPlay, 'na posição', scalePattern[i].string, scalePattern[i].fret);
 
         // Tocar nota com delay entre notas
-        await unifiedAudioService.playNote(noteToPlay, 0.5);
+        await unifiedAudioService.playNote(noteToPlay, 0.6);
         
         // Aguardar antes da próxima nota (ajustado para melhor timing)
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 600));
       }
 
       setCurrentNoteIndex(null);

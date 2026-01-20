@@ -31,13 +31,19 @@ export function ScaleImprovisation({ scaleName, root, intervals }: ScaleImprovis
     setSelectedTrack(trackId);
     
     try {
+      // CRÍTICO para tablets: Inicializar áudio primeiro
       await unifiedAudioService.initialize();
+      // Delay extra para tablets garantirem AudioContext ativo
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const track = BACKING_TRACKS.find(t => t.id === trackId);
       
       if (track) {
+        console.log('🎸 Tocando backing track:', track.name);
         // Tocar progressão de acordes
         for (const chord of track.chords) {
-          await unifiedAudioService.playChord(chord, 1.0);
+          console.log('🎵 Tocando acorde:', chord);
+          await unifiedAudioService.playChord(chord, 1.5);
           await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }

@@ -34,36 +34,71 @@ class GuitarSetAudioService {
 
   async initialize(): Promise<boolean> {
     if (this.isInitialized) {
-      // Ensure AudioContext is resumed (important for tablets)
-      if (this.audioContext && this.audioContext.state === 'suspended') {
-        await this.audioContext.resume();
+      // CRÍTICO: Sempre tentar resumir AudioContext em tablets/mobile
+      if (this.audioContext) {
+        try {
+          if (this.audioContext.state === 'suspended') {
+            console.log('📱 Resuming suspended AudioContext...');
+            await this.audioContext.resume();
+          }
+          // Verificar se realmente está rodando
+          if (this.audioContext.state !== 'running') {
+            console.warn('⚠️ AudioContext not running, state:', this.audioContext.state);
+            // Forçar recriação se não estiver rodando
+            this.isInitialized = false;
+          } else {
+            return true;
+          }
+        } catch (e) {
+          console.warn('⚠️ Error resuming AudioContext:', e);
+          this.isInitialized = false;
+        }
       }
-      return true;
     }
 
     if (this.isLoading) {
       console.log('⏳ Already loading GuitarSet samples...');
-      return false;
+      // Aguardar o carregamento atual
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return this.isInitialized;
     }
 
     this.isLoading = true;
 
     try {
+      // Detectar se é tablet/mobile para otimizações
+      const isTablet = /ipad|android(?!.*mobile)/i.test(navigator.userAgent.toLowerCase());
+      const isMobile = /android|iphone|ipod/i.test(navigator.userAgent.toLowerCase());
+      
+      console.log('🎵 Initializing GuitarSet for', isTablet ? 'Tablet' : isMobile ? 'Mobile' : 'Desktop');
+
       // Create AudioContext with optimized settings for tablets
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      this.audioContext = new AudioContextClass({
-        sampleRate: 44100, // Standard sample rate
-        latencyHint: 'interactive', // Low latency for responsive playback
-      });
+      
+      // Configurações otimizadas para cada dispositivo
+      const contextOptions: AudioContextOptions = {
+        sampleRate: 44100,
+        latencyHint: isTablet ? 'playback' : 'interactive', // Tablets precisam de 'playback' para estabilidade
+      };
+      
+      this.audioContext = new AudioContextClass(contextOptions);
       
       // Create gain node for volume control
       this.gainNode = this.audioContext.createGain();
       this.gainNode.connect(this.audioContext.destination);
-      this.gainNode.gain.value = 0.95; // Volume aumentado para melhor audibilidade
+      this.gainNode.gain.value = 1.0; // Volume máximo para tablets
 
-      // Ensure AudioContext is running (critical for tablets)
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume();
+      // CRÍTICO para tablets: Forçar resume múltiplas vezes se necessário
+      let attempts = 0;
+      while (this.audioContext.state !== 'running' && attempts < 5) {
+        console.log(`📱 Attempt ${attempts + 1} to resume AudioContext...`);
+        try {
+          await this.audioContext.resume();
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (e) {
+          console.warn('Resume attempt failed:', e);
+        }
+        attempts++;
       }
 
       console.log('🎵 AudioContext created for GuitarSet samples, state:', this.audioContext.state);
@@ -75,10 +110,11 @@ class GuitarSetAudioService {
       await this.preloadChords();
 
       this.isInitialized = true;
-      console.log('✅ GuitarSetAudioService initialized');
+      console.log('✅ GuitarSetAudioService initialized successfully');
       return true;
     } catch (error) {
       console.error('❌ Error initializing GuitarSetAudioService:', error);
+      this.isInitialized = false;
       return false;
     } finally {
       this.isLoading = false;
@@ -255,19 +291,31 @@ class GuitarSetAudioService {
       return;
     }
 
-    // CRÍTICO: Garantir que todas as fontes anteriores foram paradas
-    // Fazer uma limpeza final antes de criar nova fonte
+    // Verificar estado do AudioContext
+    console.log('🎵 playBuffer: AudioContext state:', this.audioContext.state);
+
+    // CRÍTICO para tablets: Verificar se o contexto está fechado
+    if (this.audioContext.state === 'closed') {
+      console.error('❌ AudioContext is closed, cannot play');
+      return;
+    }
+
+    // CRÍTICO: Para acordes em tablets, NÃO parar fontes anteriores
+    // Isso permite que o acorde completo seja tocado
+    // Apenas parar para notas individuais (implementado em playNote)
     const activeCount = this.activeSources.size;
-    if (activeCount > 0) {
-      console.warn(`⚠️ Ainda há ${activeCount} fontes ativas, parando todas...`);
+    if (activeCount > 3) {
+      // Só limpar se tiver muitas fontes ativas (evitar memory leak)
+      console.warn(`⚠️ Muitas fontes ativas (${activeCount}), limpando...`);
       this.stopAll();
-      // Pequeno delay para garantir que o stop foi processado
-      // Não podemos usar await aqui, mas o lookahead time ajuda
     }
 
     // Resume context if suspended (critical for tablets)
     if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume().catch(err => {
+      console.log('📱 Resuming suspended AudioContext before playback...');
+      this.audioContext.resume().then(() => {
+        console.log('✅ AudioContext resumed, state:', this.audioContext?.state);
+      }).catch(err => {
         console.error('❌ Failed to resume AudioContext:', err);
       });
     }
@@ -370,25 +418,50 @@ class GuitarSetAudioService {
   async playChord(chordName: string, duration?: number): Promise<void> {
     console.log('🎸 GuitarSet: Playing chord:', chordName);
 
+    // CRÍTICO: Garantir inicialização antes de qualquer operação
     const initialized = await this.initialize();
     if (!initialized) {
       console.error('❌ GuitarSetAudioService not initialized');
-      return;
+      // Tentar reinicializar uma vez
+      this.isInitialized = false;
+      const retryInit = await this.initialize();
+      if (!retryInit) {
+        console.error('❌ Falha na reinicialização');
+        return;
+      }
     }
 
-    // Ensure AudioContext is active before playing (critical for tablets)
-    if (this.audioContext && this.audioContext.state === 'suspended') {
-      try {
-        await this.audioContext.resume();
-        // Small delay to ensure context is fully active
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error) {
-        console.error('❌ Failed to resume AudioContext:', error);
+    // CRÍTICO para tablets: Garantir AudioContext ativo
+    if (this.audioContext) {
+      const state = this.audioContext.state;
+      console.log('📱 AudioContext state before playing:', state);
+      
+      if (state !== 'running') {
+        console.log('📱 AudioContext not running, attempting to resume...');
+        try {
+          await this.audioContext.resume();
+          // Delay extra para tablets
+          await new Promise(resolve => setTimeout(resolve, 50));
+          
+          // Verificar novamente
+          if (this.audioContext.state !== 'running') {
+            console.error('❌ AudioContext still not running after resume:', this.audioContext.state);
+            // Última tentativa: recriar AudioContext
+            await this.recreateAudioContext();
+          }
+        } catch (error) {
+          console.error('❌ Failed to resume AudioContext:', error);
+          await this.recreateAudioContext();
+        }
       }
+    } else {
+      console.error('❌ No AudioContext available');
+      return;
     }
 
     // Normalize chord name (handle variations)
     const normalizedChord = this.normalizeChordName(chordName);
+    console.log('🎵 Normalized chord:', normalizedChord);
     
     // Load sample if not already loaded (pre-loading is critical for smooth playback)
     let buffer = await this.loadChordSample(normalizedChord);
@@ -405,13 +478,55 @@ class GuitarSetAudioService {
       }
     }
 
-    // For tablets: Don't limit duration, let the full chord play
-    // This prevents "choppy" sound from premature stopping
+    // Verificar se o buffer é válido
+    if (buffer.length === 0 || buffer.duration === 0) {
+      console.error('❌ Buffer inválido:', buffer);
+      return;
+    }
+
+    console.log('🎵 Buffer loaded:', buffer.duration.toFixed(2), 's, channels:', buffer.numberOfChannels);
+
+    // Para tablets: usar duração completa do sample
     const fullDuration = duration || buffer.duration;
     
     // Play the buffer with full duration to prevent cutting off
     this.playBuffer(buffer, undefined, fullDuration);
     console.log('✅ Chord played:', normalizedChord, 'duration:', fullDuration.toFixed(2), 's');
+  }
+
+  /**
+   * Recriar AudioContext (fallback para tablets com problemas)
+   */
+  private async recreateAudioContext(): Promise<void> {
+    console.log('🔄 Recreating AudioContext...');
+    
+    try {
+      // Fechar contexto antigo se existir
+      if (this.audioContext) {
+        try {
+          await this.audioContext.close();
+        } catch (e) {
+          // Ignorar erros ao fechar
+        }
+      }
+
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      this.audioContext = new AudioContextClass({
+        sampleRate: 44100,
+        latencyHint: 'playback',
+      });
+
+      // Recriar gain node
+      this.gainNode = this.audioContext.createGain();
+      this.gainNode.connect(this.audioContext.destination);
+      this.gainNode.gain.value = 1.0;
+
+      // Resumir
+      await this.audioContext.resume();
+      console.log('✅ AudioContext recreated, state:', this.audioContext.state);
+    } catch (error) {
+      console.error('❌ Failed to recreate AudioContext:', error);
+    }
   }
 
   async playChordStrummed(chordName: string, duration?: number): Promise<void> {

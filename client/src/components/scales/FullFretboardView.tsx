@@ -91,7 +91,13 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
       
       setPlayingNote(`${stringIndex}-${fret}`);
       
+      // CRÍTICO para tablets: Inicializar áudio primeiro (precisa de interação do usuário)
       await unifiedAudioService.initialize();
+      
+      // Delay extra para tablets garantirem AudioContext ativo
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      console.log('🎵 Tocando nota:', noteWithOctave);
       
       // Duração aumentada para 3.0 segundos - permite identificação clara da nota
       await unifiedAudioService.playNote(noteWithOctave, 3.0);

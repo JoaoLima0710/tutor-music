@@ -48,11 +48,16 @@ export function IntervalTheory({ rootNote = 'C' }: IntervalTheoryProps) {
     setSelectedInterval(interval);
     
     try {
+      // CRÍTICO para tablets: Inicializar áudio primeiro
       await unifiedAudioService.initialize();
+      // Delay extra para tablets garantirem AudioContext ativo
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('🎵 Tocando intervalo:', interval.name);
       
       // Tocar nota raiz
-      await unifiedAudioService.playNote(`${rootNote}4`, 0.5);
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await unifiedAudioService.playNote(`${rootNote}4`, 0.6);
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Tocar nota do intervalo
       const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -60,12 +65,13 @@ export function IntervalTheory({ rootNote = 'C' }: IntervalTheoryProps) {
       const targetIndex = (rootIndex + interval.semitones) % 12;
       const targetNote = NOTES[targetIndex];
       
-      await unifiedAudioService.playNote(`${targetNote}4`, 0.5);
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await unifiedAudioService.playNote(`${targetNote}4`, 0.6);
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Tocar ambas juntas
-      await unifiedAudioService.playNote(`${rootNote}4`, 0.5);
-      await unifiedAudioService.playNote(`${targetNote}4`, 0.5);
+      // Tocar ambas juntas (uma após a outra para tablets)
+      await unifiedAudioService.playNote(`${rootNote}4`, 0.8);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await unifiedAudioService.playNote(`${targetNote}4`, 0.8);
       
     } catch (error) {
       console.error('Erro ao tocar intervalo:', error);

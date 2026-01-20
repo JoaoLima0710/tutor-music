@@ -91,18 +91,28 @@ export function ScalePractice({ scale, onComplete }: ScalePracticeProps) {
 
   // Tocar a escala como demonstração
   const playScale = async () => {
-    setIsPlaying(true);
-    const interval = (60 / speed) * 1000; // Converter BPM para ms
+    try {
+      setIsPlaying(true);
+      
+      // CRÍTICO para tablets: Inicializar áudio primeiro
+      await unifiedAudioService.initialize();
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const interval = (60 / speed) * 1000; // Converter BPM para ms
 
-    for (let i = 0; i < practiceNotes.length; i++) {
-      setCurrentNoteIndex(i);
-      // Tocar nota individual (usar playChord para notas simples)
-      await unifiedAudioService.playChord(practiceNotes[i], 0.3);
-      await new Promise(resolve => setTimeout(resolve, interval));
+      for (let i = 0; i < practiceNotes.length; i++) {
+        setCurrentNoteIndex(i);
+        // Usar playNote para notas individuais (mais apropriado que playChord)
+        await unifiedAudioService.playNote(practiceNotes[i] + '4', 0.4);
+        await new Promise(resolve => setTimeout(resolve, interval));
+      }
+
+      setCurrentNoteIndex(0);
+    } catch (error) {
+      console.error('Erro ao tocar escala:', error);
+    } finally {
+      setIsPlaying(false);
     }
-
-    setIsPlaying(false);
-    setCurrentNoteIndex(0);
   };
 
   // Iniciar prática com detecção de pitch

@@ -42,9 +42,14 @@ export function EarTraining({ scaleName, root, intervals }: EarTrainingProps) {
     setShowAnswer(false);
     
     try {
+      // CRÍTICO para tablets: Inicializar áudio primeiro
       await unifiedAudioService.initialize();
+      // Delay extra para tablets garantirem AudioContext ativo
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const note = scaleNotes[degree];
-      await unifiedAudioService.playNote(`${note}4`, 0.8);
+      console.log('🎵 Tocando grau', degree + 1, ':', note);
+      await unifiedAudioService.playNote(`${note}4`, 1.0);
     } catch (error) {
       console.error('Erro ao tocar grau:', error);
     } finally {
