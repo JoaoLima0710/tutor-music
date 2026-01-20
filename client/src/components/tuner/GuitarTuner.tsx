@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { NoiseCalibration } from './NoiseCalibration';
+import { SpectrumVisualizer } from '@/components/audio/SpectrumVisualizer';
+import { WaveformVisualizer } from '@/components/audio/WaveformVisualizer';
+import { PitchHistoryChart } from '@/components/audio/PitchHistoryChart';
 
 // Frequências padrão das cordas do violão (afinação padrão)
 const GUITAR_STRINGS = [
@@ -31,6 +35,8 @@ export function GuitarTuner() {
   const [targetString, setTargetString] = useState<typeof GUITAR_STRINGS[0] | null>(null);
   const [error, setError] = useState('');
   const [octaveOffset, setOctaveOffset] = useState(0); // Para ajustar oitavas
+  const [noiseThreshold, setNoiseThreshold] = useState(0.01); // Threshold de ruído calibrado
+  const [currentPitchData, setCurrentPitchData] = useState<{ frequency: number; timestamp: number } | null>(null);
 
   const startTuner = async () => {
     try {
@@ -52,6 +58,9 @@ export function GuitarTuner() {
 
       setIsActive(true);
       detectPitch();
+      
+      // Armazenar analyser para visualizações
+      analyserRef.current = analyser;
       
       console.log('🎸 Guitar tuner started');
     } catch (err) {
@@ -96,6 +105,14 @@ export function GuitarTuner() {
       
       const frequency = autoCorrelate(buffer, audioContextRef.current!.sampleRate);
       
+      // Atualizar dados de pitch para histórico
+      if (frequency > 0) {
+        setCurrentPitchData({
+          frequency,
+          timestamp: Date.now()
+        });
+      }
+      
       if (frequency > 0) {
         const noteInfo = frequencyToNote(frequency);
         setDetectedNote(noteInfo);
@@ -123,8 +140,8 @@ export function GuitarTuner() {
     }
     rms = Math.sqrt(rms / size);
     
-    // Threshold de volume mínimo
-    if (rms < 0.01) return -1;
+    // Threshold de volume mínimo (usar threshold calibrado)
+    if (rms < noiseThreshold) return -1;
 
     // Autocorrelação
     let lastCorrelation = 1;
@@ -269,6 +286,14 @@ export function GuitarTuner() {
           </div>
         )}
 
+        {/* Calibração de Ruído */}
+        <div className="mb-6">
+          <NoiseCalibration
+            onCalibrationComplete={setNoiseThreshold}
+            currentThreshold={noiseThreshold}
+          />
+        </div>
+
         {/* Octave Control */}
         <div className="mb-6 flex items-center justify-center gap-4">
           <span className="text-sm text-gray-400">Oitava:</span>
@@ -354,6 +379,19 @@ export function GuitarTuner() {
             )}
           </AnimatePresence>
         </div>
+
+        {/* Visualizações de Áudio */}
+        {isActive && analyserRef.current && (
+          <div className="mb-6 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <SpectrumVisualizer analyser={analyserRef.current} />
+              <WaveformVisualizer analyser={analyserRef.current} />
+            </div>
+            {currentPitchData && (
+              <PitchHistoryChart pitchData={currentPitchData} />
+            )}
+          </div>
+        )}
 
         {/* String Reference */}
         <div className="grid grid-cols-6 gap-2">

@@ -39,10 +39,10 @@ export function AIAssistant() {
     loadAdvancedAnalysis();
   }, []);
 
-  const loadData = () => {
-    const userProfile = aiAssistantService.getUserProfile();
-    const recs = aiAssistantService.generateRecommendations();
-    const userInsights = aiAssistantService.getInsights();
+  const loadData = async () => {
+    const userProfile = await aiAssistantService.getUserProfile();
+    const recs = await aiAssistantService.generateRecommendations();
+    const userInsights = await aiAssistantService.getInsights();
 
     setProfile(userProfile);
     setRecommendations(recs);
@@ -54,7 +54,7 @@ export function AIAssistant() {
 
     setIsLoadingAdvanced(true);
     try {
-      const history = aiAssistantService.getPracticeHistory();
+      const history = await aiAssistantService.getPracticeHistory();
 
       // Análise preditiva de churn
       const churnAnalysis = await advancedAIService.predictChurnRisk(

@@ -665,6 +665,38 @@ export const useProgressionStore = create<ProgressionStore>()(
         });
       },
       
+      // Aplicar resultado do teste de nivelamento
+      applyPlacementTest: (level: EducationalLevel, score: number) => {
+        set({
+          educationalLevel: level,
+          dailyGoalMinutes: level === 'beginner' ? 20 : level === 'intermediate' ? 35 : 50,
+        });
+        
+        // Se intermediário ou avançado, marcar algumas habilidades básicas como praticadas
+        if (level !== 'beginner') {
+          const state = get();
+          const basicSkills = state.skills.filter(s => s.level === 'beginner');
+          const skillsToUpdate = level === 'advanced' 
+            ? basicSkills.slice(0, Math.floor(basicSkills.length * 0.8))
+            : basicSkills.slice(0, Math.floor(basicSkills.length * 0.5));
+          
+          set({
+            skills: state.skills.map(skill => {
+              const shouldUpdate = skillsToUpdate.some(ts => ts.id === skill.id);
+              if (shouldUpdate) {
+                return {
+                  ...skill,
+                  progress: Math.min(100, score),
+                  practiceCount: 1,
+                  mastered: score >= 80,
+                };
+              }
+              return skill;
+            }),
+          });
+        }
+      },
+      
       getProgressMetrics: () => {
         const state = get();
         const now = Date.now();

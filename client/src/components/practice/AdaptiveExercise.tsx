@@ -120,9 +120,9 @@ export function AdaptiveExercise({ onComplete, onClose }: AdaptiveExerciseProps)
   const generateExercise = async () => {
     setIsGenerating(true);
     try {
-      const profile = aiAssistantService.getUserProfile();
-      const weakAreas = aiAssistantService.analyzeWeakAreas();
-      const recentSessions = aiAssistantService.getPracticeHistory().slice(-10);
+      const profile = await aiAssistantService.getUserProfile();
+      const weakAreas = await aiAssistantService.analyzeWeakAreas();
+      const recentSessions = (await aiAssistantService.getPracticeHistory()).slice(-10);
 
       const exercise = await advancedAIService.generateAdaptiveExercise(
         profile,

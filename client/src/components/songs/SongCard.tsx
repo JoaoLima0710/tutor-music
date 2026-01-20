@@ -1,3 +1,4 @@
+import { memo, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Music, Play, Lock } from 'lucide-react';
 import { Song } from '@/data/songs';
@@ -24,16 +25,19 @@ const difficultyLabels: Record<Song['difficulty'], string> = {
   advanced: 'Avançado',
 };
 
-export function SongCard({ song, onClick }: SongCardProps) {
+function SongCardComponent({ song, onClick }: SongCardProps) {
   const { isFavorite, toggleFavorite } = useSongStore();
   const { isSongUnlocked } = useSongUnlockStore();
   const favorite = isFavorite(song.id);
   const isUnlocked = isSongUnlocked(song.id);
   
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     toggleFavorite(song.id);
-  };
+  }, [song.id, toggleFavorite]);
+  
+  const genreGradient = useMemo(() => genreColors[song.genre], [song.genre]);
+  const difficultyLabel = useMemo(() => difficultyLabels[song.difficulty], [song.difficulty]);
   
   return (
     <motion.div
@@ -43,13 +47,13 @@ export function SongCard({ song, onClick }: SongCardProps) {
       whileTap={{ scale: 0.98 }}
     >
       {/* Background Gradient */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${genreColors[song.genre]} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+      <div className={`absolute inset-0 bg-gradient-to-br ${genreGradient} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
       
       {/* Content */}
       <div className="relative z-10">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
-          <div className={`px-3 py-1 rounded-lg bg-gradient-to-r ${genreColors[song.genre]} text-white text-xs font-semibold`}>
+          <div className={`px-3 py-1 rounded-lg bg-gradient-to-r ${genreGradient} text-white text-xs font-semibold`}>
             {song.genre}
           </div>
           
@@ -76,7 +80,7 @@ export function SongCard({ song, onClick }: SongCardProps) {
           <span>•</span>
           <span>{song.bpm} BPM</span>
           <span>•</span>
-          <span>{difficultyLabels[song.difficulty]}</span>
+          <span>{difficultyLabel}</span>
         </div>
         
         {/* Chords */}
@@ -99,7 +103,7 @@ export function SongCard({ song, onClick }: SongCardProps) {
         {/* Play Button */}
         <div className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl ${
           isUnlocked 
-            ? `bg-gradient-to-r ${genreColors[song.genre]} text-white font-semibold text-sm group-hover:shadow-lg transition-shadow`
+            ? `bg-gradient-to-r ${genreGradient} text-white font-semibold text-sm group-hover:shadow-lg transition-shadow`
             : 'bg-gray-600/50 text-gray-400 font-semibold text-sm cursor-not-allowed'
         }`}>
           {isUnlocked ? (
@@ -118,3 +122,7 @@ export function SongCard({ song, onClick }: SongCardProps) {
     </motion.div>
   );
 }
+
+export const SongCard = memo(SongCardComponent, (prevProps, nextProps) => {
+  return prevProps.song.id === nextProps.song.id;
+});

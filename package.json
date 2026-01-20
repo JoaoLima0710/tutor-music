@@ -10,7 +10,10 @@
     "start": "NODE_ENV=production node dist/index.js",
     "preview": "vite preview --host",
     "check": "tsc --noEmit",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

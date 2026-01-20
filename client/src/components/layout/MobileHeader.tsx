@@ -1,5 +1,6 @@
 import { Menu, Bell, Guitar, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AudioQuickToggle } from '@/components/audio/AudioQuickToggle';
 
 interface MobileHeaderProps {
   userName: string;
@@ -31,14 +32,19 @@ export function MobileHeader({ userName, onMenuClick, onThemeClick }: MobileHead
           </div>
         </div>
         
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onThemeClick}
-          className="text-white hover:bg-white/10"
-        >
-          <Palette className="w-6 h-6" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <AudioQuickToggle variant="icon" />
+          {onThemeClick && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onThemeClick}
+              className="text-white hover:bg-white/10"
+            >
+              <Palette className="w-6 h-6" />
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );

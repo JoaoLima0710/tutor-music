@@ -242,8 +242,8 @@ Como você está se sentindo hoje? O que gostaria de trabalhar?`,
       aiGamificationService.updateStreak('conversation', true);
 
       // Preparar contexto para o LLM
-      const userProfile = aiAssistantService.getUserProfile();
-      const recentSessions = aiAssistantService.getPracticeHistory().slice(-10);
+      const userProfile = await aiAssistantService.getUserProfile();
+      const recentSessions = (await aiAssistantService.getPracticeHistory()).slice(-10);
       const conversationHistory = messages.slice(-4).map(m => `${m.role}: ${m.content}`);
 
       const context: ConversationContext = {

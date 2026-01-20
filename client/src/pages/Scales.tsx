@@ -1,15 +1,18 @@
 import { useState } from 'react';
+import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { Button } from '@/components/ui/button';
-import { ScalePractice } from '@/components/scales/ScalePractice';
-import { IntervalTheory } from '@/components/scales/IntervalTheory';
-import { ScaleShapes } from '@/components/scales/ScaleShapes';
-import { EarTraining } from '@/components/scales/EarTraining';
-import { ScaleImprovisation } from '@/components/scales/ScaleImprovisation';
-import { FullFretboardView } from '@/components/scales/FullFretboardView';
+import {
+  ScalePractice,
+  IntervalTheory,
+  ScaleShapes,
+  EarTraining,
+  ScaleImprovisation,
+  FullFretboardView,
+} from '@/components/scales';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useUserStore } from '@/stores/useUserStore';
 import { Play, StopCircle, BookOpen, Layers, Mic, Radio, GraduationCap, ChevronDown, Lock, Check } from 'lucide-react';
@@ -162,6 +165,7 @@ const LEARNING_STEPS: { id: LearningStep; name: string; icon: any; description: 
 ];
 
 export default function Scales() {
+  // Adicionar breadcrumbs no início do componente
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [selectedScale, setSelectedScale] = useState(scales[0]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -208,6 +212,7 @@ export default function Scales() {
         
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-6xl mx-auto p-8 space-y-6">
+            <Breadcrumbs />
             <header>
               <h1 className="text-4xl font-bold text-white mb-2">Escalas Musicais</h1>
               <p className="text-gray-400">Aprenda e pratique escalas no braço do violão</p>
@@ -443,6 +448,8 @@ export default function Scales() {
         />
         
         <main className="px-4 py-4 pb-24 space-y-4">
+          {/* Breadcrumbs */}
+          <Breadcrumbs />
           <header>
             <h1 className="text-2xl font-bold text-white mb-1">Escalas Musicais</h1>
             <p className="text-sm text-gray-400">Aprenda escalas no violão</p>

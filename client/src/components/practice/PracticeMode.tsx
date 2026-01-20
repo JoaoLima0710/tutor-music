@@ -88,6 +88,10 @@ export function PracticeMode({ chords, bpm, onComplete }: PracticeModeProps) {
       setScore(prev => prev + 1);
       setFeedback('correct');
       
+      // Feedback tátil ao acertar
+      const { hapticFeedbackService } = await import('@/services/HapticFeedbackService');
+      hapticFeedbackService.success();
+      
       // CRÍTICO para tablets: Inicializar áudio primeiro
       try {
         await unifiedAudioService.initialize();
@@ -105,6 +109,10 @@ export function PracticeMode({ chords, bpm, onComplete }: PracticeModeProps) {
         } else {
           // Practice complete
           setIsPlaying(false);
+          
+          // Feedback tátil ao completar módulo
+          const { hapticFeedbackService } = await import('@/services/HapticFeedbackService');
+          hapticFeedbackService.complete();
           
           // Stop recording and save
           if (isRecording) {

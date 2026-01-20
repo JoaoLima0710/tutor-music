@@ -296,12 +296,14 @@ export const useGamificationStore = create<GamificationStore>()(
         let newXP = state.xp + amount;
         let newLevel = state.level;
         let xpForNext = state.xpToNextLevel;
+        let leveledUp = false;
         
         // Check level up
         while (newXP >= xpForNext) {
           newXP -= xpForNext;
           newLevel++;
           xpForNext = calculateXPForLevel(newLevel);
+          leveledUp = true;
         }
         
         set({
@@ -309,6 +311,13 @@ export const useGamificationStore = create<GamificationStore>()(
           level: newLevel,
           xpToNextLevel: xpForNext,
         });
+
+        // Feedback tátil ao subir de nível
+        if (leveledUp) {
+          import('@/services/HapticFeedbackService').then(({ hapticFeedbackService }) => {
+            hapticFeedbackService.levelUp();
+          });
+        }
       },
       
       updateMissionProgress: (missionId, progress) => {

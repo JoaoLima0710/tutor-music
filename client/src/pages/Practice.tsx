@@ -1,31 +1,98 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
+import { useState, useEffect } from 'react';
+import { useLocation, Link } from 'wouter';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
-import { Metronome } from '@/components/practice/Metronome';
-import { PitchDetector } from '@/components/practice/PitchDetector';
-import { SpectrumVisualizer } from '@/components/practice/SpectrumVisualizer';
-import { EarTraining } from '@/components/practice/EarTraining';
+import {
+  Metronome,
+  PitchDetector,
+  SpectrumVisualizer,
+  EarTraining,
+  PhysicalPreparation,
+  ContextualEarTraining,
+  TranscriptionExercise,
+} from '@/components/practice';
 import { RealtimeChordDetector } from '@/components/chord-detection/RealtimeChordDetector';
+import { AdaptiveDifficultyRecommendations } from '@/components/adaptive/AdaptiveDifficultyRecommendations';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useUserStore } from '@/stores/useUserStore';
-import { Clock, Target, Zap } from 'lucide-react';
+import { usePracticeUnlockStore, PRACTICE_EXERCISES } from '@/stores/usePracticeUnlockStore';
+import { Clock, Target, Zap, Activity, Lock, Unlock, BookOpen, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { autoSaveService } from '@/services/AutoSaveService';
+import { ResumeSessionModal } from '@/components/practice/ResumeSessionModal';
 
 export default function Practice() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
   const [, setLocation] = useLocation();
 
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { user } = useUserStore();
+  const {
+    isExerciseUnlocked,
+    getUnlockedExercises,
+    getLockedExercises,
+  } = usePracticeUnlockStore();
 
   const userName = user?.name || "Usuário";
   
+  const unlockedExercises = getUnlockedExercises();
+  const lockedExercises = getLockedExercises();
+
+  // Verificar sessão salva ao montar
+  useEffect(() => {
+    const lastSession = autoSaveService.getLastSession();
+    if (lastSession) {
+      setShowResumeModal(true);
+    }
+
+    // Iniciar nova sessão
+    autoSaveService.startSession('/practice', {
+      type: 'practice',
+      accuracy: 0,
+      duration: 0,
+      timestamp: Date.now()
+    });
+
+    // Limpar ao desmontar
+    return () => {
+      autoSaveService.endSession();
+    };
+  }, []);
+
+  // Atualizar sessão periodicamente
+  useEffect(() => {
+    const interval = setInterval(() => {
+      autoSaveService.updateSession({
+        duration: Date.now() - (Date.now() - 60000) // Placeholder - implementar lógica real
+      });
+    }, 30000); // A cada 30 segundos
+
+    return () => clearInterval(interval);
+  }, []);
+  
   return (
     <>
+      {/* Modal de Retomar Sessão */}
+      {showResumeModal && (() => {
+        const lastSession = autoSaveService.getLastSession();
+        if (!lastSession) return null;
+        return (
+          <ResumeSessionModal
+            session={lastSession}
+            onResume={() => setShowResumeModal(false)}
+            onDismiss={() => {
+              autoSaveService.clearSessions();
+              setShowResumeModal(false);
+            }}
+          />
+        );
+      })()}
+
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
         <Sidebar 
@@ -46,6 +113,18 @@ export default function Practice() {
               </div>
               <p className="text-gray-400">Metrônomo e outras ferramentas para melhorar sua prática</p>
             </header>
+
+            {/* Preparação Física - Recomendado para Iniciantes */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <Activity className="w-6 h-6 text-orange-400" />
+                <h2 className="text-2xl font-bold text-white">Preparação Física</h2>
+                <Badge variant="outline" className="border-orange-500/30 text-orange-400 text-xs">
+                  Recomendado
+                </Badge>
+              </div>
+              <PhysicalPreparation />
+            </section>
 
             {/* Real-time Chord Practice - Featured */}
             <Card className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-purple-500/30">
@@ -103,9 +182,137 @@ export default function Practice() {
               </CardContent>
             </Card>
 
+            {/* Exercícios Práticos Desbloqueados */}
+            {unlockedExercises.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Unlock className="w-6 h-6 text-green-400" />
+                  <h2 className="text-2xl font-bold text-white">Exercícios Práticos Desbloqueados</h2>
+                  <Badge variant="outline" className="border-green-500/30 text-green-400">
+                    {unlockedExercises.length} disponíveis
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {PRACTICE_EXERCISES
+                    .filter(ex => unlockedExercises.includes(ex.id))
+                    .map((exercise) => (
+                      <Card
+                        key={exercise.id}
+                        className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 hover:border-green-500/50 transition-all cursor-pointer"
+                        onClick={() => {
+                          // Navegar para exercício específico
+                          if (exercise.id === 'interval-practice') {
+                            setLocation('/practice?exercise=intervals');
+                          } else if (exercise.id === 'scale-improv') {
+                            setLocation('/scales?mode=improv');
+                          } else if (exercise.id === 'chord-voicings') {
+                            setLocation('/chords?mode=voicings');
+                          } else if (exercise.id === 'progression-play') {
+                            setLocation('/songs?mode=progressions');
+                          } else if (exercise.id.startsWith('ear-')) {
+                            // Focar no treino de ouvido
+                            const type = exercise.id.replace('ear-', '');
+                            setLocation(`/practice?ear-training=${type}`);
+                          }
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-lg bg-green-500/20">
+                            <Play className="w-5 h-5 text-green-400" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-bold text-white mb-1">{exercise.name}</h3>
+                            <p className="text-sm text-gray-300 mb-2">{exercise.description}</p>
+                            <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs">
+                              Desbloqueado
+                            </Badge>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* Exercícios Práticos Bloqueados */}
+            {lockedExercises.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Lock className="w-6 h-6 text-gray-400" />
+                  <h2 className="text-2xl font-bold text-white">Exercícios Práticos Bloqueados</h2>
+                  <Badge variant="outline" className="border-gray-500/30 text-gray-400">
+                    {lockedExercises.length} bloqueados
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {lockedExercises.map(({ exercise, missingRequirement }) => (
+                    <Card
+                      key={exercise.id}
+                      className="p-4 bg-gray-800/50 border-gray-700/50 opacity-60 cursor-not-allowed"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-gray-700/50">
+                          <Lock className="w-5 h-5 text-gray-500" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-bold text-gray-400">{exercise.name}</h3>
+                            <Lock className="w-4 h-4 text-gray-500" />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-2">{exercise.description}</p>
+                          <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                            <div className="flex items-start gap-2">
+                              <BookOpen className="w-4 h-4 text-amber-400 mt-0.5" />
+                              <p className="text-xs text-gray-400">
+                                <strong className="text-amber-400">Requisito:</strong> {missingRequirement}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recomendações de Dificuldade Adaptativa */}
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4">📊 Recomendações Personalizadas</h2>
+              <AdaptiveDifficultyRecommendations />
+            </div>
+
+            {/* Treino de Ouvido Contextual */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-white">🎵 Treino de Ouvido Contextual</h2>
+                <Badge variant="outline" className="border-purple-500/30 text-purple-400 text-xs">
+                  Novo
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Identifique progressões de acordes em músicas reais
+              </p>
+              <ContextualEarTraining />
+            </div>
+
+            {/* Transcription Exercise */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-white">🎼 Exercícios de Transcrição</h2>
+                <Badge variant="outline" className="border-blue-500/30 text-blue-400 text-xs">
+                  Novo
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Ouça a melodia e reproduza no seu violão
+              </p>
+              <TranscriptionExercise />
+            </div>
+
             {/* Ear Training */}
             <div>
-              <h2 className="text-2xl font-bold text-white mb-4">🎵 Treino de Ouvido</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">🎵 Treino de Ouvido Clássico</h2>
               <EarTraining />
             </div>
             
@@ -203,6 +410,92 @@ export default function Practice() {
             <p className="text-sm text-gray-400">Ferramentas para melhorar</p>
           </header>
           
+          {/* Preparação Física - Mobile */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="w-5 h-5 text-orange-400" />
+              <h2 className="text-lg font-bold text-white">Preparação Física</h2>
+              <Badge variant="outline" className="border-orange-500/30 text-orange-400 text-xs">
+                Recomendado
+              </Badge>
+            </div>
+            <PhysicalPreparation />
+          </div>
+
+          {/* Exercícios Práticos Desbloqueados - Mobile */}
+          {unlockedExercises.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Unlock className="w-5 h-5 text-green-400" />
+                <h2 className="text-lg font-bold text-white">Exercícios Desbloqueados</h2>
+                <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs">
+                  {unlockedExercises.length}
+                </Badge>
+              </div>
+              <div className="space-y-3">
+                {PRACTICE_EXERCISES
+                  .filter(ex => unlockedExercises.includes(ex.id))
+                  .map((exercise) => (
+                    <Card
+                      key={exercise.id}
+                      className="p-3 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Play className="w-5 h-5 text-green-400" />
+                        <div className="flex-1">
+                          <h3 className="font-bold text-white text-sm">{exercise.name}</h3>
+                          <p className="text-xs text-gray-300">{exercise.description}</p>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Exercícios Bloqueados - Mobile */}
+          {lockedExercises.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Lock className="w-5 h-5 text-gray-400" />
+                <h2 className="text-lg font-bold text-white">Exercícios Bloqueados</h2>
+              </div>
+              <div className="space-y-3">
+                {lockedExercises.slice(0, 3).map(({ exercise, missingRequirement }) => (
+                  <Card
+                    key={exercise.id}
+                    className="p-3 bg-gray-800/50 border-gray-700/50 opacity-60"
+                  >
+                    <div className="flex items-start gap-3">
+                      <Lock className="w-5 h-5 text-gray-500 mt-0.5" />
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-400 text-sm mb-1">{exercise.name}</h3>
+                        <p className="text-xs text-gray-500 mb-2">{missingRequirement}</p>
+                        <Link href="/theory">
+                          <Button size="sm" variant="outline" className="border-gray-600 text-gray-400 text-xs">
+                            <BookOpen className="w-3 h-3 mr-1" />
+                            Estudar Teoria
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Treino de Ouvido Contextual - Mobile */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <h2 className="text-lg font-bold text-white">Treino Contextual</h2>
+              <Badge variant="outline" className="border-purple-500/30 text-purple-400 text-xs">
+                Novo
+              </Badge>
+            </div>
+            <ContextualEarTraining />
+          </div>
+
           <div>
             <h2 className="text-lg font-bold text-white mb-3">🎵 Treino de Ouvido</h2>
             <EarTraining />

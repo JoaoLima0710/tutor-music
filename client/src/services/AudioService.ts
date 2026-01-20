@@ -51,12 +51,18 @@ class AudioService {
   private isInitialized = false;
   private currentInstrument: InstrumentType = 'nylon-guitar';
 
-  async initialize() {
+  async initialize(lowLatencyMode: boolean = false) {
     if (this.isInitialized) {
       return true;
     }
 
     try {
+      // Modo de baixa latência: usar latencyHint 'interactive'
+      if (lowLatencyMode) {
+        // Tone.js não suporta latencyHint diretamente, mas podemos otimizar
+        console.log('⚡ Inicializando em modo de baixa latência');
+      }
+      
       await Tone.start();
       console.log('🎵 Tone.js context started');
       
@@ -69,22 +75,40 @@ class AudioService {
         highFrequency: 2500,
       }).toDestination();
 
-      this.reverb = new Tone.Reverb({
-        decay: 2.5,
-        wet: 0.3,
-      }).connect(this.eq3);
+      // Em modo de baixa latência, reduzir ou desabilitar efeitos
+      if (lowLatencyMode) {
+        // Reverb mínimo ou desabilitado
+        this.reverb = new Tone.Reverb({
+          decay: 0.5, // Reduzido de 2.5s para 0.5s
+          wet: 0.1,   // Reduzido de 0.3 para 0.1
+        }).connect(this.eq3);
 
-      this.chorus = new Tone.Chorus({
-        frequency: 1.5,
-        delayTime: 3.5,
-        depth: 0.7,
-        wet: 0.2,
-      }).connect(this.reverb);
+        // Chorus desabilitado ou mínimo
+        this.chorus = new Tone.Chorus({
+          frequency: 1.5,
+          delayTime: 3.5,
+          depth: 0.3,  // Reduzido de 0.7 para 0.3
+          wet: 0.05,   // Reduzido de 0.2 para 0.05
+        }).connect(this.reverb);
+      } else {
+        // Configuração normal
+        this.reverb = new Tone.Reverb({
+          decay: 2.5,
+          wet: 0.3,
+        }).connect(this.eq3);
+
+        this.chorus = new Tone.Chorus({
+          frequency: 1.5,
+          delayTime: 3.5,
+          depth: 0.7,
+          wet: 0.2,
+        }).connect(this.reverb);
+      }
 
       await this.reverb.generate();
       
       // Create synth with current instrument
-      this.createSynth(this.currentInstrument);
+      this.createSynth(this.currentInstrument, lowLatencyMode);
       
       this.isInitialized = true;
       console.log('✅ AudioService initialized with', this.currentInstrument);
@@ -95,7 +119,7 @@ class AudioService {
     }
   }
 
-  private createSynth(instrument: InstrumentType) {
+  private createSynth(instrument: InstrumentType, lowLatencyMode: boolean = false) {
     // Dispose old synth if exists
     if (this.synth) {
       this.synth.dispose();
@@ -146,7 +170,8 @@ class AudioService {
     const config = instrumentConfigs[instrument];
     
     this.synth = new Tone.PolySynth(Tone.Synth, config);
-    this.synth.maxPolyphony = 32;
+    // Em modo de baixa latência, reduzir polyphony para economizar CPU
+    this.synth.maxPolyphony = lowLatencyMode ? 12 : 32;
 
     // Connect to effects chain
     if (this.chorus) {

@@ -5,6 +5,17 @@ import { philharmoniaAudioService } from './PhilharmoniaAudioService';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
 import type { InstrumentType } from './AudioServiceWithSamples';
 import type { AudioEngineType } from '@/stores/useAudioSettingsStore';
+import {
+  AudioError,
+  AudioContextError,
+  AudioInitializationError,
+  AudioPlaybackError,
+  SampleLoadError,
+  BrowserNotSupportedError,
+  handleAudioError,
+  checkBrowserSupport,
+} from '@/errors/AudioErrors';
+import { toast } from 'sonner';
 
 /**
  * Advanced Audio Manager
@@ -246,9 +257,21 @@ class AudioManager {
   private async _initializeInternal(): Promise<boolean> {
     try {
       console.log('🎵 Initializing AudioManager...', this.isTablet ? '(Tablet Mode)' : this.isMobile ? '(Mobile Mode)' : '(Desktop Mode)');
+      
+      // Verificar suporte do navegador
+      const browserSupport = checkBrowserSupport();
+      if (!browserSupport.supported) {
+        const error = browserSupport.error || new BrowserNotSupportedError();
+        const handled = handleAudioError(error);
+        console.error('❌', handled.message);
+        toast.error('Navegador não suportado', {
+          description: handled.message,
+        });
+        return false;
+      }
 
       // Get initial settings
-      const { audioEngine, instrument } = useAudioSettingsStore.getState();
+      const { audioEngine, instrument, lowLatencyMode } = useAudioSettingsStore.getState();
 
       // IMPORTANTE: Em tablets, NÃO forçar synthesis - usar GuitarSet que tem samples reais
       // Tablets têm problemas com Tone.js synthesis, mas funcionam bem com Web Audio API direta
@@ -394,8 +417,45 @@ class AudioManager {
         this.activeService = audioService;
       }
 
-      // Initialize new service
-      const success = await this.activeService.initialize();
+      // Initialize new service com modo de baixa latência se habilitado
+      const { lowLatencyMode } = useAudioSettingsStore.getState();
+      let success = false;
+      
+      try {
+        success = await this.activeService.initialize(lowLatencyMode);
+        
+        // Se samples falharam e estamos usando samples engine, tentar fallback para synthesis
+        if (!success && engine === 'samples') {
+          console.warn('⚠️ Samples engine failed, falling back to synthesis');
+          const sampleError = new SampleLoadError('Samples failed to load, using synthesis fallback');
+          const handled = handleAudioError(sampleError);
+          toast.info('Usando áudio sintético', {
+            description: handled.message,
+          });
+          
+          const synthesisService = audioService;
+          this.activeService = synthesisService;
+          this.currentEngine = 'synthesis';
+          success = await synthesisService.initialize(lowLatencyMode);
+          
+          if (success) {
+            // Atualizar store para refletir fallback
+            useAudioSettingsStore.getState().setAudioEngine('synthesis');
+            console.log('✅ Fallback to synthesis successful');
+          }
+        }
+      } catch (error) {
+        const handled = handleAudioError(error);
+        console.error('❌ Error during initialization:', handled.message, error);
+        
+        if (error instanceof AudioError && !error.recoverable) {
+          toast.error('Erro de Inicialização', {
+            description: handled.message,
+          });
+        }
+        
+        success = false;
+      }
 
       if (success) {
         console.log('✅ Audio engine switched successfully to:', engine);
@@ -520,7 +580,16 @@ class AudioManager {
 
       console.log('✅ Chord played successfully');
     } catch (error) {
-      console.error('❌ Error playing chord:', error);
+      const handled = handleAudioError(error);
+      console.error('❌ Error playing chord:', handled.message, error);
+      
+      // Não mostrar toast para erros de playback menores (pode ser spam)
+      // Apenas logar e continuar
+      if (error instanceof AudioError && !error.recoverable) {
+        toast.error('Erro de Áudio', {
+          description: handled.message,
+        });
+      }
 
       // Tablet/Mobile fallback: Try to reinitialize and retry once
       if ((this.mobileOptimizations || this.isTablet) && !error.message.includes('not initialized')) {

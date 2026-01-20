@@ -100,6 +100,11 @@ export function InteractiveChordExercise({
     setFeedback(correct ? 'correct' : 'incorrect');
     
     if (correct) {
+      // Feedback tátil ao acertar
+      import('@/services/HapticFeedbackService').then(({ hapticFeedbackService }) => {
+        hapticFeedbackService.success();
+      });
+      
       setStreak(s => s + 1);
       setCurrentRep(r => r + 1);
       
@@ -118,6 +123,11 @@ export function InteractiveChordExercise({
         const finalAccuracy = Math.round(((targetRepetitions - errors) / targetRepetitions) * 100);
         setAccuracy(finalAccuracy);
         setPhase('complete');
+        
+        // Feedback tátil ao completar módulo
+        import('@/services/HapticFeedbackService').then(({ hapticFeedbackService }) => {
+          hapticFeedbackService.complete();
+        });
         
         // Atualizar progresso da habilidade
         const skillId = `chord-${chord.toLowerCase()}`;

@@ -1,3 +1,4 @@
+import { memo, useMemo, useCallback } from 'react';
 import { Target, Flame, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -9,19 +10,26 @@ interface DailyGoalCardProps {
   compact?: boolean;
 }
 
-export function DailyGoalCard({ compact = false }: DailyGoalCardProps) {
+function DailyGoalCardComponent({ compact = false }: DailyGoalCardProps) {
   const [, setLocation] = useLocation();
   const { dailyGoalMinutes, totalPracticeMinutes, getDailyRoutine } = useProgressionStore();
   const { currentStreak } = useGamificationStore();
   
-  // Calcular minutos praticados hoje (simplificado - usar data real depois)
-  const todayMinutes = Math.min(totalPracticeMinutes % dailyGoalMinutes, dailyGoalMinutes);
-  const routine = getDailyRoutine();
+  // Memoizar cálculos
+  const { current, total, percentage } = useMemo(() => {
+    const todayMinutes = Math.min(totalPracticeMinutes % dailyGoalMinutes, dailyGoalMinutes);
+    const routine = getDailyRoutine();
+    const current = todayMinutes;
+    const total = routine.totalMinutes;
+    const percentage = total > 0 ? (current / total) * 100 : 0;
+    return { current, total, percentage };
+  }, [totalPracticeMinutes, dailyGoalMinutes, getDailyRoutine]);
   
-  const current = todayMinutes;
-  const total = routine.totalMinutes;
   const streak = currentStreak;
-  const percentage = total > 0 ? (current / total) * 100 : 0;
+  
+  const handlePracticeClick = useCallback(() => {
+    setLocation('/practice');
+  }, [setLocation]);
   
   // Modo compacto para não poluir a tela
   if (compact) {
@@ -76,7 +84,7 @@ export function DailyGoalCard({ compact = false }: DailyGoalCardProps) {
           <Progress value={percentage} className="h-4 bg-white/10" />
           <div className="flex items-center justify-between">
             <Button 
-              onClick={() => setLocation('/practice')}
+              onClick={handlePracticeClick}
               className="bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] text-white font-semibold hover:shadow-lg transition-all"
             >
               <Clock className="w-4 h-4 mr-2" />
@@ -91,3 +99,5 @@ export function DailyGoalCard({ compact = false }: DailyGoalCardProps) {
     </div>
   );
 }
+
+export const DailyGoalCard = memo(DailyGoalCardComponent);

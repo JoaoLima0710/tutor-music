@@ -51,6 +51,14 @@ interface AudioSettingsState {
   setMidGain: (gain: number) => void;
   trebleGain: number;
   setTrebleGain: (gain: number) => void;
+  
+  // Low Latency Mode
+  lowLatencyMode: boolean;
+  setLowLatencyMode: (enabled: boolean) => void;
+  
+  // Measured Latency
+  measuredLatency: number | null;
+  setMeasuredLatency: (latency: number | null) => void;
 }
 
 export const useAudioSettingsStore = create<AudioSettingsState>()(
@@ -66,6 +74,8 @@ export const useAudioSettingsStore = create<AudioSettingsState>()(
       bassGain: 0,
       midGain: 0,
       trebleGain: 0,
+      lowLatencyMode: false,
+      measuredLatency: null,
       
       // Actions
       setAudioEngine: (engine) => {
@@ -119,6 +129,15 @@ export const useAudioSettingsStore = create<AudioSettingsState>()(
       setTrebleGain: (gain) => {
         console.log('🔊 Treble gain changed to:', gain);
         set({ trebleGain: gain, eqPreset: 'custom' });
+      },
+      
+      setLowLatencyMode: (enabled) => {
+        console.log('⚡ Low latency mode:', enabled);
+        set({ lowLatencyMode: enabled });
+      },
+      
+      setMeasuredLatency: (latency) => {
+        set({ measuredLatency: latency });
       },
     }),
     {

@@ -5,9 +5,9 @@
  * Cantar ou dizer o grau da escala enquanto toca
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, Volume2, Music2, CheckCircle } from 'lucide-react';
+import { Mic, Volume2, Music2, CheckCircle, RotateCcw, Settings } from 'lucide-react';
 import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -25,6 +25,8 @@ export function EarTraining({ scaleName, root, intervals }: EarTrainingProps) {
   const [currentDegree, setCurrentDegree] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [autoReplay, setAutoReplay] = useState(false);
+  const [replayCountdown, setReplayCountdown] = useState(0);
 
   const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   
@@ -40,6 +42,7 @@ export function EarTraining({ scaleName, root, intervals }: EarTrainingProps) {
     setIsPlaying(true);
     setCurrentDegree(degree);
     setShowAnswer(false);
+    setReplayCountdown(0);
     
     try {
       // CRÍTICO para tablets: Inicializar áudio primeiro
@@ -50,6 +53,21 @@ export function EarTraining({ scaleName, root, intervals }: EarTrainingProps) {
       const note = scaleNotes[degree];
       console.log('🎵 Tocando grau', degree + 1, ':', note);
       await unifiedAudioService.playNote(`${note}4`, 1.0);
+      
+      // Auto-replay após 3 segundos se habilitado
+      if (autoReplay) {
+        setReplayCountdown(3);
+        const countdown = setInterval(() => {
+          setReplayCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(countdown);
+              playDegree(degree); // Replay
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
     } catch (error) {
       console.error('Erro ao tocar grau:', error);
     } finally {
@@ -135,19 +153,71 @@ export function EarTraining({ scaleName, root, intervals }: EarTrainingProps) {
               Clique em cada grau para ouvir. Tente cantar junto dizendo o nome do grau (1, 2, 3...)
             </p>
             
+            {/* Indicador de Reprodução */}
+            {isPlaying && (
+              <div className="p-4 rounded-xl bg-pink-500/20 border border-pink-400/40 flex items-center justify-center gap-3 mb-4">
+                <Volume2 className="w-5 h-5 text-pink-300 animate-pulse" />
+                <span className="text-pink-300 font-semibold">🔊 Reproduzindo...</span>
+                {replayCountdown > 0 && (
+                  <span className="text-pink-200 text-sm">
+                    (Repetindo em {replayCountdown}s)
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Controles de Áudio */}
+            <div className="flex items-center gap-2 mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (currentDegree >= 0 && currentDegree < scaleNotes.length) {
+                    playDegree(currentDegree);
+                  }
+                }}
+                disabled={isPlaying}
+                className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                🔁 Ouvir Novamente
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAutoReplay(!autoReplay)}
+                className={`${autoReplay ? 'bg-pink-500/20 border-pink-400/40' : 'bg-white/5 border-white/10'} text-white`}
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Auto-replay: {autoReplay ? 'ON' : 'OFF'}
+              </Button>
+            </div>
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {SCALE_DEGREES.slice(0, scaleNotes.length).map((degree, index) => (
-                <button
-                  key={degree}
-                  onClick={() => playDegree(index)}
-                  disabled={isPlaying}
-                  className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-pink-400/50 transition-all"
-                >
-                  <div className="text-2xl font-bold text-pink-400 mb-1">{degree}</div>
-                  <div className="text-xs text-gray-400">{DEGREE_NAMES[index]}</div>
-                  <div className="text-sm text-white mt-1">{scaleNotes[index]}</div>
-                </button>
-              ))}
+              {SCALE_DEGREES.slice(0, scaleNotes.length).map((degree, index) => {
+                const isCurrent = isPlaying && currentDegree === index;
+                return (
+                  <button
+                    key={degree}
+                    onClick={() => playDegree(index)}
+                    disabled={isPlaying}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      isCurrent
+                        ? 'bg-pink-500/30 border-pink-400 scale-105'
+                        : 'bg-white/5 border-white/10 hover:border-pink-400/50'
+                    }`}
+                  >
+                    <div className="text-2xl font-bold text-pink-400 mb-1">{degree}</div>
+                    <div className="text-xs text-gray-400">{DEGREE_NAMES[index]}</div>
+                    <div className="text-sm text-white mt-1">{scaleNotes[index]}</div>
+                    {isCurrent && (
+                      <div className="mt-2 flex items-center justify-center">
+                        <Volume2 className="w-4 h-4 text-pink-300 animate-pulse" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

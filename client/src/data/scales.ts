@@ -5,6 +5,9 @@
  * Inspirado no ScaleClock, adaptado para educação de violão
  */
 
+// Importar gerador CAGED
+import { generateCAGEDPositions, generateAllKeys } from '@/utils/cagedGenerator';
+
 // ===== INTERFACES =====
 
 export interface MusicalScale {
@@ -83,7 +86,186 @@ export const INTERVAL_COLORS = {
 
 const CHROMATIC_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
+// ===== TEMPLATES DE ESCALAS (para geração automática) =====
+
+/**
+ * Templates de escalas - usados para gerar escalas em todas as 12 tonalidades
+ */
+const SCALE_TEMPLATES = {
+  major: {
+    intervals: [0, 2, 4, 5, 7, 9, 11],
+    category: 'major' as ScaleCategory,
+    difficulty: 1,
+    xpReward: 30,
+    relatedChords: [],
+    commonIn: ['Pop', 'Folk', 'Country'],
+    description: 'A escala maior. Soa alegre e brilhante. Fundamental para entender teoria musical.',
+    sound: 'bright' as const,
+  },
+  minor: {
+    intervals: [0, 2, 3, 5, 7, 8, 10],
+    category: 'minor' as ScaleCategory,
+    difficulty: 1,
+    xpReward: 30,
+    relatedChords: [],
+    commonIn: ['Rock', 'Pop', 'Metal'],
+    description: 'A escala menor natural. Soa triste e melancólica. Essencial para rock e metal.',
+    sound: 'dark' as const,
+  },
+  pentatonicMinor: {
+    intervals: [0, 3, 5, 7, 10],
+    category: 'pentatonic' as ScaleCategory,
+    difficulty: 2,
+    xpReward: 40,
+    relatedChords: [],
+    commonIn: ['Blues', 'Rock', 'Metal'],
+    description: 'Escala pentatônica menor. Apenas 5 notas, fácil de usar e versátil. Muito usada em solos.',
+    sound: 'dark' as const,
+  },
+  pentatonicMajor: {
+    intervals: [0, 2, 4, 7, 9],
+    category: 'pentatonic' as ScaleCategory,
+    difficulty: 2,
+    xpReward: 40,
+    relatedChords: [],
+    commonIn: ['Country', 'Folk', 'Pop'],
+    description: 'Escala pentatônica maior. Soa alegre e é muito usada em country e folk.',
+    sound: 'bright' as const,
+  },
+  harmonicMinor: {
+    intervals: [0, 2, 3, 5, 7, 8, 11],
+    category: 'minor' as ScaleCategory,
+    difficulty: 3,
+    xpReward: 50,
+    relatedChords: [],
+    commonIn: ['Clássico', 'Metal', 'Jazz'],
+    description: 'Escala menor harmônica. Menor natural com 7ª maior. Soa exótica e dramática.',
+    sound: 'dark' as const,
+  },
+  melodicMinor: {
+    intervals: [0, 2, 3, 5, 7, 9, 11],
+    category: 'minor' as ScaleCategory,
+    difficulty: 3,
+    xpReward: 50,
+    relatedChords: [],
+    commonIn: ['Jazz', 'Clássico', 'Fusion'],
+    description: 'Escala menor melódica. Menor com 6ª e 7ª maiores. Soa jazzística e sofisticada.',
+    sound: 'neutral' as const,
+  },
+  dorian: {
+    intervals: [0, 2, 3, 5, 7, 9, 10],
+    category: 'mode' as ScaleCategory,
+    difficulty: 3,
+    xpReward: 50,
+    relatedChords: [],
+    commonIn: ['Jazz', 'Bossa Nova', 'Funk'],
+    description: 'Modo dórico. Menor natural com 6ª maior. Essencial para Bossa Nova e MPB.',
+    sound: 'neutral' as const,
+  },
+  mixolydian: {
+    intervals: [0, 2, 4, 5, 7, 9, 10],
+    category: 'mode' as ScaleCategory,
+    difficulty: 3,
+    xpReward: 50,
+    relatedChords: [],
+    commonIn: ['Blues', 'Rock', 'Country'],
+    description: 'Modo mixolídio. Maior com 7ª menor. Muito usado em blues e rock.',
+    sound: 'bright' as const,
+  },
+  phrygian: {
+    intervals: [0, 1, 3, 5, 7, 8, 10],
+    category: 'mode' as ScaleCategory,
+    difficulty: 4,
+    xpReward: 60,
+    relatedChords: [],
+    commonIn: ['Metal', 'Flamenco', 'Jazz'],
+    description: 'Modo frígio. Menor com 2ª menor. Soa exótico e tenso.',
+    sound: 'dark' as const,
+  },
+  lydian: {
+    intervals: [0, 2, 4, 6, 7, 9, 11],
+    category: 'mode' as ScaleCategory,
+    difficulty: 4,
+    xpReward: 60,
+    relatedChords: [],
+    commonIn: ['Jazz', 'Fusion', 'Progressive'],
+    description: 'Modo lídio. Maior com 4ª aumentada. Soa brilhante e flutuante.',
+    sound: 'bright' as const,
+  },
+  locrian: {
+    intervals: [0, 1, 3, 5, 6, 8, 10],
+    category: 'mode' as ScaleCategory,
+    difficulty: 5,
+    xpReward: 70,
+    relatedChords: [],
+    commonIn: ['Jazz', 'Metal', 'Avant-garde'],
+    description: 'Modo lócrio. Menor com 2ª e 5ª diminutas. Soa instável e tenso.',
+    sound: 'dark' as const,
+  },
+  blues: {
+    intervals: [0, 3, 5, 6, 7, 10],
+    category: 'blues' as ScaleCategory,
+    difficulty: 2,
+    xpReward: 45,
+    relatedChords: [],
+    commonIn: ['Blues', 'Rock', 'Jazz'],
+    description: 'Escala de blues. Pentatônica menor com blue note (6ª diminuta). Essencial para blues.',
+    sound: 'dark' as const,
+  },
+  wholeTone: {
+    intervals: [0, 2, 4, 6, 8, 10],
+    category: 'exotic' as ScaleCategory,
+    difficulty: 4,
+    xpReward: 60,
+    relatedChords: [],
+    commonIn: ['Jazz', 'Impressionismo'],
+    description: 'Escala de tons inteiros. Soa flutuante e onírica.',
+    sound: 'exotic' as const,
+  },
+  diminished: {
+    intervals: [0, 2, 3, 5, 6, 8, 9, 11],
+    category: 'exotic' as ScaleCategory,
+    difficulty: 5,
+    xpReward: 70,
+    relatedChords: [],
+    commonIn: ['Jazz', 'Clássico'],
+    description: 'Escala diminuta. Padrão de tom-semitom repetido. Soa tensa e instável.',
+    sound: 'exotic' as const,
+  },
+};
+
 // ===== ESCALAS PARA INICIANTES =====
+
+/**
+ * Gera posições CAGED automaticamente para escalas que não têm posições
+ */
+function ensureCAGEDPositions(scale: MusicalScale): MusicalScale {
+  if (scale.positions.length === 0) {
+    try {
+      scale.positions = generateCAGEDPositions(scale.root, scale.intervals);
+    } catch (error) {
+      console.warn(`Erro ao gerar posições CAGED para ${scale.id}:`, error);
+    }
+  }
+  return scale;
+}
+
+/**
+ * Processa todas as escalas e gera posições CAGED quando necessário
+ */
+function processAllScalesWithCAGED(): {
+  BEGINNER_SCALES: MusicalScale[];
+  INTERMEDIATE_SCALES: MusicalScale[];
+  ADVANCED_SCALES: MusicalScale[];
+  EXOTIC_SCALES: MusicalScale[];
+} {
+  return {
+    BEGINNER_SCALES: BEGINNER_SCALES.map(ensureCAGEDPositions),
+    INTERMEDIATE_SCALES: INTERMEDIATE_SCALES.map(ensureCAGEDPositions),
+    ADVANCED_SCALES: ADVANCED_SCALES.map(ensureCAGEDPositions),
+    EXOTIC_SCALES: EXOTIC_SCALES.map(ensureCAGEDPositions),
+  };
+}
 
 export const BEGINNER_SCALES: MusicalScale[] = [
   {
@@ -96,7 +278,7 @@ export const BEGINNER_SCALES: MusicalScale[] = [
     category: 'major',
     difficulty: 1,
     xpReward: 30,
-    positions: [],
+    positions: [], // Será gerado automaticamente
     relatedChords: ['c', 'dm', 'em', 'f', 'g', 'am'],
     commonIn: ['Pop', 'Folk', 'Country'],
     description: 'A escala maior mais básica. Soa alegre e brilhante. Fundamental para entender teoria musical.',
@@ -520,44 +702,58 @@ export function generateScale(root: string, intervals: number[]): string[] {
 }
 
 /**
- * Encontra escala por ID
+ * Encontra escala por ID (com posições CAGED geradas automaticamente)
+ * Busca em todas as escalas disponíveis (manuais + geradas)
  */
 export function findScaleById(id: string): MusicalScale | undefined {
-  return [...BEGINNER_SCALES, ...INTERMEDIATE_SCALES, ...ADVANCED_SCALES, ...EXOTIC_SCALES]
-    .find(s => s.id === id);
+  const allScales = getAllScales();
+  const scale = allScales.find(s => s.id === id);
+  if (scale) {
+    return ensureCAGEDPositions(scale);
+  }
+  return undefined;
 }
 
 /**
- * Escalas por categoria
+ * Escalas por categoria (com posições CAGED geradas automaticamente)
+ * Inclui escalas geradas automaticamente
  */
 export function getScalesByCategory(category: ScaleCategory): MusicalScale[] {
-  return [...BEGINNER_SCALES, ...INTERMEDIATE_SCALES, ...ADVANCED_SCALES, ...EXOTIC_SCALES]
-    .filter(s => s.category === category);
+  return getAllScales()
+    .filter(s => s.category === category)
+    .map(ensureCAGEDPositions);
 }
 
 /**
- * Escalas por nível
+ * Escalas por nível (com posições CAGED geradas automaticamente)
  */
 export function getScalesByLevel(level: 'beginner' | 'intermediate' | 'advanced'): MusicalScale[] {
+  let scales: MusicalScale[] = [];
   switch (level) {
     case 'beginner':
-      return BEGINNER_SCALES;
+      scales = BEGINNER_SCALES;
+      break;
     case 'intermediate':
-      return [...BEGINNER_SCALES, ...INTERMEDIATE_SCALES];
+      scales = [...BEGINNER_SCALES, ...INTERMEDIATE_SCALES];
+      break;
     case 'advanced':
-      return [...BEGINNER_SCALES, ...INTERMEDIATE_SCALES, ...ADVANCED_SCALES, ...EXOTIC_SCALES];
+      scales = [...BEGINNER_SCALES, ...INTERMEDIATE_SCALES, ...ADVANCED_SCALES, ...EXOTIC_SCALES];
+      break;
   }
+  return scales.map(ensureCAGEDPositions);
 }
 
 /**
  * Escalas relacionadas (mesma fundamental)
+ * Inclui escalas geradas automaticamente
  */
 export function getRelatedScales(scaleId: string): MusicalScale[] {
   const scale = findScaleById(scaleId);
   if (!scale) return [];
   
-  return [...BEGINNER_SCALES, ...INTERMEDIATE_SCALES, ...ADVANCED_SCALES, ...EXOTIC_SCALES]
-    .filter(s => s.root === scale.root && s.id !== scaleId);
+  return getAllScales()
+    .filter(s => s.root === scale.root && s.id !== scaleId)
+    .map(ensureCAGEDPositions);
 }
 
 /**
@@ -587,6 +783,68 @@ export function findPatternById(id: string): ScalePattern | undefined {
   return SCALE_PATTERNS.find(p => p.id === id);
 }
 
+/**
+ * Gera todas as escalas em todas as 12 tonalidades baseado nos templates
+ * Retorna um array expandido com todas as escalas geradas
+ */
+export function generateAllScalesInAllKeys(): MusicalScale[] {
+  const allScales: MusicalScale[] = [];
+  
+  // Para cada template, gerar em todas as 12 tonalidades
+  Object.entries(SCALE_TEMPLATES).forEach(([templateKey, template]) => {
+    // Adicionar identificador do template ao template para gerar IDs únicos
+    const templateWithKey = {
+      ...template,
+      _templateKey: templateKey, // Usado apenas internamente para gerar IDs
+    };
+    const generated = generateAllKeys(templateWithKey);
+    allScales.push(...generated);
+  });
+  
+  return allScales;
+}
+
+/**
+ * Obtém todas as escalas disponíveis (incluindo geradas automaticamente)
+ * Cacheia o resultado para performance
+ */
+let _allScalesCache: MusicalScale[] | null = null;
+
+export function getAllScales(): MusicalScale[] {
+  if (_allScalesCache) {
+    return _allScalesCache;
+  }
+  
+  // Combinar escalas manuais com escalas geradas
+  const manualScales = [...BEGINNER_SCALES, ...INTERMEDIATE_SCALES, ...ADVANCED_SCALES, ...EXOTIC_SCALES];
+  const generatedScales = generateAllScalesInAllKeys();
+  
+  // Criar um mapa para evitar duplicatas (priorizar escalas manuais)
+  const scaleMap = new Map<string, MusicalScale>();
+  
+  // Adicionar escalas manuais primeiro (têm prioridade)
+  manualScales.forEach(scale => {
+    scaleMap.set(scale.id, ensureCAGEDPositions(scale));
+  });
+  
+  // Adicionar escalas geradas apenas se não existirem
+  generatedScales.forEach(scale => {
+    if (!scaleMap.has(scale.id)) {
+      scaleMap.set(scale.id, ensureCAGEDPositions(scale));
+    }
+  });
+  
+  _allScalesCache = Array.from(scaleMap.values());
+  return _allScalesCache;
+}
+
+/**
+ * Limpa o cache de escalas (útil para testes ou atualizações)
+ */
+export function clearScalesCache(): void {
+  _allScalesCache = null;
+}
+
 export default {
   BEGINNER_SCALES,
   INTERMEDIATE_SCALES,
@@ -601,4 +859,7 @@ export default {
   getRelatedScales,
   transposeScale,
   findPatternById,
+  generateAllScalesInAllKeys,
+  getAllScales,
+  clearScalesCache,
 };

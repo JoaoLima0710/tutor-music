@@ -47,8 +47,8 @@ export function AISystemTester() {
       const startTime = Date.now();
       
       // Obter perfil do usuário real
-      const userProfile = aiAssistantService.getUserProfile();
-      const recentSessions = aiAssistantService.getPracticeHistory().slice(-5);
+      const userProfile = await aiAssistantService.getUserProfile();
+      const recentSessions = (await aiAssistantService.getPracticeHistory()).slice(-5);
 
       const context: ConversationContext = {
         userMessage: testQuestion,

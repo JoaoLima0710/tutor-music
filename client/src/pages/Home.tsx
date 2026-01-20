@@ -7,10 +7,13 @@ import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { SimplifiedNav } from '@/components/layout/SimplifiedNav';
 import { DailyGoalCard } from '@/components/gamification/DailyGoalCard';
+import { DailyObjectivesCard } from '@/components/gamification/DailyObjectivesCard';
+import { WeeklyChallengeCard } from '@/components/gamification/WeeklyChallengeCard';
 import { ChallengeCard } from '@/components/gamification/ChallengeCard';
 import { ContinueLearning } from '@/components/gamification/ContinueLearning';
 import { AIAssistantCard } from '@/components/ai/AIAssistantCard';
-import { DailyTraining } from '@/components/training/DailyTraining';
+import { DailyTraining, WelcomeTraining } from '@/components/training';
+import { ProgressCard } from '@/components/progression/ProgressCard';
 import { SongCard } from '@/components/songs/SongCard';
 import { Button } from '@/components/ui/button';
 import { ThemeCustomizer } from '@/components/ui/ThemeCustomizer';
@@ -18,8 +21,12 @@ import { PWAInstallButton } from '@/components/PWAInstallButton';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useSongUnlockStore, checkAndUnlockSongs } from '@/stores/useSongUnlockStore';
 import { useUserStore } from '@/stores/useUserStore';
+import { CompleteOnboarding, useCompleteOnboarding } from '@/components/onboarding';
+import { AudioQuickToggle } from '@/components/audio/AudioQuickToggle';
+import { notificationService } from '@/services/NotificationService';
 
 export default function Home() {
+  const { showOnboarding, completeOnboarding, skipOnboarding } = useCompleteOnboarding();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
   const [, setLocation] = useLocation();
@@ -29,6 +36,19 @@ export default function Home() {
   const { user } = useUserStore();
   
   const userName = user?.name || "Usuário";
+
+  // Verificar notificações ao montar e periodicamente
+  useEffect(() => {
+    // Verificar imediatamente
+    notificationService.checkAndShowNotifications();
+
+    // Verificar a cada 5 minutos
+    const interval = setInterval(() => {
+      notificationService.checkAndShowNotifications();
+    }, 300000); // 5 minutos
+
+    return () => clearInterval(interval);
+  }, []);
   
   // Check and unlock songs when component mounts or progress changes
   useEffect(() => {
@@ -48,6 +68,13 @@ export default function Home() {
 
   return (
     <>
+      {showOnboarding && (
+        <CompleteOnboarding
+          onComplete={completeOnboarding}
+          onSkip={skipOnboarding}
+        />
+      )}
+      <WelcomeTraining />
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
         <Sidebar 
@@ -70,15 +97,33 @@ export default function Home() {
                 </p>
               </div>
               
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative p-2.5 rounded-xl bg-[#1a1a2e]/60 border border-white/10 hover:border-[#a855f7]/40 transition-all"
-              >
-                <Bell className="w-5 h-5 text-white" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#a855f7] rounded-full"></span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <AudioQuickToggle variant="icon" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative p-2.5 rounded-xl bg-[#1a1a2e]/60 border border-white/10 hover:border-[#a855f7]/40 transition-all"
+                >
+                  <Bell className="w-5 h-5 text-white" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#a855f7] rounded-full"></span>
+                </Button>
+              </div>
             </header>
+            
+            {/* Objetivos Diários */}
+            <section>
+              <DailyObjectivesCard />
+            </section>
+            
+            {/* Desafio Semanal */}
+            <section>
+              <WeeklyChallengeCard />
+            </section>
+            
+            {/* Seu Progresso */}
+            <section>
+              <ProgressCard />
+            </section>
             
             {/* Meta do Dia - Compacta */}
             <section>
@@ -204,6 +249,21 @@ export default function Home() {
         </div>
 
         <main className="px-4 py-4 pb-24 space-y-4">
+          {/* Objetivos Diários */}
+          <section>
+            <DailyObjectivesCard />
+          </section>
+          
+          {/* Desafio Semanal */}
+          <section>
+            <WeeklyChallengeCard />
+          </section>
+          
+          {/* Seu Progresso */}
+          <section>
+            <ProgressCard />
+          </section>
+          
           {/* Meta do Dia - Compacta */}
           <section>
             <DailyGoalCard compact />

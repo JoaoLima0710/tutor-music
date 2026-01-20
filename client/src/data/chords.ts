@@ -296,14 +296,76 @@ export const chords: Chord[] = [
   }
 ];
 
+// Importar gerador de acordes
+import { generateAllChordsInAllKeys, CHORD_TEMPLATES } from '@/utils/chordGenerator';
+
+/**
+ * Gera todos os acordes em todas as tonalidades baseado nos templates
+ */
+function generateAllChords(): Chord[] {
+  const allChords: Chord[] = [];
+  
+  // Para cada template, gerar em todas as 12 tonalidades
+  Object.entries(CHORD_TEMPLATES).forEach(([chordType, template]) => {
+    const generated = generateAllChordsInAllKeys(chordType, template);
+    allChords.push(...generated);
+  });
+  
+  return allChords;
+}
+
+/**
+ * Cache de todos os acordes (manuais + gerados)
+ */
+let _allChordsCache: Chord[] | null = null;
+
+/**
+ * Obtém todos os acordes disponíveis (manuais + gerados)
+ */
+export function getAllChords(): Chord[] {
+  if (_allChordsCache) {
+    return _allChordsCache;
+  }
+  
+  // Combinar acordes manuais com acordes gerados
+  const manualChords = [...chords];
+  const generatedChords = generateAllChords();
+  
+  // Criar um mapa para evitar duplicatas (priorizar acordes manuais)
+  const chordMap = new Map<string, Chord>();
+  
+  // Adicionar acordes manuais primeiro (têm prioridade)
+  manualChords.forEach(chord => {
+    chordMap.set(chord.id.toLowerCase(), chord);
+  });
+  
+  // Adicionar acordes gerados apenas se não existirem
+  generatedChords.forEach(chord => {
+    const key = chord.id.toLowerCase();
+    if (!chordMap.has(key)) {
+      chordMap.set(key, chord);
+    }
+  });
+  
+  _allChordsCache = Array.from(chordMap.values());
+  return _allChordsCache;
+}
+
+/**
+ * Limpa o cache de acordes
+ */
+export function clearChordsCache(): void {
+  _allChordsCache = null;
+}
+
 export const getChordsByDifficulty = (difficulty: Chord['difficulty']) => {
-  return chords.filter(chord => chord.difficulty === difficulty);
+  return getAllChords().filter(chord => chord.difficulty === difficulty);
 };
 
 export const getChordsByCategory = (category: Chord['category']) => {
-  return chords.filter(chord => chord.category === category);
+  return getAllChords().filter(chord => chord.category === category);
 };
 
 export const getChordById = (id: string) => {
-  return chords.find(chord => chord.id === id);
+  return getAllChords().find(chord => chord.id.toLowerCase() === id.toLowerCase());
 };

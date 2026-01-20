@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 interface ChordDiagramProps {
@@ -7,8 +8,8 @@ interface ChordDiagramProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export function ChordDiagram({ frets, fingers, name, size = 'md' }: ChordDiagramProps) {
-  const sizeConfig = {
+function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagramProps) {
+  const sizeConfig = useMemo(() => ({
     sm: {
       width: 140,
       height: 180,
@@ -36,7 +37,7 @@ export function ChordDiagram({ frets, fingers, name, size = 'md' }: ChordDiagram
       fontSize: 'text-base',
       titleSize: 'text-3xl',
     },
-  };
+  }), []);
   
   const config = sizeConfig[size];
   const numStrings = 6;
@@ -265,3 +266,14 @@ export function ChordDiagram({ frets, fingers, name, size = 'md' }: ChordDiagram
     </motion.div>
   );
 }
+
+export const ChordDiagram = memo(ChordDiagramComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.name === nextProps.name &&
+    prevProps.size === nextProps.size &&
+    prevProps.frets.length === nextProps.frets.length &&
+    prevProps.fingers.length === nextProps.fingers.length &&
+    prevProps.frets.every((fret, i) => fret === nextProps.frets[i]) &&
+    prevProps.fingers.every((finger, i) => finger === nextProps.fingers[i])
+  );
+});

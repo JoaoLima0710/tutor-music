@@ -4,18 +4,24 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
-import { ChordDiagram } from '@/components/chords/ChordDiagram';
-import { ChordTheory } from '@/components/chords/ChordTheory';
+import { ChordDiagram, ChordTheory } from '@/components/chords';
 import { Button } from '@/components/ui/button';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useChordStore } from '@/stores/useChordStore';
 import { useUserStore } from '@/stores/useUserStore';
+import { useChordProgressionStore } from '@/stores/useChordProgressionStore';
+import { useAdaptiveDifficultyStore } from '@/stores/useAdaptiveDifficultyStore';
+import { useChordStore } from '@/stores/useChordStore';
 import { chords, getChordsByDifficulty } from '@/data/chords';
-import { Play, Check, StopCircle } from 'lucide-react';
+import { Play, Check, StopCircle, Lock, Calendar, TrendingUp } from 'lucide-react';
 import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
 import type { InstrumentType } from '@/services/AudioServiceWithSamples';
 import { RealtimeAudioFeedback } from '@/components/audio/RealtimeAudioFeedback';
+import { ChordPracticeTimer } from '@/components/practice';
+import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export default function Chords() {
   const [, setLocation] = useLocation();
@@ -28,12 +34,36 @@ export default function Chords() {
   const { instrument, setInstrument: setGlobalInstrument } = useAudioSettingsStore();
   
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
-  const { progress, setCurrentChord } = useChordStore();
+  const { progress, setCurrentChord, markAsPracticed, getChordProgress } = useChordStore();
   const { user } = useUserStore();
+  const {
+    currentWeek,
+    isChordUnlocked,
+    completeChord,
+    getWeekProgress,
+    isWeekUnlocked,
+    getUnlockedChordsForWeek,
+  } = useChordProgressionStore();
+  const { recordAttempt } = useAdaptiveDifficultyStore();
   
   const userName = user?.name || "Usuário";
   
-  const filteredChords = filter === 'all' ? chords : getChordsByDifficulty(filter);
+  // Filtrar acordes por dificuldade E desbloqueio semanal (para iniciantes)
+  let filteredChords = filter === 'all' ? chords : getChordsByDifficulty(filter);
+  
+  // Se é iniciante, mostrar apenas acordes desbloqueados da semana atual
+  const isBeginner = filter === 'beginner' || filter === 'all';
+  if (isBeginner) {
+    filteredChords = filteredChords.filter(chord => {
+      // Acordes intermediários/avançados sempre desbloqueados
+      if (chord.difficulty !== 'beginner') return true;
+      // Acordes básicos: verificar desbloqueio semanal
+      return isChordUnlocked(chord.id);
+    });
+  }
+  
+  // Obter progresso da semana atual
+  const weekProgress = getWeekProgress(currentWeek);
   
   const handleChordClick = (chord: typeof chords[0]) => {
     setSelectedChord(chord);
@@ -78,6 +108,28 @@ export default function Chords() {
   
   const handlePractice = () => {
     setLocation(`/practice?chord=${selectedChord.id}`);
+  };
+  
+  const handleChordComplete = (chordId: string, accuracy: number) => {
+    // Marcar como praticado no store de acordes
+    markAsPracticed(chordId, accuracy);
+    // Completar no sistema de progressão semanal
+    completeChord(chordId, accuracy);
+    // Registrar para dificuldade adaptativa
+    const chord = chords.find(c => c.id === chordId);
+    const difficulty = chord?.difficulty === 'advanced' ? 5 : chord?.difficulty === 'intermediate' ? 3 : 2;
+    recordAttempt(chordId, 'chord', difficulty as any, accuracy);
+    
+    // Verificar se acorde foi dominado e adicionar à revisão espaçada
+    const chordProgress = getChordProgress(chordId);
+    if (chordProgress && chordProgress.accuracy >= 85 && chordProgress.attempts >= 5) {
+      import('@/stores/useSpacedRepetitionStore').then(({ useSpacedRepetitionStore }) => {
+        const spacedStore = useSpacedRepetitionStore.getState();
+        if (!spacedStore.isInQueue(chordId, 'chord')) {
+          spacedStore.addItem(chordId, 'chord', chord?.name || chordId);
+        }
+      });
+    }
   };
   
   return (
@@ -321,6 +373,23 @@ export default function Chords() {
                         </Button>
                       </div>
                       
+                      {/* Timer de Prática (se estiver na aba de prática) */}
+                      {activeTab === 'practice' && (
+                        <div className="mt-6">
+                          <ChordPracticeTimer
+                            suggestedDuration={selectedChord.difficulty === 'beginner' ? 5 : selectedChord.difficulty === 'intermediate' ? 10 : 15}
+                            chordName={selectedChord.name}
+                            onComplete={() => {
+                              // Marcar acorde como praticado
+                              handleChordComplete(selectedChord.id, 85); // 85% de precisão estimada
+                            }}
+                            onSkip={() => {
+                              console.log('Prática pulada - não conta para XP');
+                            }}
+                          />
+                        </div>
+                      )}
+                      
                       {/* Feedback de Áudio em Tempo Real */}
                       <div className="mt-6">
                         <RealtimeAudioFeedback
@@ -360,6 +429,7 @@ export default function Chords() {
         />
         
         <main className="px-5 py-5 space-y-6 pb-24">
+          <Breadcrumbs />
           <header>
             <h1 className="text-2xl font-bold text-white mb-1">Acordes</h1>
             <p className="text-sm text-gray-400">Biblioteca completa</p>
@@ -435,28 +505,81 @@ export default function Chords() {
           </div>
           
           {/* Chord Grid - 2 colunas para melhor legibilidade mobile */}
+          {/* Indicador de Progressão Semanal (apenas para iniciantes) */}
+          {isBeginner && currentWeek <= 3 && (
+            <Card className="p-4 mb-6 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-400" />
+                  <h3 className="font-bold text-white">
+                    Semana {currentWeek} de 3
+                  </h3>
+                </div>
+                <Badge variant="outline" className="text-blue-400 border-blue-500/30">
+                  {weekProgress.completed}/{weekProgress.total} acordes
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-300">Progresso da Semana</span>
+                  <span className="text-blue-400 font-semibold">
+                    {Math.round((weekProgress.completed / weekProgress.total) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all"
+                    style={{ width: `${(weekProgress.completed / weekProgress.total) * 100}%` }}
+                  />
+                </div>
+                {weekProgress.averageAccuracy > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Precisão média: {Math.round(weekProgress.averageAccuracy)}%</span>
+                    {weekProgress.averageAccuracy >= 80 && (
+                      <span className="text-green-400">✓ Pronto para próxima semana!</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {filteredChords.map((chord) => {
               const isCompleted = progress[chord.id]?.practiced;
               const isSelected = selectedChord.id === chord.id;
+              const isUnlocked = isChordUnlocked(chord.id);
+              const isLocked = chord.difficulty === 'beginner' && !isUnlocked;
               
               return (
                 <button
                   key={chord.id}
-                  onClick={() => handleChordClick(chord)}
+                  onClick={() => isLocked ? null : handleChordClick(chord)}
+                  disabled={isLocked}
                   className={`
-                    p-3 rounded-xl transition-all
-                    ${isSelected
+                    p-3 rounded-xl transition-all relative
+                    ${isLocked
+                      ? 'bg-gray-800/50 opacity-50 cursor-not-allowed'
+                      : isSelected
                       ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] ring-2 ring-purple-400'
                       : 'bg-[#1a1a2e] hover:bg-[#232338]'
                     }
                   `}
                 >
+                  {isLocked && (
+                    <div className="absolute top-1 right-1">
+                      <Lock className="w-4 h-4 text-gray-500" />
+                    </div>
+                  )}
                   <div className="text-center">
                     <div className="text-xl font-bold text-white">{chord.name}</div>
                     <div className="text-xs text-gray-400 truncate">{chord.fullName}</div>
-                    {isCompleted && (
+                    {isCompleted && !isLocked && (
                       <Check className="w-4 h-4 text-green-400 mx-auto mt-1" />
+                    )}
+                    {isLocked && (
+                      <div className="text-xs text-gray-500 mt-1">Bloqueado</div>
                     )}
                   </div>
                 </button>

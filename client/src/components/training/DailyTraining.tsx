@@ -1,49 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Play, Clock, Target, Brain, TrendingUp, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Play, Clock, Target, Brain, TrendingUp, CheckCircle2, ChevronRight, Flame, Star, Lightbulb } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
-import { trainingMethodologyService, DailyTraining as DailyTrainingType, TrainingModule } from '@/services/TrainingMethodologyService';
+import { TrainingModule } from '@/services/TrainingMethodologyService';
 import { Link } from 'wouter';
+import { SpacedRepetitionReview } from '@/components/spaced-repetition/SpacedRepetitionReview';
+import { useDailyTraining } from '@/hooks/useDailyTraining';
 
 export function DailyTraining() {
-  const [dailyTraining, setDailyTraining] = useState<DailyTrainingType | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [completedModules, setCompletedModules] = useState<Set<string>>(new Set());
+  const {
+    dailyTraining,
+    loading,
+    error,
+    completedModules,
+    progress,
+    markModuleComplete,
+    refreshTraining,
+    getModuleLink,
+  } = useDailyTraining();
 
-  useEffect(() => {
-    loadDailyTraining();
-  }, []);
-
-  const loadDailyTraining = async () => {
-    setLoading(true);
-    try {
-      const training = await trainingMethodologyService.generateDailyTraining();
-      setDailyTraining(training);
-    } catch (error) {
-      console.error('Erro ao carregar treino do dia:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markModuleComplete = (moduleId: string) => {
-    setCompletedModules(prev => new Set(prev).add(moduleId));
-  };
-
-  const getModuleLink = (module: TrainingModule): string => {
-    const linkMap: Record<string, string> = {
-      'chords': '/chords',
-      'scales': '/scales',
-      'rhythm': '/practice',
-      'ear-training': '/practice',
-      'songs': '/songs',
-      'technique': '/practice',
-    };
-    return linkMap[module.category] || '/practice';
-  };
-
-  const getCategoryIcon = (category: string): string => {
+  const getCategoryIcon = useCallback((category: string): string => {
     const iconMap: Record<string, string> = {
       'chords': '🎸',
       'scales': '🎵',
@@ -53,19 +31,19 @@ export function DailyTraining() {
       'technique': '🧘',
     };
     return iconMap[category] || '🎯';
-  };
+  }, []);
 
-  const getDifficultyColor = (difficulty: number): string => {
+  const getDifficultyColor = useCallback((difficulty: number): string => {
     if (difficulty <= 2) return 'bg-green-500/20 text-green-400 border-green-500/30';
     if (difficulty <= 3) return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
     return 'bg-red-500/20 text-red-400 border-red-500/30';
-  };
+  }, []);
 
-  const getDifficultyLabel = (difficulty: number): string => {
+  const getDifficultyLabel = useCallback((difficulty: number): string => {
     if (difficulty <= 2) return 'Iniciante';
     if (difficulty <= 3) return 'Intermediário';
     return 'Avançado';
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -75,15 +53,21 @@ export function DailyTraining() {
     );
   }
 
-  if (!dailyTraining) {
+  if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-400">Não foi possível carregar o treino do dia.</p>
-        <Button onClick={loadDailyTraining} className="mt-4">
-          Tentar Novamente
-        </Button>
-      </div>
+      <Card className="p-6 bg-gradient-to-br from-red-500/10 to-red-600/10 border-red-500/30">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Erro ao carregar treino do dia</p>
+          <Button onClick={refreshTraining} variant="outline">
+            Tentar Novamente
+          </Button>
+        </div>
+      </Card>
     );
+  }
+
+  if (!dailyTraining) {
+    return null;
   }
 
   const progress = (completedModules.size / dailyTraining.modules.length) * 100;
@@ -154,6 +138,36 @@ export function DailyTraining() {
         </div>
       </div>
 
+      {/* Info sobre Prioridades */}
+      <div className="p-3 lg:p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+        <p className="text-sm text-blue-200">
+          💡 <strong>Dica:</strong> Complete pelo menos o módulo <strong>🔥 Essencial</strong> para manter seu streak!
+        </p>
+      </div>
+
+      {/* Botão Iniciar Treino Completo */}
+      {dailyTraining.modules.length > 1 && (
+        <div className="flex justify-center">
+          <Button
+            onClick={() => {
+              // Navegar para o primeiro módulo e iniciar sequência
+              const firstModule = dailyTraining.modules[0];
+              window.location.href = getModuleLink(firstModule);
+            }}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-6 py-3"
+            size="lg"
+          >
+            <Play className="w-5 h-5 mr-2" />
+            Iniciar Treino Completo ({dailyTraining.totalDuration} min)
+          </Button>
+        </div>
+      )}
+
+      {/* Revisão Espaçada */}
+      <div className="space-y-3 lg:space-y-4">
+        <SpacedRepetitionReview />
+      </div>
+
       {/* Training Modules */}
       <div className="space-y-3 lg:space-y-4">
         <h3 className="text-lg lg:text-xl font-bold text-white flex items-center gap-2">
@@ -163,6 +177,41 @@ export function DailyTraining() {
         
         {dailyTraining.modules.map((module, index) => {
           const isCompleted = completedModules.has(module.id);
+          
+          // Determinar prioridade baseado na posição e análise
+          // Primeiro módulo = Essencial, segundo = Recomendado, terceiro+ = Opcional
+          const priority: 'essential' | 'recommended' | 'optional' = 
+            index === 0 ? 'essential' :
+            index === 1 && dailyTraining.modules.length > 1 ? 'recommended' :
+            'optional';
+          
+          const getPriorityBadge = useCallback((priority: string) => {
+            switch (priority) {
+              case 'essential':
+                return (
+                  <Badge className="bg-red-500/20 text-red-300 border-red-500/40 flex items-center gap-1">
+                    <Flame className="w-3 h-3" />
+                    Essencial
+                  </Badge>
+                );
+              case 'recommended':
+                return (
+                  <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/40 flex items-center gap-1">
+                    <Star className="w-3 h-3" />
+                    Recomendado
+                  </Badge>
+                );
+              case 'optional':
+                return (
+                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/40 flex items-center gap-1">
+                    <Lightbulb className="w-3 h-3" />
+                    Opcional
+                  </Badge>
+                );
+              default:
+                return null;
+            }
+          };
           
           return (
             <motion.div
@@ -186,15 +235,20 @@ export function DailyTraining() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-base lg:text-lg font-bold text-white flex items-center gap-2">
-                          <span className="text-lg lg:text-xl">{module.icon}</span>
-                          <span className="truncate">{module.name}</span>
-                        </h4>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-base lg:text-lg font-bold text-white flex items-center gap-2">
+                            <span className="text-lg lg:text-xl">{module.icon}</span>
+                            <span className="truncate">{module.name}</span>
+                          </h4>
+                          {getPriorityBadge(priority)}
+                        </div>
                         <p className="text-xs lg:text-sm text-gray-400 mt-1 line-clamp-2">{module.description}</p>
                       </div>
-                      <span className={`flex-shrink-0 px-2 lg:px-3 py-1 text-xs rounded-full border ${getDifficultyColor(module.difficulty)}`}>
-                        {getDifficultyLabel(module.difficulty)}
-                      </span>
+                      <div className="flex flex-col items-end gap-2">
+                        <span className={`flex-shrink-0 px-2 lg:px-3 py-1 text-xs rounded-full border ${getDifficultyColor(module.difficulty)}`}>
+                          {getDifficultyLabel(module.difficulty)}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Skills - Limitar em mobile */}

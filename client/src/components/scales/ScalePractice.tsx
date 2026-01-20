@@ -152,6 +152,11 @@ export function ScalePractice({ scale, onComplete }: ScalePracticeProps) {
       setCorrectNotes(prev => prev + 1);
       setTotalAttempts(prev => prev + 1);
       
+      // Feedback tátil ao acertar
+      import('@/services/HapticFeedbackService').then(({ hapticFeedbackService }) => {
+        hapticFeedbackService.success();
+      });
+      
       // Avançar para próxima nota
       if (currentNoteIndex < practiceNotes.length - 1) {
         setCurrentNoteIndex(prev => prev + 1);
@@ -189,6 +194,12 @@ export function ScalePractice({ scale, onComplete }: ScalePracticeProps) {
     const xpGained = Math.round(accuracy * 2); // Até 200 XP
     
     addXP(xpGained);
+    
+    // Feedback tátil ao completar módulo
+    import('@/services/HapticFeedbackService').then(({ hapticFeedbackService }) => {
+      hapticFeedbackService.complete();
+    });
+    
     toast.success(`Parabéns! Você ganhou ${xpGained} XP!`);
     
     if (onComplete) {

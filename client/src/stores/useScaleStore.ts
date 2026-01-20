@@ -190,6 +190,31 @@ export const useScaleStore = create<ScaleStore>()(
         
         // Atualizar streak
         get().updateStreak();
+        
+        // Registrar para dificuldade adaptativa
+        if (typeof window !== 'undefined') {
+          import('@/stores/useAdaptiveDifficultyStore').then(({ useAdaptiveDifficultyStore }) => {
+            const adaptiveStore = useAdaptiveDifficultyStore.getState();
+            // Estimar dificuldade baseado no BPM (mais BPM = mais difícil)
+            const difficulty = bpm < 60 ? 2 : bpm < 100 ? 3 : bpm < 140 ? 4 : 5;
+            adaptiveStore.recordAttempt(scaleId, 'scale', difficulty as any, accuracy, duration);
+          });
+          
+          // Verificar se escala foi dominada e adicionar à revisão espaçada
+          if (updatedProgress.bestAccuracy >= 90 && updatedProgress.timesCompleted >= 5) {
+            import('@/stores/useSpacedRepetitionStore').then(({ useSpacedRepetitionStore }) => {
+              import('@/data/scales').then(({ findScaleById }) => {
+                const spacedStore = useSpacedRepetitionStore.getState();
+                if (!spacedStore.isInQueue(scaleId, 'scale')) {
+                  // Obter nome da escala
+                  const scale = findScaleById(scaleId);
+                  const scaleName = scale?.name || scaleId;
+                  spacedStore.addItem(scaleId, 'scale', scaleName);
+                }
+              });
+            });
+          }
+        }
       },
       
       addPracticeSession: (session) => {

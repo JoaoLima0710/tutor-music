@@ -14,14 +14,31 @@ import { Settings as SettingsIcon, Music, Volume2, Waves, Sliders } from 'lucide
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { AudioCacheSettings } from '@/components/AudioCacheSettings';
 import { LLMSettings } from '@/components/ai/LLMSettings';
+import { hapticFeedbackService } from '@/services/HapticFeedbackService';
+import { latencyMeasurementService } from '@/services/LatencyMeasurementService';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { Smartphone, Gauge, Zap } from 'lucide-react';
 
 export default function Settings() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { user } = useUserStore();
   const userName = user?.name || "Usuário";
+  
+  // Feedback tátil
+  const [hapticEnabled, setHapticEnabled] = useState(hapticFeedbackService.getEnabled());
+  
+  const handleHapticToggle = (enabled: boolean) => {
+    hapticFeedbackService.setEnabled(enabled);
+    setHapticEnabled(enabled);
+    if (enabled) {
+      hapticFeedbackService.success(); // Teste de vibração
+      toast.success('Feedback tátil habilitado');
+    } else {
+      toast.info('Feedback tátil desabilitado');
+    }
+  };
   
   const {
     audioEngine,
@@ -42,7 +59,40 @@ export default function Settings() {
     setMidGain,
     trebleGain,
     setTrebleGain,
+    lowLatencyMode,
+    setLowLatencyMode,
+    measuredLatency,
+    setMeasuredLatency,
   } = useAudioSettingsStore();
+  
+  const [isMeasuringLatency, setIsMeasuringLatency] = useState(false);
+  
+  const handleMeasureLatency = async () => {
+    setIsMeasuringLatency(true);
+    try {
+      const latency = await latencyMeasurementService.measureLatency();
+      if (latency !== null) {
+        setMeasuredLatency(latency);
+        toast.success(`Latência medida: ${latency.toFixed(1)}ms`);
+      } else {
+        toast.error('Não foi possível medir a latência');
+      }
+    } catch (error) {
+      console.error('Erro ao medir latência:', error);
+      toast.error('Erro ao medir latência');
+    } finally {
+      setIsMeasuringLatency(false);
+    }
+  };
+  
+  const handleLowLatencyToggle = (enabled: boolean) => {
+    setLowLatencyMode(enabled);
+    if (enabled) {
+      toast.success('Modo de baixa latência habilitado. Reinicie o áudio para aplicar.');
+    } else {
+      toast.info('Modo de baixa latência desabilitado');
+    }
+  };
 
   const handleAudioEngineChange = (engine: 'synthesis' | 'samples' | 'guitarset' | 'philharmonia') => {
     setAudioEngine(engine);
@@ -156,6 +206,183 @@ export default function Settings() {
               className="mb-6"
             >
             <AudioCacheSettings />
+          </motion.div>
+
+            {/* Audio Performance Settings */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-6"
+            >
+              <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
+                <div className="flex items-center gap-3 mb-4">
+                  <Zap className="w-5 h-5 text-yellow-400" />
+                  <h3 className="text-lg font-bold text-white">Performance de Áudio</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  {/* Modo de Baixa Latência */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-white font-medium mb-1">Modo de Baixa Latência</p>
+                      <p className="text-sm text-gray-400">
+                        Reduz latência para &lt;30ms (desabilita reverb e reduz efeitos)
+                      </p>
+                    </div>
+                    <Switch
+                      checked={lowLatencyMode}
+                      onCheckedChange={handleLowLatencyToggle}
+                    />
+                  </div>
+                  
+                  {/* Medição de Latência */}
+                  <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex-1">
+                        <p className="text-white font-medium mb-1">Latência Medida</p>
+                        <p className="text-sm text-gray-400">
+                          {measuredLatency !== null 
+                            ? `Latência atual: ${measuredLatency.toFixed(1)}ms`
+                            : 'Ainda não medida'}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={handleMeasureLatency}
+                        disabled={isMeasuringLatency}
+                        variant="outline"
+                        size="sm"
+                        className="border-white/20 text-white hover:bg-white/10"
+                      >
+                        <Gauge className="w-4 h-4 mr-2" />
+                        {isMeasuringLatency ? 'Medindo...' : 'Medir Latência'}
+                      </Button>
+                    </div>
+                    
+                    {measuredLatency !== null && (
+                      <div className="mt-3">
+                        <div className={`p-3 rounded-lg ${
+                          measuredLatency < 30 
+                            ? 'bg-green-500/20 border border-green-500/30'
+                            : measuredLatency < 50
+                            ? 'bg-yellow-500/20 border border-yellow-500/30'
+                            : 'bg-red-500/20 border border-red-500/30'
+                        }`}>
+                          <p className={`text-sm ${
+                            measuredLatency < 30 
+                              ? 'text-green-300'
+                              : measuredLatency < 50
+                              ? 'text-yellow-300'
+                              : 'text-red-300'
+                          }`}>
+                            {measuredLatency < 30 
+                              ? '✅ Latência excelente! Ideal para performance em tempo real.'
+                              : measuredLatency < 50
+                              ? '⚠️ Latência aceitável, mas pode ser melhorada.'
+                              : '❌ Latência alta. Considere habilitar modo de baixa latência.'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Volume Normalization Settings */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="mb-6"
+            >
+              <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
+                <div className="flex items-center gap-3 mb-4">
+                  <Volume2 className="w-5 h-5 text-green-400" />
+                  <h3 className="text-lg font-bold text-white">Normalização de Volume</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-white font-medium mb-1">Normalizar Volume dos Samples</p>
+                      <p className="text-sm text-gray-400">
+                        Equaliza o volume de cada nota para consistência automática
+                      </p>
+                    </div>
+                    <Switch
+                      defaultChecked={true}
+                      onCheckedChange={(enabled) => {
+                        import('@/services/AudioServiceWithSamples').then(({ audioServiceWithSamples }) => {
+                          audioServiceWithSamples.setNormalizationEnabled(enabled);
+                          toast.success(enabled ? 'Normalização ativada' : 'Normalização desativada');
+                        });
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                    <p className="text-sm text-gray-300 mb-2">
+                      A normalização analisa o volume (RMS) de cada sample e ajusta automaticamente o ganho para manter consistência entre todas as notas.
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Isso garante que acordes e escalas soem com volume uniforme, melhorando significativamente a experiência de aprendizado. A normalização ocorre automaticamente em background.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Haptic Feedback Settings */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="mb-6"
+            >
+              <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
+                <div className="flex items-center gap-3 mb-4">
+                  <Smartphone className="w-5 h-5 text-purple-400" />
+                  <h3 className="text-lg font-bold text-white">Feedback Tátil (Vibração)</h3>
+                </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-white font-medium mb-1">Vibração em Dispositivos Móveis</p>
+                    <p className="text-sm text-gray-400">
+                      Receba feedback tátil ao acertar, completar módulos e subir de nível
+                    </p>
+                  </div>
+                  <Switch
+                    checked={hapticEnabled}
+                    onCheckedChange={handleHapticToggle}
+                    disabled={!hapticFeedbackService.isAvailable()}
+                  />
+                </div>
+                
+                {!hapticFeedbackService.isAvailable() && (
+                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <p className="text-sm text-yellow-300">
+                      ⚠️ Feedback tátil não está disponível neste dispositivo ou navegador
+                    </p>
+                  </div>
+                )}
+                
+                {hapticFeedbackService.isAvailable() && (
+                  <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                    <p className="text-sm text-blue-300">
+                      ✓ Vibração disponível. Você receberá feedback ao:
+                    </p>
+                    <ul className="text-xs text-blue-200 mt-2 space-y-1 ml-4 list-disc">
+                      <li>Acertar exercícios (vibração curta)</li>
+                      <li>Completar módulos (vibração dupla)</li>
+                      <li>Subir de nível (vibração longa)</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
           </motion.div>
 
           {/* LLM Settings */}

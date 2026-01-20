@@ -154,7 +154,7 @@ class AIAudioTutorService {
     technicalFeedback: RealtimeFeedback,
     context: PracticeContext
   ): Promise<AITutorFeedback> {
-    const userProfile = aiAssistantService.getUserProfile();
+    const userProfile = await aiAssistantService.getUserProfile();
     
     // Análise imediata dos erros
     const mainIssue = this.identifyMainIssue(technicalFeedback);
