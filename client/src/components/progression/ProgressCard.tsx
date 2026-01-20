@@ -35,13 +35,13 @@ export function ProgressCard() {
   const { masteredChords } = useChordStore();
   const { masteredScales } = useScaleStore();
   const { level, xp } = useGamificationStore();
-  const { getCompletedSkills } = useProgressionStore();
+  const { skills } = useProgressionStore();
   const { getUnlockedSongs } = useSongUnlockStore();
 
   const [metrics, setMetrics] = useState<ProgressMetric[]>([]);
 
   useEffect(() => {
-    const completedSkills = getCompletedSkills();
+    const completedSkills = skills.filter((skill) => skill.mastered);
     const unlockedSongs = getUnlockedSongs();
 
     // Calcular métricas
@@ -85,7 +85,7 @@ export function ProgressCard() {
     ];
 
     setMetrics(newMetrics);
-  }, [masteredChords, masteredScales, level, getCompletedSkills, getUnlockedSongs]);
+  }, [masteredChords, masteredScales, level, skills, getUnlockedSongs]);
 
   const getProgressColor = (percentage: number) => {
     if (percentage >= 80) return 'bg-green-500';
