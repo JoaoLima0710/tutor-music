@@ -423,6 +423,7 @@ export default function Scales() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* MOBILE VERSION */}
       <div className="lg:hidden min-h-screen bg-[#0f0f1a] text-white">
