@@ -1,0 +1,522 @@
+{
+  "examples": [
+    {
+      "chord": "F#",
+      "description": "Acorde F#: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde F# lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 19.585578231292516,
+        "typical_rms": 0.020167349930852653,
+        "chroma_profile": [
+          0.2274418815970421,
+          0.24887405335903168,
+          0.17796507477760315,
+          0.18575909435749055,
+          0.19240015149116516,
+          0.29513005912303925,
+          0.39880982637405393,
+          0.23665731549263,
+          0.21884493231773378,
+          0.2620749294757843,
+          0.46597227454185486,
+          0.34456884264945986
+        ]
+      }
+    },
+    {
+      "chord": "Em",
+      "description": "Acorde Em: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde Em lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 29.306394557823133,
+        "typical_rms": 0.022506924346089363,
+        "chroma_profile": [
+          0.1893169417977333,
+          0.24147424548864366,
+          0.2583719104528427,
+          0.2014240190386772,
+          0.3018998920917511,
+          0.22140252888202666,
+          0.3222504943609238,
+          0.21142321527004243,
+          0.1557050719857216,
+          0.1867431029677391,
+          0.19383227229118347,
+          0.283919683098793
+        ]
+      }
+    },
+    {
+      "chord": "C#m",
+      "description": "Acorde C#m: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde C#m lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 28.92837353123067,
+        "typical_rms": 0.015756171196699142,
+        "chroma_profile": [
+          0.22033936733549292,
+          0.23505069721828808,
+          0.21846408600156958,
+          0.32456781511956995,
+          0.2817383889447559,
+          0.19327002221887762,
+          0.22019443119114096,
+          0.22527326440269296,
+          0.3142546591433612,
+          0.22141810167919507,
+          0.303571728142825,
+          0.31962177428332245
+        ]
+      }
+    },
+    {
+      "chord": "G",
+      "description": "Acorde G: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde G lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 32.26321995464853,
+        "typical_rms": 0.019914479553699495,
+        "chroma_profile": [
+          0.25053844749927523,
+          0.22682676762342452,
+          0.3280295252799988,
+          0.2315203607082367,
+          0.23662989735603332,
+          0.18313151150941848,
+          0.2940166875720024,
+          0.27623645663261415,
+          0.20268897116184234,
+          0.2512521997094154,
+          0.20296961367130278,
+          0.3025661766529083
+        ]
+      }
+    },
+    {
+      "chord": "E",
+      "description": "Acorde E: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde E lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 33.639206349206354,
+        "typical_rms": 0.016212968900799752,
+        "chroma_profile": [
+          0.1960035026073456,
+          0.17310884669423104,
+          0.1703026659786701,
+          0.2980918362736702,
+          0.40980584770441053,
+          0.24004465639591216,
+          0.176604200899601,
+          0.16384052410721778,
+          0.3041654288768768,
+          0.2556690648198128,
+          0.2107218436896801,
+          0.33391022980213164
+        ]
+      }
+    },
+    {
+      "chord": "G#",
+      "description": "Acorde G#: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde G# lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 25.258412698412698,
+        "typical_rms": 0.014702736710508665,
+        "chroma_profile": [
+          0.26029211779435474,
+          0.2889689231912295,
+          0.26484550535678864,
+          0.3297512158751488,
+          0.24599332610766092,
+          0.24843591451644897,
+          0.30290142446756363,
+          0.2964971289038658,
+          0.4626000722249349,
+          0.25011080503463745,
+          0.19719411184390387,
+          0.26658062885204953
+        ]
+      }
+    },
+    {
+      "chord": "C",
+      "description": "Acorde C: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde C lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 30.141713808330348,
+        "typical_rms": 0.018262295003392194,
+        "chroma_profile": [
+          0.38448610039133774,
+          0.21338735952189095,
+          0.24950497558242396,
+          0.23287516675497355,
+          0.3454878651782086,
+          0.26980595212233693,
+          0.2194902453767626,
+          0.3082835870353799,
+          0.21366208478024132,
+          0.25277293081346314,
+          0.21314020258815666,
+          0.33932164311408997
+        ]
+      }
+    },
+    {
+      "chord": "G#m",
+      "description": "Acorde G#m: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde G#m lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 35.54839002267574,
+        "typical_rms": 0.014405499398708343,
+        "chroma_profile": [
+          0.2146862342953682,
+          0.233914116024971,
+          0.2472576230764389,
+          0.3217752754688263,
+          0.24013460874557496,
+          0.265665203332901,
+          0.28895021677017213,
+          0.20517972111701965,
+          0.2796818554401398,
+          0.23404314815998079,
+          0.3380716502666473,
+          0.3092216908931732
+        ]
+      }
+    },
+    {
+      "chord": "C#",
+      "description": "Acorde C#: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde C# lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 31.694799697656844,
+        "typical_rms": 0.016683513391762973,
+        "chroma_profile": [
+          0.29284278452396395,
+          0.45683602094650266,
+          0.23941459109385807,
+          0.21276542743047078,
+          0.22762175103028615,
+          0.3291017204523087,
+          0.25067480355501176,
+          0.19978362669547398,
+          0.2889952927827835,
+          0.19405931731065115,
+          0.21106761073072752,
+          0.18867302338282269
+        ]
+      }
+    },
+    {
+      "chord": "A",
+      "description": "Acorde A: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde A lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 31.437179962894252,
+        "typical_rms": 0.01656004481694915,
+        "chroma_profile": [
+          0.2191323692148382,
+          0.2932960905812003,
+          0.2970847859978676,
+          0.26112017170949414,
+          0.3674886158921502,
+          0.23532528768886218,
+          0.23973217606544495,
+          0.20176920362494208,
+          0.2971942506053231,
+          0.3828248679637909,
+          0.2208334356546402,
+          0.2337805235927755
+        ]
+      }
+    },
+    {
+      "chord": "D",
+      "description": "Acorde D: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde D lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 22.14721088435374,
+        "typical_rms": 0.01607835649823149,
+        "chroma_profile": [
+          0.20219784354170164,
+          0.2121638928850492,
+          0.3748016556104024,
+          0.2733866920073827,
+          0.3465022345383962,
+          0.2698548324406147,
+          0.30241188406944275,
+          0.19807288299004236,
+          0.17005828643838564,
+          0.2699292649825414,
+          0.18680129448572794,
+          0.2482841635743777
+        ]
+      }
+    },
+    {
+      "chord": "D#m",
+      "description": "Acorde D#m: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde D#m lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 34.90321995464853,
+        "typical_rms": 0.023256506212055682,
+        "chroma_profile": [
+          0.3301274597644806,
+          0.4029954791069031,
+          0.2600845187902451,
+          0.3046224296092987,
+          0.2635828107595444,
+          0.330705563724041,
+          0.27594424933195116,
+          0.19624934792518617,
+          0.21925502866506577,
+          0.22871325612068177,
+          0.31465818285942077,
+          0.2343662351369858
+        ]
+      }
+    },
+    {
+      "chord": "Bm",
+      "description": "Acorde Bm: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Este acorde requer pestana - pratique a técnica de pestana separadamente",
+        "Pratique o acorde Bm lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 20.532018140589567,
+        "typical_rms": 0.01887070871889591,
+        "chroma_profile": [
+          0.17484544217586517,
+          0.29477613866329194,
+          0.2788462430238724,
+          0.2191002130508423,
+          0.2852011024951935,
+          0.23685844838619233,
+          0.36998944282531737,
+          0.21350437998771668,
+          0.2211563065648079,
+          0.2493577778339386,
+          0.1779325231909752,
+          0.21179307699203492
+        ]
+      }
+    },
+    {
+      "chord": "D#",
+      "description": "Acorde D#: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde D# lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 25.490410682791637,
+        "typical_rms": 0.01953470142972138,
+        "chroma_profile": [
+          0.1962931892938084,
+          0.18239118489954206,
+          0.35972654653920066,
+          0.4019100069999695,
+          0.2440461731619305,
+          0.20641430964072546,
+          0.17939410441451603,
+          0.3030555546283722,
+          0.25572279426786637,
+          0.2210221274031533,
+          0.2853964500957065,
+          0.19964674363533655
+        ]
+      }
+    },
+    {
+      "chord": "Gm",
+      "description": "Acorde Gm: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde Gm lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 27.041632653061225,
+        "typical_rms": 0.015068954229354859,
+        "chroma_profile": [
+          0.21313055157661437,
+          0.21986667066812515,
+          0.35598464012145997,
+          0.24096870124340058,
+          0.3458105504512787,
+          0.35102382600307463,
+          0.21318835020065308,
+          0.27018200755119326,
+          0.21819269359111787,
+          0.35794289112091066,
+          0.2554571717977524,
+          0.18991250395774842
+        ]
+      }
+    },
+    {
+      "chord": "A#m",
+      "description": "Acorde A#m: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde A#m lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 44.40120181405896,
+        "typical_rms": 0.01547227455303073,
+        "chroma_profile": [
+          0.3241138309240341,
+          0.2694650575518608,
+          0.1757649764418602,
+          0.2363482728600502,
+          0.2418082758784294,
+          0.32958019375801084,
+          0.1891402117908001,
+          0.2509075850248337,
+          0.2737189345061779,
+          0.1845468282699585,
+          0.23401075303554536,
+          0.19843489974737166
+        ]
+      }
+    },
+    {
+      "chord": "A#",
+      "description": "Acorde A#: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde A# lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 38.67603380746237,
+        "typical_rms": 0.01847053657878529,
+        "chroma_profile": [
+          0.22563762285492636,
+          0.17133542827584528,
+          0.3073848472400145,
+          0.2725626907565377,
+          0.22247669303959067,
+          0.3300092111934315,
+          0.18656680462035266,
+          0.21099576624956998,
+          0.15287318961186844,
+          0.2956417988647114,
+          0.35116393051364203,
+          0.20123139159245926
+        ]
+      }
+    },
+    {
+      "chord": "Cm",
+      "description": "Acorde Cm: som suave, sustentação longa",
+      "common_errors": [],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Pratique o acorde Cm lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 32.26321995464853,
+        "typical_rms": 0.014234229177236556,
+        "chroma_profile": [
+          0.3001174211502075,
+          0.23650712370872498,
+          0.3115118741989136,
+          0.32526283860206606,
+          0.3015907943248749,
+          0.31046748757362364,
+          0.2553742378950119,
+          0.289013546705246,
+          0.23879111111164092,
+          0.297065207362175,
+          0.32901600301265715,
+          0.27247321903705596
+        ]
+      }
+    },
+    {
+      "chord": "B",
+      "description": "Acorde B: som suave, sustentação longa",
+      "common_errors": [
+        "Variação nas notas - verificar posição dos dedos"
+      ],
+      "practice_tips": [
+        "Pressione as cordas com mais força para obter som mais claro",
+        "Este acorde requer pestana - pratique a técnica de pestana separadamente",
+        "Pratique o acorde B lentamente, garantindo que todas as cordas soem claramente"
+      ],
+      "audio_characteristics": {
+        "typical_duration": 14.4,
+        "typical_rms": 0.020838133431971072,
+        "chroma_profile": [
+          0.20235298722982406,
+          0.19331439286470414,
+          0.24151223599910737,
+          0.2941412091255188,
+          0.25506140291690826,
+          0.1883656844496727,
+          0.23037857115268706,
+          0.20409879982471466,
+          0.32761554419994354,
+          0.2570774912834167,
+          0.23480719029903413,
+          0.31549586951732633
+        ]
+      }
+    }
+  ],
+  "usage": "Use estes exemplos para melhorar o sistema de detecção e feedback da IA"
+}

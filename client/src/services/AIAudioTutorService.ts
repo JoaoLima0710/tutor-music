@@ -8,6 +8,7 @@ import { RealtimeAIFeedbackService, RealtimeFeedback, PlayingError, PracticeCont
 import { advancedAIService } from './AdvancedAIService';
 import { freeLLMService } from './FreeLLMService';
 import { aiAssistantService, UserProfile } from './AIAssistantService';
+import { guitarSetAITrainingService, ChordFeatures } from './GuitarSetAITrainingService';
 
 export interface AITutorFeedback {
   // Feedback técnico
@@ -57,9 +58,27 @@ class AIAudioTutorService {
   private feedbackHistory: AITutorFeedback[] = [];
   private errorPatterns: Map<string, number> = new Map();
   private qualityHistory: number[] = [];
+  private trainingDataLoaded = false;
 
   constructor() {
     this.realtimeService = new RealtimeAIFeedbackService();
+    // Carregar dados de treinamento do GuitarSet
+    this.loadTrainingData();
+  }
+
+  /**
+   * Carrega dados de treinamento do GuitarSet
+   */
+  private async loadTrainingData(): Promise<void> {
+    try {
+      const loaded = await guitarSetAITrainingService.loadTrainingData();
+      this.trainingDataLoaded = loaded;
+      if (loaded) {
+        console.log('✅ Dados de treinamento do GuitarSet carregados para melhorar detecção');
+      }
+    } catch (error) {
+      console.warn('⚠️ Não foi possível carregar dados de treinamento:', error);
+    }
   }
 
   /**
@@ -211,13 +230,25 @@ class AIAudioTutorService {
   }
 
   /**
-   * Analisa causa raiz usando IA
+   * Analisa causa raiz usando IA e dados treinados
    */
   private async analyzeRootCause(
     feedback: RealtimeFeedback,
     userProfile: UserProfile,
     context: PracticeContext
   ): Promise<string> {
+    // Tentar usar dados treinados primeiro
+    if (this.trainingDataLoaded && context.type === 'chord') {
+      const trainingData = guitarSetAITrainingService.getTrainingData(context.target);
+      if (trainingData.length > 0) {
+        const data = trainingData[0];
+        // Usar erros comuns identificados no treinamento
+        if (data.common_errors.length > 0) {
+          return data.common_errors[0];
+        }
+      }
+    }
+
     const errorSummary = feedback.errors.map(e => e.type).join(', ');
     const quality = feedback.quality;
     
@@ -273,7 +304,7 @@ Responda em 1-2 frases diretas:`;
   }
 
   /**
-   * Gera conselho personalizado usando IA
+   * Gera conselho personalizado usando IA e dados treinados
    */
   private async generatePersonalizedAdvice(
     feedback: RealtimeFeedback,
@@ -282,6 +313,20 @@ Responda em 1-2 frases diretas:`;
     mainIssue: string,
     rootCause: string
   ): Promise<string> {
+    // Tentar usar dados treinados primeiro
+    if (this.trainingDataLoaded && context.type === 'chord') {
+      const trainingData = guitarSetAITrainingService.getTrainingData(context.target);
+      if (trainingData.length > 0) {
+        const data = trainingData[0];
+        // Usar dicas de prática do treinamento
+        if (data.practice_tips.length > 0) {
+          // Combinar com análise de IA para personalizar
+          const baseTip = data.practice_tips[0];
+          return `${baseTip} Baseado no seu nível ${userProfile.level}/10, ${userProfile.level <= 3 ? 'vamos devagar e com atenção aos detalhes.' : 'você pode focar em refinamento da técnica.'}`;
+        }
+      }
+    }
+
     const prompt = `Como tutor de música, dê um conselho PERSONALIZADO e ESPECÍFICO:
 
 PERFIL DO ALUNO:
@@ -328,6 +373,32 @@ Máximo 3-4 frases:`;
       return ['Continue assim! Sua execução está correta.'];
     }
 
+    // Tentar usar dados treinados primeiro
+    if (this.trainingDataLoaded && context.type === 'chord') {
+      const trainingData = guitarSetAITrainingService.getTrainingData(context.target);
+      if (trainingData.length > 0) {
+        const data = trainingData[0];
+        // Combinar correções do treinamento com feedback técnico
+        const corrections: string[] = [];
+        
+        // Adicionar correções baseadas nos erros detectados
+        feedback.errors.forEach(error => {
+          if (error.correction) {
+            corrections.push(error.correction);
+          }
+        });
+        
+        // Adicionar dicas de prática do treinamento
+        if (data.practice_tips.length > 0) {
+          corrections.push(...data.practice_tips.slice(0, 2));
+        }
+        
+        if (corrections.length > 0) {
+          return corrections.slice(0, 4);
+        }
+      }
+    }
+
     const prompt = `Como tutor de música, liste correções ESPECÍFICAS e PRÁTICAS:
 
 CONTEXTO:
@@ -365,13 +436,25 @@ Uma correção por linha, numeradas, diretas e acionáveis:`;
   }
 
   /**
-   * Gera recomendações de prática usando IA
+   * Gera recomendações de prática usando IA e dados treinados
    */
   private async generatePracticeRecommendations(
     feedback: RealtimeFeedback,
     userProfile: UserProfile,
     context: PracticeContext
   ): Promise<string[]> {
+    // Tentar usar dados treinados primeiro
+    if (this.trainingDataLoaded && context.type === 'chord') {
+      const trainingData = guitarSetAITrainingService.getTrainingData(context.target);
+      if (trainingData.length > 0) {
+        const data = trainingData[0];
+        // Usar dicas de prática do treinamento
+        if (data.practice_tips.length > 0) {
+          return data.practice_tips.slice(0, 3);
+        }
+      }
+    }
+
     const prompt = `Como tutor de música, sugira exercícios de prática ESPECÍFICOS:
 
 PERFIL:
