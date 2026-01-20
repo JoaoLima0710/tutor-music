@@ -13,14 +13,18 @@ import { useLocation } from 'wouter';
 import { useProgressionStore } from '@/stores/useProgressionStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 
-interface DailyObjective {
+interface DailyObjectiveData {
   id: string;
   title: string;
   description: string;
-  icon: React.ReactNode;
+  iconType: 'target' | 'music' | 'ear';
   completed: boolean;
   link?: string;
   priority: 'essential' | 'recommended' | 'optional';
+}
+
+interface DailyObjective extends DailyObjectiveData {
+  icon: React.ReactNode;
 }
 
 export function DailyObjectivesCard() {
@@ -30,22 +34,41 @@ export function DailyObjectivesCard() {
   
   const [objectives, setObjectives] = useState<DailyObjective[]>([]);
 
+  const getIcon = (iconType: 'target' | 'music' | 'ear'): React.ReactNode => {
+    switch (iconType) {
+      case 'target':
+        return <Target className="w-5 h-5" />;
+      case 'music':
+        return <Music className="w-5 h-5" />;
+      case 'ear':
+        return <Ear className="w-5 h-5" />;
+      default:
+        return <Target className="w-5 h-5" />;
+    }
+  };
+
   useEffect(() => {
     // Carregar objetivos do localStorage ou gerar novos
     const today = new Date().toDateString();
     const saved = localStorage.getItem(`daily_objectives_${today}`);
     
     if (saved) {
-      setObjectives(JSON.parse(saved));
+      const savedData: DailyObjectiveData[] = JSON.parse(saved);
+      // Regenerar ícones JSX a partir dos dados salvos
+      const objectivesWithIcons: DailyObjective[] = savedData.map(obj => ({
+        ...obj,
+        icon: getIcon(obj.iconType)
+      }));
+      setObjectives(objectivesWithIcons);
     } else {
       // Gerar novos objetivos baseados na rotina diária
       const routine = getDailyRoutine();
-      const newObjectives: DailyObjective[] = [
+      const newObjectivesData: DailyObjectiveData[] = [
         {
           id: 'complete_training',
           title: 'Completar Treino do Dia',
           description: `${routine.totalMinutes} minutos de prática guiada`,
-          icon: <Target className="w-5 h-5" />,
+          iconType: 'target',
           completed: false,
           link: '/',
           priority: 'essential'
@@ -54,7 +77,7 @@ export function DailyObjectivesCard() {
           id: 'chord_transitions',
           title: 'Praticar 3 Transições de Acordes',
           description: 'Melhore sua fluidez entre acordes',
-          icon: <Music className="w-5 h-5" />,
+          iconType: 'music',
           completed: false,
           link: '/chords',
           priority: 'recommended'
@@ -63,15 +86,22 @@ export function DailyObjectivesCard() {
           id: 'ear_training',
           title: 'Identificar 5 Intervalos',
           description: 'Desenvolva seu ouvido musical',
-          icon: <Ear className="w-5 h-5" />,
+          iconType: 'ear',
           completed: false,
           link: '/practice',
           priority: 'optional'
         }
       ];
       
+      // Criar objetivos com ícones JSX
+      const newObjectives: DailyObjective[] = newObjectivesData.map(obj => ({
+        ...obj,
+        icon: getIcon(obj.iconType)
+      }));
+      
       setObjectives(newObjectives);
-      localStorage.setItem(`daily_objectives_${today}`, JSON.stringify(newObjectives));
+      // Salvar apenas os dados (sem ícones JSX)
+      localStorage.setItem(`daily_objectives_${today}`, JSON.stringify(newObjectivesData));
     }
   }, []);
 
@@ -81,8 +111,10 @@ export function DailyObjectivesCard() {
         obj.id === id ? { ...obj, completed: !obj.completed } : obj
       );
       
+      // Salvar apenas os dados (sem ícones JSX)
       const today = new Date().toDateString();
-      localStorage.setItem(`daily_objectives_${today}`, JSON.stringify(updated));
+      const dataToSave: DailyObjectiveData[] = updated.map(({ icon, ...data }) => data);
+      localStorage.setItem(`daily_objectives_${today}`, JSON.stringify(dataToSave));
       
       return updated;
     });
