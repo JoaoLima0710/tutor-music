@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, CheckCircle2, XCircle, RotateCcw, Music, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { unifiedAudioService } from '@/services/UnifiedAudioService';
+import { useAudio } from '@/hooks/useAudio';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 
 const CHROMATIC_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -142,14 +142,13 @@ export function ChordBuilder() {
     }
   };
 
+  const { playNotes } = useAudio();
   const handlePlayChord = async () => {
     if (selectedNotes.length === 0) return;
-
     setIsPlaying(true);
     try {
-      // Tocar acorde arpejado
       for (const note of selectedNotes) {
-        await unifiedAudioService.playNote(`${note.note}${note.octave}`, 0.3);
+        await playNotes([`${note.note}${note.octave}`], { duration: 0.3 });
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {

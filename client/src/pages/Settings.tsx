@@ -9,7 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useUserStore } from '@/stores/useUserStore';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
-import { unifiedAudioService } from '@/services/UnifiedAudioService';
+// import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { Settings as SettingsIcon, Music, Volume2, Waves, Sliders } from 'lucide-react';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { AudioCacheSettings } from '@/components/AudioCacheSettings';
@@ -111,9 +111,10 @@ export default function Settings() {
   };
 
   // Apply EQ whenever values change
-  useEffect(() => {
-    unifiedAudioService.setEQ(bassGain, midGain, trebleGain);
-  }, [bassGain, midGain, trebleGain]);
+  // TODO: Migrar EQ para novo sistema de áudio
+  // useEffect(() => {
+  //   audioEngineInstance.setEQ(bassGain, midGain, trebleGain);
+  // }, [bassGain, midGain, trebleGain]);
 
   const getInstrumentLabel = (inst: string) => {
     const labels: Record<string, string> = {

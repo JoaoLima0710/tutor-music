@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw, Check, X, TrendingUp, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { unifiedAudioService } from '@/services/UnifiedAudioService';
+import { useAudio } from '@/hooks/useAudio';
 import { pitchDetectionService } from '@/services/PitchDetectionService';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { toast } from 'sonner';
@@ -89,24 +89,17 @@ export function ScalePractice({ scale, onComplete }: ScalePracticeProps) {
     setCurrentNoteIndex(0);
   }, [practiceMode, scale]);
 
-  // Tocar a escala como demonstração
+  // Novo sistema de áudio: hook para tocar escala
+  const { playNotes } = useAudio();
   const playScale = async () => {
     try {
       setIsPlaying(true);
-      
-      // CRÍTICO para tablets: Inicializar áudio primeiro
-      await unifiedAudioService.initialize();
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      const interval = (60 / speed) * 1000; // Converter BPM para ms
-
+      const interval = (60 / speed) * 1000;
       for (let i = 0; i < practiceNotes.length; i++) {
         setCurrentNoteIndex(i);
-        // Usar playNote para notas individuais (mais apropriado que playChord)
-        await unifiedAudioService.playNote(practiceNotes[i] + '4', 0.4);
+        await playNotes([practiceNotes[i] + '4'], { duration: 0.4 });
         await new Promise(resolve => setTimeout(resolve, interval));
       }
-
       setCurrentNoteIndex(0);
     } catch (error) {
       console.error('Erro ao tocar escala:', error);

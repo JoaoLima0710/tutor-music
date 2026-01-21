@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { Play, Trash2, Music, Target, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { unifiedAudioService } from '@/services/UnifiedAudioService';
+import { useAudio } from '@/hooks/useAudio';
 import { HARMONIC_PROGRESSIONS, HarmonicProgression, analyzeProgression, transposeProgression } from '@/data/progressions';
 import { CircleOfFifths } from './CircleOfFifths';
 
@@ -40,15 +40,14 @@ export function ProgressionBuilder() {
     }
   };
 
+  const { playChord } = useAudio();
   const handlePlayProgression = async () => {
     if (selectedChords.length === 0) return;
-
     setIsPlaying(true);
     try {
-      // Tocar cada acorde sequencialmente
       for (const chord of selectedChords) {
-        await unifiedAudioService.playChord(chord, 1.5);
-        await new Promise(resolve => setTimeout(resolve, 100)); // Pequena pausa entre acordes
+        await playChord(chord, { duration: 1.5 });
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {
       console.error('Erro ao tocar progressão:', error);

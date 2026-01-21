@@ -16,7 +16,7 @@ import {
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useUserStore } from '@/stores/useUserStore';
 import { Play, StopCircle, BookOpen, Layers, Mic, Radio, GraduationCap, ChevronDown, Lock, Check } from 'lucide-react';
-import { unifiedAudioService } from '@/services/UnifiedAudioService';
+import { AudioPlayScaleButton } from '@/components/audio/AudioPlayScaleButton';
 import { useScaleProgressionStore } from '@/stores/useScaleProgressionStore';
 
 const scales = [
@@ -185,18 +185,7 @@ export default function Scales() {
   // Estatísticas de progressão
   const stats = getStats();
 
-  const handlePlayScale = async () => {
-    setIsPlaying(true);
-    await unifiedAudioService.playScale(selectedScale.name, selectedScale.root, selectedScale.intervals, 0.4);
-    // Calculate duration: number of notes * 0.4s per note
-    const duration = (selectedScale.intervals.length + 1) * 400;
-    setTimeout(() => setIsPlaying(false), duration);
-  };
 
-  const handleStopScale = () => {
-    unifiedAudioService.stopAll();
-    setIsPlaying(false);
-  };
 
   return (
     <>
@@ -516,17 +505,13 @@ export default function Scales() {
             intervals={selectedScale.intervals}
           />
 
-          {/* Play Button Mobile */}
-          <Button
-            onClick={isPlaying ? handleStopScale : handlePlayScale}
-            className={`w-full ${isPlaying 
-              ? 'bg-gradient-to-r from-red-500 to-red-600' 
-              : 'bg-gradient-to-r from-emerald-500 to-teal-500'
-            } text-white font-semibold`}
-          >
-            {isPlaying ? <StopCircle className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-            {isPlaying ? 'Parar' : 'Tocar Escala'}
-          </Button>
+          {/* Play Button Mobile - Novo sistema de áudio */}
+          <AudioPlayScaleButton
+            scaleName={selectedScale.name}
+            root={selectedScale.root}
+            intervals={selectedScale.intervals}
+            className="w-full"
+          />
         </main>
         
         <MobileBottomNav />

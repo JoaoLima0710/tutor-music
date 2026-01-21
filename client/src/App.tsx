@@ -1,4 +1,6 @@
 import { lazy, Suspense } from 'react';
+import { AudioInitButton } from "./components/audio/AudioInitButton";
+import { VolumeControl } from "./components/audio/VolumeControl";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InstallPWA } from '@/components/InstallPWA';
@@ -84,6 +86,14 @@ function App() {
         <TooltipProvider>
           <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
             <UpdateBanner />
+            {/* Botão para inicializar o contexto de áudio global */}
+            <div className="fixed top-4 left-4 z-50">
+              <AudioInitButton />
+            </div>
+            {/* Controle de volume global do sistema de áudio */}
+            <div className="fixed top-4 right-4 z-50">
+              <VolumeControl />
+            </div>
             <Router />
             <FloatingActionButton />
             <InstallPWA />

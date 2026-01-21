@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, CheckCircle2, XCircle, RotateCcw, Music, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { unifiedAudioService } from '@/services/UnifiedAudioService';
+import { useAudio } from '@/hooks/useAudio';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 
 const CHROMATIC_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -114,27 +114,22 @@ export function ScaleBuilder() {
     }
   };
 
+  const { playNotes } = useAudio();
   const handlePlayScale = async () => {
     if (selectedIntervals.length === 0) return;
-
     setIsPlaying(true);
     try {
       const rootIndex = CHROMATIC_NOTES.indexOf(rootNote);
       const scaleNotes: string[] = [];
-      
       selectedIntervals.forEach(interval => {
         const noteIndex = (rootIndex + interval) % 12;
         scaleNotes.push(CHROMATIC_NOTES[noteIndex]);
       });
-      
-      // Tocar escala ascendente
       for (let i = 0; i < scaleNotes.length; i++) {
-        await unifiedAudioService.playNote(`${scaleNotes[i]}4`, 0.3);
+        await playNotes([`${scaleNotes[i]}4`], { duration: 0.3 });
         await new Promise(resolve => setTimeout(resolve, 200));
       }
-      
-      // Tocar oitava
-      await unifiedAudioService.playNote(`${rootNote}5`, 0.3);
+      await playNotes([`${rootNote}5`], { duration: 0.3 });
     } catch (error) {
       console.error('Erro ao tocar escala:', error);
     } finally {

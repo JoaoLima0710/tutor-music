@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, CheckCircle2, XCircle, RotateCcw, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { unifiedAudioService } from '@/services/UnifiedAudioService';
+import { useAudio } from '@/hooks/useAudio';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 
 const CHROMATIC_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -60,38 +60,31 @@ export function IntervalBuilder() {
     return semitones;
   };
 
+  const { playNotes } = useAudio();
   const handleNoteClick = async (note: string) => {
     if (!firstNote) {
       setFirstNote(note);
       setSecondNote(null);
       setFeedback(null);
-      // Tocar primeira nota
       try {
-        await unifiedAudioService.playNote(`${note}4`, 0.5);
+        await playNotes([`${note}4`], { duration: 0.5 });
       } catch (error) {
         console.error('Erro ao tocar nota:', error);
       }
     } else if (!secondNote) {
       setSecondNote(note);
-      
-      // Calcular intervalo
       const interval = calculateInterval(firstNote, note);
       const intervalName = INTERVAL_NAMES[interval] || 'Desconhecido';
       const example = INTERVAL_EXAMPLES[interval];
-      
-      // Tocar segunda nota
       try {
-        await unifiedAudioService.playNote(`${note}4`, 0.5);
+        await playNotes([`${note}4`], { duration: 0.5 });
       } catch (error) {
         console.error('Erro ao tocar nota:', error);
       }
-      
-      // Feedback positivo
       setFeedback({
         correct: true,
         message: `Intervalo: ${intervalName} (${interval} semitons)${example ? ` - Exemplo: ${example}` : ''}`,
       });
-      
       setScore(score + 1);
       setAttempts(attempts + 1);
       addXP(5);
@@ -106,12 +99,11 @@ export function IntervalBuilder() {
 
   const handlePlayInterval = async () => {
     if (!firstNote || !secondNote) return;
-    
     setIsPlaying(true);
     try {
-      await unifiedAudioService.playNote(`${firstNote}4`, 0.5);
+      await playNotes([`${firstNote}4`], { duration: 0.5 });
       await new Promise(resolve => setTimeout(resolve, 600));
-      await unifiedAudioService.playNote(`${secondNote}4`, 0.5);
+      await playNotes([`${secondNote}4`], { duration: 0.5 });
     } catch (error) {
       console.error('Erro ao tocar intervalo:', error);
     } finally {

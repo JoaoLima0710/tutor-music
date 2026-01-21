@@ -348,22 +348,12 @@ export default function Chords() {
                       
                       <div className="flex gap-3 pt-4">
                         {!isPlaying ? (
-                          <Button 
-                            onClick={handlePlayChord}
-                            className="flex-1 bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#22d3ee] hover:to-[#06b6d4] text-white font-semibold"
-                          >
-                            <Play className="w-5 h-5 mr-2" />
-                            Ouvir Acorde
-                          </Button>
-                        ) : (
-                          <Button 
-                            onClick={handleStopChord}
-                            className="flex-1 bg-gradient-to-r from-[#ef4444] to-[#dc2626] hover:from-[#f87171] hover:to-[#ef4444] text-white font-semibold"
-                          >
-                            <StopCircle className="w-5 h-5 mr-2" />
-                            Parar
-                          </Button>
-                        )}
+                        <AudioPlayChordButton
+                          chordName={selectedChord.name}
+                          isPlaying={isPlaying}
+                          onPlay={handlePlayChord}
+                          onStop={handleStopChord}
+                        />
                         <Button 
                           onClick={handlePractice}
                           className="flex-1 bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] hover:from-[#c084fc] hover:to-[#a855f7] text-white font-semibold"

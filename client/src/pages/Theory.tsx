@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useAudio } from '@/hooks/useAudio';
+import { useChordPlayer } from '@/hooks/useChordPlayer';
+import { AudioPlayChordButton } from '@/components/audio/AudioPlayChordButton';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
@@ -268,18 +271,7 @@ const THEORY_MODULES: TheoryModule[] = [
                     <span className="text-sm text-gray-400">1 semitom</span>
                   </div>
                   <p className="text-sm text-gray-300 mb-2">Som tenso, como em "Tubarão" (dó-dó#)</p>
-                  <Button
-                    size="sm"
-                    onClick={async () => {
-                      const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
-                      await unifiedAudioService.playNote('C4', 0.5);
-                      setTimeout(() => unifiedAudioService.playNote('C#4', 0.5), 600);
-                    }}
-                    className="bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#0891b2] hover:to-[#0e7490] text-white"
-                  >
-                    <Play className="w-3 h-3 mr-1" />
-                    Ouvir Exemplo
-                  </Button>
+                  <AudioPlayChordButton chordNotes={["C4", "C#4"]} duration={0.5} label="Ouvir Exemplo" />
                 </div>
                 
                 <div className="p-3 rounded bg-white/5">
@@ -288,18 +280,7 @@ const THEORY_MODULES: TheoryModule[] = [
                     <span className="text-sm text-gray-400">4 semitons</span>
                   </div>
                   <p className="text-sm text-gray-300 mb-2">Som alegre, base dos acordes maiores</p>
-                  <Button
-                    size="sm"
-                    onClick={async () => {
-                      const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
-                      await unifiedAudioService.playNote('C4', 0.5);
-                      setTimeout(() => unifiedAudioService.playNote('E4', 0.5), 600);
-                    }}
-                    className="bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#0891b2] hover:to-[#0e7490] text-white"
-                  >
-                    <Play className="w-3 h-3 mr-1" />
-                    Ouvir Exemplo
-                  </Button>
+                  <AudioPlayChordButton chordNotes={["C4", "E4"]} duration={0.5} label="Ouvir Exemplo" />
                 </div>
                 
                 <div className="p-3 rounded bg-white/5">
@@ -308,18 +289,7 @@ const THEORY_MODULES: TheoryModule[] = [
                     <span className="text-sm text-gray-400">7 semitons</span>
                   </div>
                   <p className="text-sm text-gray-300 mb-2">Som estável e poderoso, usado em power chords</p>
-                  <Button
-                    size="sm"
-                    onClick={async () => {
-                      const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
-                      await unifiedAudioService.playNote('C4', 0.5);
-                      setTimeout(() => unifiedAudioService.playNote('G4', 0.5), 600);
-                    }}
-                    className="bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#0891b2] hover:to-[#0e7490] text-white"
-                  >
-                    <Play className="w-3 h-3 mr-1" />
-                    Ouvir Exemplo
-                  </Button>
+                  <AudioPlayChordButton chordNotes={["C4", "G4"]} duration={0.5} label="Ouvir Exemplo" />
                 </div>
                 
                 <div className="p-3 rounded bg-white/5">
@@ -328,18 +298,7 @@ const THEORY_MODULES: TheoryModule[] = [
                     <span className="text-sm text-gray-400">12 semitons</span>
                   </div>
                   <p className="text-sm text-gray-300 mb-2">Mesma nota, só que mais aguda ou grave</p>
-                  <Button
-                    size="sm"
-                    onClick={async () => {
-                      const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
-                      await unifiedAudioService.playNote('C4', 0.5);
-                      setTimeout(() => unifiedAudioService.playNote('C5', 0.5), 600);
-                    }}
-                    className="bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#0891b2] hover:to-[#0e7490] text-white"
-                  >
-                    <Play className="w-3 h-3 mr-1" />
-                    Ouvir Exemplo
-                  </Button>
+                  <AudioPlayChordButton chordNotes={["C4", "C5"]} duration={0.5} label="Ouvir Exemplo" />
                 </div>
               </div>
             </div>
@@ -455,20 +414,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-sm text-gray-300 mb-3">
                   <span className="font-semibold">Exemplo (Dó Maior):</span> C - D - E - F - G - A - B - C
                 </p>
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
-                    const notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
-                    for (let i = 0; i < notes.length; i++) {
-                      setTimeout(() => unifiedAudioService.playNote(notes[i], 0.3), i * 400);
-                    }
-                  }}
-                  className="bg-gradient-to-r from-[#06b6d4] to-[#0891b2] hover:from-[#0891b2] hover:to-[#0e7490] text-white"
-                >
-                  <Play className="w-3 h-3 mr-1" />
-                  Ouvir Exemplo
-                </Button>
+                <AudioPlayChordButton chordNotes={["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"]} duration={0.3} sequential label="Ouvir Exemplo" />
               </div>
             </div>
 
@@ -484,20 +430,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-sm text-gray-300 mb-3">
                   <span className="font-semibold">Exemplo (Lá Menor):</span> A - B - C - D - E - F - G - A
                 </p>
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
-                    const notes = ['A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4'];
-                    for (let i = 0; i < notes.length; i++) {
-                      setTimeout(() => unifiedAudioService.playNote(notes[i], 0.3), i * 400);
-                    }
-                  }}
-                  className="bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] hover:from-[#7c3aed] hover:to-[#9333ea] text-white"
-                >
-                  <Play className="w-3 h-3 mr-1" />
-                  Ouvir Exemplo
-                </Button>
+                <AudioPlayChordButton chordNotes={["A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4"]} duration={0.3} sequential label="Ouvir Exemplo" />
               </div>
             </div>
 
@@ -511,20 +444,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-sm text-gray-300 mb-3">
                   <span className="font-semibold">Exemplo (Pentatônica Menor de Lá):</span> A - C - D - E - G
                 </p>
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
-                    const notes = ['A3', 'C4', 'D4', 'E4', 'G4'];
-                    for (let i = 0; i < notes.length; i++) {
-                      setTimeout(() => unifiedAudioService.playNote(notes[i], 0.3), i * 400);
-                    }
-                  }}
-                  className="bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white"
-                >
-                  <Play className="w-3 h-3 mr-1" />
-                  Ouvir Exemplo
-                </Button>
+                <AudioPlayChordButton chordNotes={["A3", "C4", "D4", "E4", "G4"]} duration={0.3} sequential label="Ouvir Exemplo" />
               </div>
             </div>
           </div>
