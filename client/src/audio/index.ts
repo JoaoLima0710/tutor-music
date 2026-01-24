@@ -33,9 +33,17 @@ export async function initializeAudioSystem(): Promise<void> {
   await audioMixerInstance.initialize();
   
   // Pré-carregar samples essenciais em background
-  requestIdleCallback(() => {
+  // Usar fallback para navegadores que não suportam requestIdleCallback
+  const schedulePreload = () => {
     sampleLoader.preloadChordSamples().catch(console.warn);
-  });
+  };
+  
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(schedulePreload);
+  } else {
+    // Fallback: usar setTimeout para não bloquear a UI
+    setTimeout(schedulePreload, 1000);
+  }
   
   console.log('[AudioSystem] Sistema de áudio inicializado');
 }
