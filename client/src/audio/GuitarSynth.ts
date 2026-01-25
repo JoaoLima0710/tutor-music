@@ -1,25 +1,99 @@
 import AudioEngine from './AudioEngine';
-import SampleLoader from './SampleLoader';
-import { ChordVoicing, SampleData, NOTE_NAMES, A4_FREQUENCY, A4_MIDI_NUMBER } from './types';
+import AudioBus from './AudioBus';
+import { getAudioBus } from './index';
+import { NOTE_NAMES, A4_FREQUENCY, A4_MIDI_NUMBER } from './types';
 
 /**
- * ChordPlayer - Reproduz acordes com samples ou síntese
+ * ChordPlayer - Reproduz acordes com UM sample por acorde
+ * 
+ * REGRAS ARQUITETURAIS:
+ * - ❌ NÃO cria AudioContext, AudioBufferSourceNode ou OscillatorNode
+ * - ❌ NÃO chama .start() fora do AudioBus
+ * - ❌ NÃO conecta nada diretamente ao masterGain
+ * - ✅ Usa AudioBus.playSampleFromUrl() para TODA reprodução
+ * - ✅ Canal fixo: "chords"
+ * - ✅ Usa UM sample completo por acorde (não monta nota por nota)
+ * - ✅ NÃO usa síntese
+ * - ✅ NÃO faz strum manual
+ * 
+ * NORMALIZAÇÃO:
+ * - Tabela estática de ganhos por acorde (soft normalization)
+ * - Compensação musical legítima: acordes graves acumulam mais energia
+ * - Aplicação leve: multiplica volume base pelo ganho do acorde
+ * - Sem análise de áudio em runtime
+ * - Sem DSP pesado
+ * 
+ * IMPORTANTE - Normalização dos Samples (fora do código):
+ * Todos os samples de acordes devem ser exportados com:
+ * - Pico máximo em -1 dBFS (evita clipping)
+ * - LUFS integrado entre -16 e -14 (loudness consistente)
+ * - Sem limiter agressivo (preserva dinâmica natural)
+ * 
+ * Isso garante consistência antes do código aplicar a normalização suave.
  */
+
+/**
+ * Tabela de ganhos de normalização por acorde
+ * Compensação musical legítima: acordes graves acumulam mais energia
+ * 
+ * Esta tabela aplica ajustes finos após a normalização dos samples.
+ * Valores baseados em características acústicas: acordes graves (E, Em, E7)
+ * acumulam mais energia e precisam de redução maior.
+ */
+const CHORD_GAIN_PRESETS: Record<string, number> = {
+  'C': 0.9,
+  'D': 0.95,
+  'E': 0.85,
+  'F': 0.9,
+  'G': 1.0,
+  'A': 0.95,
+  'B': 0.9,
+  'Am': 0.9,
+  'Bm': 0.9,
+  'Cm': 0.9,
+  'Dm': 0.95,
+  'Em': 0.85,
+  'Fm': 0.9,
+  'Gm': 0.95,
+  'A7': 0.95,
+  'B7': 0.9,
+  'C7': 0.9,
+  'D7': 0.95,
+  'E7': 0.85,
+  'G7': 1.0,
+  // Acordes com sustenidos (fallback para valores similares)
+  'C#': 0.9,
+  'C#m': 0.9,
+  'C#7': 0.9,
+  'D#': 0.95,
+  'D#m': 0.95,
+  'D#7': 0.95,
+  'F#': 0.9,
+  'F#m': 0.9,
+  'F#7': 0.9,
+  'G#': 1.0,
+  'G#m': 0.95,
+  'A#': 0.95,
+  'A#m': 0.9,
+  'A#7': 0.95,
+};
+
 class ChordPlayer {
   private audioEngine: AudioEngine;
-  private sampleLoader: SampleLoader;
   
   // Configurações
   private volume: number = 0.7;
-  private strumSpeed: number = 50; // ms entre cada corda
-  private useSynthesis: boolean = false; // fallback para síntese se samples não disponíveis
-
-  // Estado
-  private activeNodes: AudioBufferSourceNode[] = [];
 
   constructor() {
     this.audioEngine = AudioEngine.getInstance();
-    this.sampleLoader = SampleLoader.getInstance();
+  }
+
+  /**
+   * Obtém ganho de normalização para um acorde
+   * Usa tabela estática de presets ou fallback padrão (0.9)
+   */
+  private getNormalizationGain(chordName: string): number {
+    return CHORD_GAIN_PRESETS[chordName] ?? 0.9;
   }
 
   /**
@@ -31,160 +105,87 @@ class ChordPlayer {
 
   /**
    * Define a velocidade do strum em ms
+   * MANTIDO para compatibilidade com API pública, mas não é mais usado
    */
   public setStrumSpeed(speed: number): void {
-    this.strumSpeed = Math.max(10, Math.min(200, speed));
+    // Não usado mais - acordes usam samples completos
+    // Mantido apenas para compatibilidade com API pública
   }
 
   /**
-   * Reproduz um acorde pelo nome
+   * Reproduz um acorde pelo nome usando UM sample completo
+   * REFATORADO: Usa sample único por acorde, não monta nota por nota
+   * 
+   * Comportamento:
+   * 1. Resolve o nome do acorde (ex: "C", "Am", "G7")
+   * 2. Monta URL: /samples/chords/{chordName}.mp3
+   * 3. Aplica normalização via metadata (ganho leve)
+   * 4. Reproduz usando AudioBus.playSampleFromUrl()
+   * 
+   * ⚠️ ChordPlayer NÃO carrega sample (AudioBus faz isso)
+   * ⚠️ ChordPlayer NÃO agenda tempo (AudioBus faz isso)
+   * ⚠️ ChordPlayer NÃO mistura notas (usa sample único)
+   * ⚠️ Normalização: aplicação leve via metadata, sem análise de áudio
    */
   public async playChord(chordName: string): Promise<void> {
     await this.audioEngine.ensureResumed();
 
-    // Tentar carregar sample primeiro
-    const sampleUrl = `/samples/chords/${chordName}.mp3`;
-    
-    try {
-      if (!this.useSynthesis) {
-        const sample = await this.sampleLoader.loadSample(sampleUrl);
-        await this.playSample(sample);
-        return;
+    const audioBus = getAudioBus();
+    if (!audioBus) {
+      if (import.meta.env.DEV) {
+        console.error('[ChordPlayer] playChord falhou: AudioBus não está disponível. Chame initializeAudioSystem() primeiro.');
       }
-    } catch (error) {
-      console.warn(`[ChordPlayer] Sample não encontrado para ${chordName}, usando síntese`);
+      return;
     }
 
-    // Fallback: síntese
-    const voicing = this.getChordVoicing(chordName);
-    if (voicing) {
-      await this.synthesizeChord(voicing);
-    }
-  }
+    // Resolver o nome do acorde e montar URL
+    // Estrutura: /samples/chords/{chordName}.mp3
+    // Exemplos: C.mp3, D.mp3, Am.mp3, C7.mp3
+    const sampleUrl = `/samples/chords/${chordName}.mp3`;
 
-  /**
-   * Reproduz um sample de áudio
-   */
-  private async playSample(sample: SampleData): Promise<void> {
-    const audioContext = this.audioEngine.getContext();
-    const masterGain = this.audioEngine.getMasterGain();
+    // Aplicar normalização via tabela estática (ganho leve)
+    // Volume final = volume base * ganho de normalização do acorde
+    // ⚠️ Volume aplicado APENAS aqui, não duplicado em outro lugar
+    const normalizationGain = this.getNormalizationGain(chordName);
+    const finalVolume = this.volume * normalizationGain;
 
-    const source = audioContext.createBufferSource();
-    const gainNode = audioContext.createGain();
-
-    source.buffer = sample.buffer;
-    gainNode.gain.value = this.volume;
-
-    source.connect(gainNode);
-    gainNode.connect(masterGain);
-
-    this.activeNodes.push(source);
-    source.onended = () => {
-      const index = this.activeNodes.indexOf(source);
-      if (index > -1) this.activeNodes.splice(index, 1);
-    };
-
-    source.start(0);
-  }
-
-  /**
-   * Sintetiza um acorde com múltiplas notas
-   */
-  private async synthesizeChord(voicing: ChordVoicing): Promise<void> {
-    const audioContext = this.audioEngine.getContext();
-    const masterGain = this.audioEngine.getMasterGain();
-    const currentTime = audioContext.currentTime;
-
-    // Criar um gain para o acorde inteiro
-    const chordGain = audioContext.createGain();
-    chordGain.gain.value = this.volume * 0.5; // Reduzir para evitar clipping
-    chordGain.connect(masterGain);
-
-    // Tocar cada nota com delay (simular strum)
-    voicing.frequencies.forEach((frequency, index) => {
-      const noteTime = currentTime + (index * this.strumSpeed / 1000);
-      this.playNote(frequency, noteTime, chordGain);
+    // Reproduzir usando AudioBus (ÚNICO método permitido)
+    // AudioBus é responsável por:
+    // - Carregar o sample
+    // - Criar o source
+    // - Agendar o playback
+    // - Aplicar o volume final (sem modificação adicional)
+    const success = await audioBus.playSampleFromUrl({
+      sampleUrl,
+      channel: 'chords',
+      volume: finalVolume, // Volume final já calculado: this.volume * gain
     });
-  }
 
-  /**
-   * Toca uma única nota sintetizada
-   */
-  private playNote(frequency: number, startTime: number, destination: AudioNode): void {
-    const audioContext = this.audioEngine.getContext();
-    const duration = 2.0;
+    if (!success) {
+      // Fail safe: se sample não existir, não tocar nada (silenciosamente)
+      if (import.meta.env.DEV) {
+        console.warn(`[ChordPlayer] Sample não encontrado para acorde '${chordName}' em ${sampleUrl}`);
+      }
+      return;
+    }
 
-    // Oscilador principal
-    const osc = audioContext.createOscillator();
-    osc.type = 'triangle';
-    osc.frequency.value = frequency;
-
-    // Envelope de amplitude
-    const gainNode = audioContext.createGain();
-    gainNode.gain.setValueAtTime(0, startTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-    // Filtro para suavizar
-    const filter = audioContext.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 2000;
-
-    osc.connect(filter);
-    filter.connect(gainNode);
-    gainNode.connect(destination);
-
-    osc.start(startTime);
-    osc.stop(startTime + duration);
+    if (import.meta.env.DEV) {
+      const gainInfo = normalizationGain !== 1.0 ? ` (ganho: ${normalizationGain.toFixed(2)})` : '';
+      console.log(`[ChordPlayer] Acorde '${chordName}' tocado usando sample único${gainInfo}`);
+    }
   }
 
   /**
    * Para todas as notas ativas
+   * NOTA: Com AudioBus, não temos mais controle direto sobre sources ativas
+   * Este método é mantido para compatibilidade, mas não faz nada
    */
   public stopAll(): void {
-    this.activeNodes.forEach(node => {
-      try {
-        node.stop();
-      } catch (e) {
-        // Ignorar se já parou
-      }
-    });
-    this.activeNodes = [];
-  }
-
-  /**
-   * Retorna as frequências para um acorde
-   */
-  private getChordVoicing(chordName: string): ChordVoicing | null {
-    const voicings: Record<string, ChordVoicing> = {
-      // Maiores
-      'C': { name: 'C', notes: ['C3', 'E3', 'G3', 'C4', 'E4'], frequencies: [130.81, 164.81, 196.00, 261.63, 329.63] },
-      'D': { name: 'D', notes: ['D3', 'A3', 'D4', 'F#4'], frequencies: [146.83, 220.00, 293.66, 369.99] },
-      'E': { name: 'E', notes: ['E2', 'B2', 'E3', 'G#3', 'B3', 'E4'], frequencies: [82.41, 123.47, 164.81, 207.65, 246.94, 329.63] },
-      'F': { name: 'F', notes: ['F2', 'C3', 'F3', 'A3', 'C4', 'F4'], frequencies: [87.31, 130.81, 174.61, 220.00, 261.63, 349.23] },
-      'G': { name: 'G', notes: ['G2', 'B2', 'D3', 'G3', 'B3', 'G4'], frequencies: [98.00, 123.47, 146.83, 196.00, 246.94, 392.00] },
-      'A': { name: 'A', notes: ['A2', 'E3', 'A3', 'C#4', 'E4'], frequencies: [110.00, 164.81, 220.00, 277.18, 329.63] },
-      'B': { name: 'B', notes: ['B2', 'F#3', 'B3', 'D#4', 'F#4'], frequencies: [123.47, 185.00, 246.94, 311.13, 369.99] },
-      
-      // Menores
-      'Am': { name: 'Am', notes: ['A2', 'E3', 'A3', 'C4', 'E4'], frequencies: [110.00, 164.81, 220.00, 261.63, 329.63] },
-      'Bm': { name: 'Bm', notes: ['B2', 'F#3', 'B3', 'D4', 'F#4'], frequencies: [123.47, 185.00, 246.94, 293.66, 369.99] },
-      'Cm': { name: 'Cm', notes: ['C3', 'G3', 'C4', 'Eb4', 'G4'], frequencies: [130.81, 196.00, 261.63, 311.13, 392.00] },
-      'Dm': { name: 'Dm', notes: ['D3', 'A3', 'D4', 'F4'], frequencies: [146.83, 220.00, 293.66, 349.23] },
-      'Em': { name: 'Em', notes: ['E2', 'B2', 'E3', 'G3', 'B3', 'E4'], frequencies: [82.41, 123.47, 164.81, 196.00, 246.94, 329.63] },
-      'Fm': { name: 'Fm', notes: ['F2', 'C3', 'F3', 'Ab3', 'C4'], frequencies: [87.31, 130.81, 174.61, 207.65, 261.63] },
-      'Gm': { name: 'Gm', notes: ['G2', 'D3', 'G3', 'Bb3', 'D4'], frequencies: [98.00, 146.83, 196.00, 233.08, 293.66] },
-
-      // Sétima
-      'A7': { name: 'A7', notes: ['A2', 'E3', 'G3', 'C#4', 'E4'], frequencies: [110.00, 164.81, 196.00, 277.18, 329.63] },
-      'B7': { name: 'B7', notes: ['B2', 'D#3', 'A3', 'B3', 'F#4'], frequencies: [123.47, 155.56, 220.00, 246.94, 369.99] },
-      'C7': { name: 'C7', notes: ['C3', 'E3', 'Bb3', 'C4', 'E4'], frequencies: [130.81, 164.81, 233.08, 261.63, 329.63] },
-      'D7': { name: 'D7', notes: ['D3', 'A3', 'C4', 'F#4'], frequencies: [146.83, 220.00, 261.63, 369.99] },
-      'E7': { name: 'E7', notes: ['E2', 'B2', 'D3', 'G#3', 'B3', 'E4'], frequencies: [82.41, 123.47, 146.83, 207.65, 246.94, 329.63] },
-      'G7': { name: 'G7', notes: ['G2', 'B2', 'D3', 'F3', 'B3', 'G4'], frequencies: [98.00, 123.47, 146.83, 174.61, 246.94, 392.00] },
-    };
-
-    return voicings[chordName] || null;
+    // Após migração para AudioBus, não temos mais referência direta aos nodes
+    // O AudioBus gerencia o ciclo de vida dos sources automaticamente
+    if (import.meta.env.DEV) {
+      console.log('[ChordPlayer] stopAll() chamado - não há mais controle direto sobre sources (gerenciado pelo AudioBus)');
+    }
   }
 
   /**

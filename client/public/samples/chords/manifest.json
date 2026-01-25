@@ -1,126 +1,157 @@
 {
   "A#": {
     "file": "Asharp.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "A#7": {
     "file": "Asharp7.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "A#m": {
     "file": "Asharpm.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "A": {
     "file": "A.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "A7": {
     "file": "A7.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "Am": {
     "file": "Am.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "B": {
     "file": "B.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "Bm": {
     "file": "Bm.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "C#": {
     "file": "Csharp.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "C#7": {
     "file": "Csharp7.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "C#m": {
     "file": "Csharpm.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "C": {
     "file": "C.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "C7": {
     "file": "C7.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "Cm": {
     "file": "Cm.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "D#": {
     "file": "Dsharp.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "D#7": {
     "file": "Dsharp7.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "D#m": {
     "file": "Dsharpm.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "D": {
     "file": "D.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "D7": {
     "file": "D7.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "Dm": {
     "file": "Dm.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "E": {
     "file": "E.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "Em": {
     "file": "Em.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "F#": {
     "file": "Fsharp.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "F#7": {
     "file": "Fsharp7.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "F#m": {
     "file": "Fsharpm.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "F": {
     "file": "F.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "Fm": {
     "file": "Fm.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "G#": {
     "file": "Gsharp.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "G#m": {
     "file": "Gsharpm.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "G": {
     "file": "G.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   },
   "Gm": {
     "file": "Gm.wav",
-    "duration": 2.0
+    "duration": 2.0,
+    "gain": 1.0
   }
 }
