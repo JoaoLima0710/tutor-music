@@ -74,4 +74,7 @@ export function ChordPlayButton({
   );
 }
 
+// Named export alias para compatibilidade com imports existentes
+export const AudioPlayChordButton = ChordPlayButton;
+
 export default ChordPlayButton;
