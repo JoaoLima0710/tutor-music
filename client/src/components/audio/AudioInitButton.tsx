@@ -1,9 +1,55 @@
 import React, { useEffect, useState } from 'react';
 import { useAudio } from '../../hooks/useAudio';
-import { Volume2, VolumeX, AlertCircle } from 'lucide-react';
+import { Volume2, VolumeX, AlertCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface AudioInitializerProps {
   children: React.ReactNode;
+}
+
+/**
+ * Botão simples para inicializar o sistema de áudio
+ */
+export function AudioInitButton() {
+  const { isReady, isInitializing, error, initialize } = useAudio();
+
+  const handleClick = async () => {
+    if (!isReady && !isInitializing) {
+      await initialize();
+    }
+  };
+
+  if (isReady) {
+    return null; // Não mostrar se já está pronto
+  }
+
+  return (
+    <Button
+      onClick={handleClick}
+      disabled={isInitializing}
+      variant="outline"
+      size="sm"
+      className="bg-background/80 backdrop-blur-sm border-white/20 hover:bg-background/90"
+      title={isInitializing ? 'Inicializando áudio...' : 'Inicializar sistema de áudio'}
+    >
+      {isInitializing ? (
+        <>
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          <span>Inicializando...</span>
+        </>
+      ) : error ? (
+        <>
+          <AlertCircle className="w-4 h-4 mr-2 text-red-400" />
+          <span>Erro de Áudio</span>
+        </>
+      ) : (
+        <>
+          <Volume2 className="w-4 h-4 mr-2" />
+          <span>Ativar Áudio</span>
+        </>
+      )}
+    </Button>
+  );
 }
 
 /**

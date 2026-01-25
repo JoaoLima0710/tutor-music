@@ -14,23 +14,23 @@ import { useEffect } from "react";
 import { FloatingActionButton } from "./components/layout/FloatingActionButton";
 
 // Lazy load pages for code splitting
-const Home = lazy(() => import("./pages/Home").then(m => ({ default: m.default })));
-const Chords = lazy(() => import("./pages/Chords").then(m => ({ default: m.default })));
-const Scales = lazy(() => import("./pages/Scales").then(m => ({ default: m.default })));
-const Missions = lazy(() => import("./pages/Missions").then(m => ({ default: m.default })));
-const Achievements = lazy(() => import("./pages/Achievements").then(m => ({ default: m.default })));
-const Profile = lazy(() => import("./pages/Profile").then(m => ({ default: m.default })));
-const Tuner = lazy(() => import("./pages/Tuner").then(m => ({ default: m.default })));
-const Settings = lazy(() => import("./pages/Settings").then(m => ({ default: m.default })));
-const Songs = lazy(() => import("./pages/Songs").then(m => ({ default: m.default })));
-const SongDetail = lazy(() => import("./pages/SongDetail").then(m => ({ default: m.default })));
-const Practice = lazy(() => import("./pages/Practice").then(m => ({ default: m.default })));
+const Home = lazy(() => import("./pages/Home"));
+const Chords = lazy(() => import("./pages/Chords"));
+const Scales = lazy(() => import("./pages/Scales"));
+const Missions = lazy(() => import("./pages/Missions"));
+const Achievements = lazy(() => import("./pages/Achievements"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Tuner = lazy(() => import("./pages/Tuner"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Songs = lazy(() => import("./pages/Songs"));
+const SongDetail = lazy(() => import("./pages/SongDetail"));
+const Practice = lazy(() => import("./pages/Practice"));
 const ChordPractice = lazy(() => import("./pages/ChordPractice").then(m => ({ default: m.ChordPractice })));
-const Theory = lazy(() => import("./pages/Theory").then(m => ({ default: m.default })));
-const Explore = lazy(() => import("./pages/Explore").then(m => ({ default: m.default })));
+const Theory = lazy(() => import("./pages/Theory"));
+const Explore = lazy(() => import("./pages/Explore"));
 const TrainingDashboard = lazy(() => import("./pages/TrainingDashboard").then(m => ({ default: m.TrainingDashboard })));
-const Auth = lazy(() => import("./pages/Auth").then(m => ({ default: m.default })));
-const NotFound = lazy(() => import("./pages/NotFound").then(m => ({ default: m.default })));
+const Auth = lazy(() => import("./pages/Auth"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading component
 function PageLoader() {

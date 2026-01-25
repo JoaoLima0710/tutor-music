@@ -233,167 +233,179 @@ export default function Chords() {
               <ChordTheory />
             ) : (
               <>
-            {/* Filters */}
-            <div className="flex gap-3">
-              {[
-                { value: 'all', label: 'Todos' },
-                { value: 'beginner', label: 'Iniciante' },
-                { value: 'intermediate', label: 'Intermediário' },
-                { value: 'advanced', label: 'Avançado' },
-              ].map((item) => (
-                <Button
-                  key={item.value}
-                  onClick={() => setFilter(item.value as any)}
-                  variant={filter === item.value ? 'default' : 'outline'}
-                  className={
-                    filter === item.value
-                      ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white'
-                      : 'bg-transparent border-white/20 text-gray-300 hover:bg-white/5'
-                  }
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </div>
-            
-            {/* Main Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Chord List */}
-              <div className="lg:col-span-1 space-y-3">
-                <h2 className="text-xl font-bold text-white mb-4">Acordes ({filteredChords.length})</h2>
-                <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
-                  {filteredChords.map((chord) => {
-                    const isCompleted = progress[chord.id]?.practiced;
-                    const isSelected = selectedChord.id === chord.id;
-                    
-                    return (
-                      <button
-                        key={chord.id}
-                        onClick={() => handleChordClick(chord)}
-                        className={`
-                          w-full p-4 rounded-xl text-left transition-all
-                          ${isSelected
-                            ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] shadow-[0_0_20px_rgba(168,85,247,0.3)]'
-                            : 'bg-[#1a1a2e] hover:bg-[#232338]'
-                          }
-                        `}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-bold text-white">{chord.name}</h3>
-                            <p className="text-sm text-gray-400">{chord.fullName}</p>
-                          </div>
-                          {isCompleted && (
-                            <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                              <Check className="w-4 h-4 text-white" />
-                            </div>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
+                {/* Filters */}
+                <div className="flex gap-3">
+                  {[
+                    { value: 'all', label: 'Todos' },
+                    { value: 'beginner', label: 'Iniciante' },
+                    { value: 'intermediate', label: 'Intermediário' },
+                    { value: 'advanced', label: 'Avançado' },
+                  ].map((item) => (
+                    <Button
+                      key={item.value}
+                      onClick={() => setFilter(item.value as any)}
+                      variant={filter === item.value ? 'default' : 'outline'}
+                      className={
+                        filter === item.value
+                          ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white'
+                          : 'bg-transparent border-white/20 text-gray-300 hover:bg-white/5'
+                      }
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
                 </div>
-              </div>
-              
-              {/* Chord Detail */}
-              <div className="lg:col-span-2">
-                <div className="rounded-3xl p-8 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10">
-                  <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Diagram */}
-                    <div className="flex-shrink-0 flex justify-center">
-                      <ChordDiagram
-                        frets={selectedChord.frets}
-                        fingers={selectedChord.fingers}
-                        name={selectedChord.name}
-                        size="lg"
-                      />
+                
+                {/* Main Content */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Chord List */}
+                  <div className="lg:col-span-1 space-y-3">
+                    <h2 className="text-xl font-bold text-white mb-4">Acordes ({filteredChords.length})</h2>
+                    <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
+                      {filteredChords.map((chord) => {
+                        const isCompleted = progress[chord.id]?.practiced;
+                        const isSelected = selectedChord.id === chord.id;
+                        
+                        return (
+                          <button
+                            key={chord.id}
+                            onClick={() => handleChordClick(chord)}
+                            className={`
+                              w-full p-4 rounded-xl text-left transition-all
+                              ${isSelected
+                                ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] shadow-[0_0_20px_rgba(168,85,247,0.3)]'
+                                : 'bg-[#1a1a2e] hover:bg-[#232338]'
+                              }
+                            `}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="font-bold text-white">{chord.name}</h3>
+                                <p className="text-sm text-gray-400">{chord.fullName}</p>
+                              </div>
+                              {isCompleted && (
+                                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                                  <Check className="w-4 h-4 text-white" />
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
-                    
-                    {/* Info */}
-                    <div className="flex-1 space-y-6">
-                      <div>
-                        <h2 className="text-3xl font-bold text-white mb-2">{selectedChord.fullName}</h2>
-                        <p className="text-gray-300">{selectedChord.description}</p>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-3">Dicas</h3>
-                        <ul className="space-y-2">
-                          {selectedChord.tips.map((tip, index) => (
-                            <li key={index} className="flex items-start gap-2 text-gray-300">
-                              <span className="text-[#06b6d4] mt-1">•</span>
-                              <span>{tip}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-3">Acordes Relacionados</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedChord.relatedChords.map((relatedId) => (
-                            <button
-                              key={relatedId}
-                              onClick={() => {
-                                const related = chords.find(c => c.id === relatedId);
-                                if (related) handleChordClick(related);
-                              }}
-                              className="px-4 py-2 rounded-lg bg-[#2a2a3e] hover:bg-[#323246] text-white transition-colors"
-                            >
-                              {relatedId}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-3 pt-4">
-                        {!isPlaying ? (
-                        <AudioPlayChordButton
-                          chordName={selectedChord.name}
-                          isPlaying={isPlaying}
-                          onPlay={handlePlayChord}
-                          onStop={handleStopChord}
-                        />
-                        <Button 
-                          onClick={handlePractice}
-                          className="flex-1 bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] hover:from-[#c084fc] hover:to-[#a855f7] text-white font-semibold"
-                        >
-                          Praticar
-                        </Button>
-                      </div>
-                      
-                      {/* Timer de Prática (se estiver na aba de prática) */}
-                      {activeTab === 'practice' && (
-                        <div className="mt-6">
-                          <ChordPracticeTimer
-                            suggestedDuration={selectedChord.difficulty === 'beginner' ? 5 : selectedChord.difficulty === 'intermediate' ? 10 : 15}
-                            chordName={selectedChord.name}
-                            onComplete={() => {
-                              // Marcar acorde como praticado
-                              handleChordComplete(selectedChord.id, 85); // 85% de precisão estimada
-                            }}
-                            onSkip={() => {
-                              console.log('Prática pulada - não conta para XP');
-                            }}
+                  </div>
+                  
+                  {/* Chord Detail */}
+                  <div className="lg:col-span-2">
+                    <div className="rounded-3xl p-8 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10">
+                      <div className="flex flex-col lg:flex-row gap-8">
+                        {/* Diagram */}
+                        <div className="flex-shrink-0 flex justify-center">
+                          <ChordDiagram
+                            frets={selectedChord.frets}
+                            fingers={selectedChord.fingers}
+                            name={selectedChord.name}
+                            size="lg"
                           />
                         </div>
-                      )}
-                      
-                      {/* Feedback de Áudio em Tempo Real */}
-                      <div className="mt-6">
-                        <RealtimeAudioFeedback
-                          practiceType="chord"
-                          target={selectedChord.name}
-                          difficulty={selectedChord.difficulty === 'beginner' ? 'beginner' : selectedChord.difficulty === 'intermediate' ? 'intermediate' : 'advanced'}
-                          showControls={true}
-                          showDetailedFeedback={true}
-                        />
+                        
+                        {/* Info */}
+                        <div className="flex-1 space-y-6">
+                          <div>
+                            <h2 className="text-3xl font-bold text-white mb-2">{selectedChord.fullName}</h2>
+                            <p className="text-gray-300">{selectedChord.description}</p>
+                          </div>
+                          
+                          <div>
+                            <h3 className="text-lg font-semibold text-white mb-3">Dicas</h3>
+                            <ul className="space-y-2">
+                              {selectedChord.tips.map((tip, index) => (
+                                <li key={index} className="flex items-start gap-2 text-gray-300">
+                                  <span className="text-[#06b6d4] mt-1">•</span>
+                                  <span>{tip}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <h3 className="text-lg font-semibold text-white mb-3">Acordes Relacionados</h3>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedChord.relatedChords.map((relatedId) => (
+                                <button
+                                  key={relatedId}
+                                  onClick={() => {
+                                    const related = chords.find(c => c.id === relatedId);
+                                    if (related) handleChordClick(related);
+                                  }}
+                                  className="px-4 py-2 rounded-lg bg-[#2a2a3e] hover:bg-[#323246] text-white transition-colors"
+                                >
+                                  {relatedId}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-3 pt-4">
+                            {!isPlaying ? (
+                              <>
+                                <Button 
+                                  onClick={handlePlayChord}
+                                  className="flex-1 bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-white font-semibold"
+                                >
+                                  <Play className="w-4 h-4 mr-2" />
+                                  Ouvir
+                                </Button>
+                                <Button 
+                                  onClick={handlePractice}
+                                  className="flex-1 bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] hover:from-[#c084fc] hover:to-[#a855f7] text-white font-semibold"
+                                >
+                                  Praticar
+                                </Button>
+                              </>
+                            ) : (
+                              <Button 
+                                onClick={handleStopChord}
+                                className="flex-1 bg-gradient-to-r from-[#ef4444] to-[#dc2626] text-white font-semibold"
+                              >
+                                <StopCircle className="w-4 h-4 mr-2" />
+                                Parar
+                              </Button>
+                            )}
+                          </div>
+                          
+                          {/* Timer de Prática (se estiver na aba de prática) */}
+                          {activeTab === 'practice' && (
+                            <div className="mt-6">
+                              <ChordPracticeTimer
+                                suggestedDuration={selectedChord.difficulty === 'beginner' ? 5 : selectedChord.difficulty === 'intermediate' ? 10 : 15}
+                                chordName={selectedChord.name}
+                                onComplete={() => {
+                                  // Marcar acorde como praticado
+                                  handleChordComplete(selectedChord.id, 85); // 85% de precisão estimada
+                                }}
+                                onSkip={() => {
+                                  console.log('Prática pulada - não conta para XP');
+                                }}
+                              />
+                            </div>
+                          )}
+                          
+                          {/* Feedback de Áudio em Tempo Real */}
+                          <div className="mt-6">
+                            <RealtimeAudioFeedback
+                              practiceType="chord"
+                              target={selectedChord.name}
+                              difficulty={selectedChord.difficulty === 'beginner' ? 'beginner' : selectedChord.difficulty === 'intermediate' ? 'intermediate' : 'advanced'}
+                              showControls={true}
+                              showDetailedFeedback={true}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
               </>
             )}
           </div>

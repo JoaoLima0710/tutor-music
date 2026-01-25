@@ -106,6 +106,10 @@ class ScalePlayer {
 
   /**
    * Sintetiza uma nota
+   * TODO: migrate to AudioBus
+   * Substituir criação direta de oscilador e conexão com masterGain por:
+   * const audioBus = getAudioBus();
+   * audioBus.playOscillator({ frequency, type: 'triangle', duration, channel: 'scales', volume: this.volume * 0.4 });
    */
   private synthesizeNote(frequency: number, duration: number): void {
     const audioContext = this.audioEngine.getContext();

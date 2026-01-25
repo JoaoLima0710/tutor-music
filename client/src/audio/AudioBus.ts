@@ -1,5 +1,6 @@
 import AudioEngine from './AudioEngine';
 import AudioMixer from './AudioMixer';
+import SampleLoader from './SampleLoader';
 import { SampleData } from './types';
 
 /**
@@ -15,10 +16,12 @@ import { SampleData } from './types';
 class AudioBus {
   private audioEngine: AudioEngine;
   private audioMixer: AudioMixer;
+  private sampleLoader: SampleLoader;
 
   constructor() {
     this.audioEngine = AudioEngine.getInstance();
     this.audioMixer = new AudioMixer();
+    this.sampleLoader = SampleLoader.getInstance();
   }
 
   /**
@@ -221,6 +224,55 @@ class AudioBus {
       offset,
       duration,
     });
+  }
+
+  /**
+   * Reproduz um sample a partir de uma URL
+   * Carrega o sample internamente e agenda o playback
+   * 
+   * @param sampleUrl - URL do sample (ex: '/samples/strings/E2.mp3')
+   * @param channel - Nome do canal
+   * @param volume - Volume adicional (0.0 a 1.0)
+   * @param when - Tempo de início (em segundos, relativo ao currentTime)
+   * @param offset - Offset no buffer (em segundos)
+   * @param duration - Duração a tocar (em segundos, undefined = tocar tudo)
+   * @returns Promise que resolve com true se o áudio foi agendado com sucesso, false caso contrário
+   */
+  public async playSampleFromUrl({
+    sampleUrl,
+    channel,
+    volume = 1.0,
+    when,
+    offset = 0,
+    duration,
+  }: {
+    sampleUrl: string;
+    channel: string;
+    volume?: number;
+    when?: number;
+    offset?: number;
+    duration?: number;
+  }): Promise<boolean> {
+    try {
+      // Carregar sample internamente (AudioBus é responsável pelo carregamento)
+      const sample = await this.sampleLoader.loadSample(sampleUrl);
+      
+      // Reproduzir usando playSample
+      return this.playSample({
+        sample,
+        channel,
+        volume,
+        when,
+        offset,
+        duration,
+      });
+    } catch (error) {
+      // Fail safe: se sample não existir, não tocar nada (silenciosamente)
+      if (import.meta.env.DEV) {
+        console.warn(`[AudioBus] Sample não encontrado para ${sampleUrl}:`, error);
+      }
+      return false;
+    }
   }
 }
 

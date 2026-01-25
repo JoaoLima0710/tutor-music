@@ -195,6 +195,11 @@ class Metronome {
 
     if (!clickSample) return;
 
+    // TODO: migrate to AudioBus
+    // Substituir criação direta de source e conexão com masterGain por:
+    // const audioBus = getAudioBus();
+    // audioBus.playSample({ sample: clickSample, channel: 'metronome', volume: this.config.volume * volumeMultiplier, when: time });
+
     // Criar source e gain
     const source = audioContext.createBufferSource();
     const gainNode = audioContext.createGain();
