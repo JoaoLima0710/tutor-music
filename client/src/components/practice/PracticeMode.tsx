@@ -139,8 +139,8 @@ export function PracticeMode({ chords, bpm, onComplete }: PracticeModeProps) {
   
   const handlePlayChord = async () => {
     try {
-      // CRÍTICO para tablets: Inicializar áudio primeiro
-      await unifiedAudioService.initialize();
+      // CRÍTICO para tablets: Garantir inicialização primeiro
+      await unifiedAudioService.ensureInitialized();
       await new Promise(resolve => setTimeout(resolve, 50));
       console.log('🎸 Tocando acorde:', currentChord);
       await unifiedAudioService.playChord(currentChord, 2);

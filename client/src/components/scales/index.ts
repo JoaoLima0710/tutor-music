@@ -3,6 +3,7 @@
  */
 
 export { ScalePractice } from './ScalePractice';
+export { EnhancedScalePractice } from './EnhancedScalePractice';
 export { ScaleFretboard } from './ScaleFretboard';
 export { ScaleShapes } from './ScaleShapes';
 export { ScaleClock } from './ScaleClock';

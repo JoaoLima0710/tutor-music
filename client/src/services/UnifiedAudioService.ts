@@ -229,6 +229,15 @@ class AudioManager {
   }
 
   /**
+   * Ensure audio service is initialized before use
+   */
+  async ensureInitialized(): Promise<void> {
+    if (!this.isInitialized) {
+      await this.initialize();
+    }
+  }
+
+  /**
    * Initialize the audio system with exclusive service management
    */
   async initialize(): Promise<boolean> {
@@ -493,6 +502,9 @@ class AudioManager {
    * Set instrument with proper validation
    */
   async setInstrument(instrument: InstrumentType): Promise<void> {
+    // Ensure service is initialized before setting instrument
+    await this.ensureInitialized();
+    
     if (!this.activeService) {
       throw new Error('Audio service not initialized - call initialize() first');
     }
@@ -615,6 +627,9 @@ class AudioManager {
    * Play strummed chord
    */
   async playChordStrummed(chordName: string, duration?: number): Promise<void> {
+    // Ensure service is initialized before playing
+    await this.ensureInitialized();
+    
     if (!this.activeService) {
       throw new Error('Audio service not initialized');
     }
@@ -639,6 +654,9 @@ class AudioManager {
    * Play scale with intelligent note mapping - THE SCALE FIX
    */
   async playScale(scaleName: string, root: string, intervals: number[], duration: number = 0.5): Promise<void> {
+    // Ensure service is initialized before playing
+    await this.ensureInitialized();
+    
     if (!this.activeService) {
       throw new Error('Audio service not initialized');
     }
@@ -708,12 +726,11 @@ class AudioManager {
    * Play single note - FIXED VERSION
    */
   async playNote(note: string, duration?: number): Promise<void> {
+    // Ensure service is initialized before playing
+    await this.ensureInitialized();
+    
     if (!this.activeService) {
-      // Try to initialize if not already
-      await this.initialize();
-      if (!this.activeService) {
-        throw new Error('Audio service not initialized');
-      }
+      throw new Error('Audio service not initialized');
     }
 
     // Ensure note has octave (default to 4 if not specified)
@@ -873,6 +890,7 @@ export const audioManager = new AudioManager();
 // Legacy compatibility layer - redirects to new manager
 export const unifiedAudioService = {
   initialize: () => audioManager.initialize(),
+  ensureInitialized: () => audioManager.ensureInitialized(),
   setInstrument: (instrument: InstrumentType) => audioManager.setInstrument(instrument),
   getInstrument: () => audioManager.getInstrument(),
   playChord: (chordName: string, duration?: number) => audioManager.playChord(chordName, duration),

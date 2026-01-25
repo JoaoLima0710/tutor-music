@@ -115,7 +115,7 @@ export function AdvancedSongPlayer({
     if (state === 'playing') {
       songPlayerService.pause();
     } else {
-      await unifiedAudioService.initialize();
+      await unifiedAudioService.ensureInitialized();
       songPlayerService.play();
     }
   };

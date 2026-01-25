@@ -17,10 +17,11 @@ import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
 import type { InstrumentType } from '@/services/AudioServiceWithSamples';
 import { RealtimeAudioFeedback } from '@/components/audio/RealtimeAudioFeedback';
-import { ChordPracticeTimer } from '@/components/practice';
+import { ChordPracticeTimer, EnhancedChordPractice } from '@/components/practice';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { convertChordToPracticeFormat } from '@/utils/chordPracticeHelpers';
 
 export default function Chords() {
   const [, setLocation] = useLocation();
@@ -29,6 +30,7 @@ export default function Chords() {
   const [filter, setFilter] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
   const [activeTab, setActiveTab] = useState<'practice' | 'theory'>('theory');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showEnhancedPractice, setShowEnhancedPractice] = useState(false);
   
   const { instrument, setInstrument: setGlobalInstrument } = useAudioSettingsStore();
   
@@ -73,9 +75,9 @@ export default function Chords() {
     try {
       setIsPlaying(true);
       
-      // CRÍTICO para tablets: Inicializar áudio primeiro
+      // CRÍTICO para tablets: Garantir inicialização primeiro
       // A inicialização precisa acontecer em resposta a um gesto do usuário
-      await unifiedAudioService.initialize();
+      await unifiedAudioService.ensureInitialized();
       
       // Pequeno delay para garantir que o AudioContext está pronto
       await new Promise(resolve => setTimeout(resolve, 50));
@@ -92,12 +94,32 @@ export default function Chords() {
   
   // Initialize audio service with saved instrument on mount
   useEffect(() => {
-    unifiedAudioService.setInstrument(instrument);
+    let mounted = true;
+
+    (async () => {
+      try {
+        await unifiedAudioService.ensureInitialized();
+        if (mounted) {
+          await unifiedAudioService.setInstrument(instrument);
+        }
+      } catch (e) {
+        console.error('Audio init failed', e);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, [instrument]);
   
-  const handleInstrumentChange = (newInstrument: InstrumentType) => {
+  const handleInstrumentChange = async (newInstrument: InstrumentType) => {
     setGlobalInstrument(newInstrument);
-    unifiedAudioService.setInstrument(newInstrument);
+    try {
+      await unifiedAudioService.ensureInitialized();
+      await unifiedAudioService.setInstrument(newInstrument);
+    } catch (e) {
+      console.error('Failed to set instrument', e);
+    }
   };
   
   const handleStopChord = () => {
@@ -374,20 +396,45 @@ export default function Chords() {
                             )}
                           </div>
                           
-                          {/* Timer de Prática (se estiver na aba de prática) */}
+                          {/* Prática Aprimorada ou Timer de Prática (se estiver na aba de prática) */}
                           {activeTab === 'practice' && (
                             <div className="mt-6">
-                              <ChordPracticeTimer
-                                suggestedDuration={selectedChord.difficulty === 'beginner' ? 5 : selectedChord.difficulty === 'intermediate' ? 10 : 15}
-                                chordName={selectedChord.name}
-                                onComplete={() => {
-                                  // Marcar acorde como praticado
-                                  handleChordComplete(selectedChord.id, 85); // 85% de precisão estimada
-                                }}
-                                onSkip={() => {
-                                  console.log('Prática pulada - não conta para XP');
-                                }}
-                              />
+                              {showEnhancedPractice ? (
+                                <EnhancedChordPractice
+                                  chord={selectedChord}
+                                  {...convertChordToPracticeFormat(selectedChord)}
+                                  onComplete={(accuracy, time) => {
+                                    handleChordComplete(selectedChord.id, accuracy);
+                                    setShowEnhancedPractice(false);
+                                  }}
+                                  targetRepetitions={3}
+                                />
+                              ) : (
+                                <>
+                                  <div className="mb-4">
+                                    <Button
+                                      onClick={() => setShowEnhancedPractice(true)}
+                                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold"
+                                    >
+                                      🎯 Treino Pedagógico Aprimorado
+                                    </Button>
+                                    <p className="text-xs text-gray-400 mt-2 text-center">
+                                      Treino com destaque de cordas críticas, mensagens pedagógicas e repetição obrigatória
+                                    </p>
+                                  </div>
+                                  <ChordPracticeTimer
+                                    suggestedDuration={selectedChord.difficulty === 'beginner' ? 5 : selectedChord.difficulty === 'intermediate' ? 10 : 15}
+                                    chordName={selectedChord.name}
+                                    onComplete={() => {
+                                      // Marcar acorde como praticado
+                                      handleChordComplete(selectedChord.id, 85); // 85% de precisão estimada
+                                    }}
+                                    onSkip={() => {
+                                      console.log('Prática pulada - não conta para XP');
+                                    }}
+                                  />
+                                </>
+                              )}
                             </div>
                           )}
                           

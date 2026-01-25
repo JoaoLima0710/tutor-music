@@ -91,8 +91,8 @@ export function FullFretboardView({ scaleName, root, intervals }: FullFretboardV
       
       setPlayingNote(`${stringIndex}-${fret}`);
       
-      // CRÍTICO para tablets: Inicializar áudio primeiro (precisa de interação do usuário)
-      await unifiedAudioService.initialize();
+      // CRÍTICO para tablets: Garantir inicialização primeiro (precisa de interação do usuário)
+      await unifiedAudioService.ensureInitialized();
       
       // Delay extra para tablets garantirem AudioContext ativo
       await new Promise(resolve => setTimeout(resolve, 50));

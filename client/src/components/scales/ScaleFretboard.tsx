@@ -354,8 +354,8 @@ export function ScaleFretboard({ scaleName, scaleNotes, tonic, intervals }: Scal
     setIsPlaying(true);
 
     try {
-      // CRÍTICO para tablets: Inicializar áudio primeiro
-      await unifiedAudioService.initialize();
+      // CRÍTICO para tablets: Garantir inicialização primeiro
+      await unifiedAudioService.ensureInitialized();
       // Delay extra para tablets garantirem AudioContext ativo
       await new Promise(resolve => setTimeout(resolve, 100));
       

@@ -202,6 +202,67 @@ class AudioService {
     });
   }
 
+  /**
+   * Play note optimized for ear training
+   * - Clear attack (0.01s) for better note distinction
+   * - Medium sustain (0.5) for natural sound
+   * - Normalized volume for consistency
+   * - Natural timbre (nylon-guitar based)
+   */
+  async playNoteForEarTraining(note: string, duration: number = 0.8): Promise<void> {
+    try {
+      await this.initialize();
+      if (!this.synth) {
+        console.error('❌ Synth not available');
+        return;
+      }
+
+      // Ensure note has octave (default to 4 if not specified)
+      let noteWithOctave = note;
+      if (!/\d/.test(note)) {
+        noteWithOctave = note + '4';
+      }
+
+      // Create a temporary synth with ear training optimized settings
+      const earTrainingConfig = {
+        oscillator: {
+          type: 'triangle' as const,
+          partialCount: 8, // Natural harmonics, not too synthetic
+        },
+        envelope: {
+          attack: 0.01,  // Clear attack - not too fast, not too slow
+          decay: 0.15,   // Quick decay to sustain level
+          sustain: 0.55, // Medium sustain - natural and clear
+          release: 0.4,   // Medium release - clean cutoff
+        },
+        volume: -6, // Normalized volume for consistency
+      };
+
+      const earTrainingSynth = new Tone.Synth(earTrainingConfig);
+      
+      // Connect to effects chain (use existing effects for consistency)
+      if (this.chorus) {
+        earTrainingSynth.connect(this.chorus);
+      } else {
+        earTrainingSynth.toDestination();
+      }
+
+      console.log('🎵 [Ear Training] Playing note:', noteWithOctave, `(${duration}s)`);
+
+      const now = Tone.now();
+      earTrainingSynth.triggerAttackRelease(noteWithOctave, duration, now);
+
+      // Clean up after note finishes
+      setTimeout(() => {
+        earTrainingSynth.dispose();
+      }, (duration + 0.5) * 1000);
+
+      console.log('✅ [Ear Training] Note played successfully');
+    } catch (error) {
+      console.error('❌ Error playing ear training note:', error);
+    }
+  }
+
   async playNote(note: string, duration: number = 0.5): Promise<void> {
     try {
       await this.initialize();

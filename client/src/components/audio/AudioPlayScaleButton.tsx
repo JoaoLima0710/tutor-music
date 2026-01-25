@@ -33,7 +33,7 @@ export function AudioPlayScaleButton({
     
     try {
       setIsPlaying(true);
-      await unifiedAudioService.initialize();
+      await unifiedAudioService.ensureInitialized();
       await unifiedAudioService.playScale(scaleName, root, intervals, 0.5);
       
       // Reset after scale finishes (approximate duration)

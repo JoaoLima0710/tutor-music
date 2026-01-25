@@ -7,6 +7,7 @@ import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { Button } from '@/components/ui/button';
 import {
   ScalePractice,
+  EnhancedScalePractice,
   IntervalTheory,
   ScaleShapes,
   EarTraining,
@@ -374,10 +375,10 @@ export default function Scales() {
             {/* Step 5: Prática */}
             {currentStep === 'practice' && (
               <div className="p-6 rounded-2xl bg-gradient-to-br from-[#1a1a2e]/80 to-[#2a2a3e]/60 border border-white/20">
-                <h2 className="text-2xl font-bold text-white mb-4">🎸 Treino Interativo</h2>
-                <p className="text-gray-400 mb-6">Pratique a escala com feedback em tempo real usando seu violão</p>
+                <h2 className="text-2xl font-bold text-white mb-4">🎸 Treino de Coordenação</h2>
+                <p className="text-gray-400 mb-6">Pratique com foco em coordenação e controle, não velocidade</p>
                 
-                <ScalePractice 
+                <EnhancedScalePractice 
                   scale={{
                     id: selectedScale.id,
                     name: selectedScale.name,

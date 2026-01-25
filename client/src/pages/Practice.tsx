@@ -9,9 +9,17 @@ import {
   PitchDetector,
   SpectrumVisualizer,
   EarTraining,
+  EssentialIntervalTraining,
+  MajorMinorChordTraining,
+  ActiveRhythmTraining,
+  ShortTermMemoryTraining,
   PhysicalPreparation,
   ContextualEarTraining,
   TranscriptionExercise,
+  ChordProgressionPractice,
+  RhythmTraining,
+  MotorCoordinationExercises,
+  GuidedTrainingSession,
 } from '@/components/practice';
 import { RealtimeChordDetector } from '@/components/chord-detection/RealtimeChordDetector';
 import { AdaptiveDifficultyRecommendations } from '@/components/adaptive/AdaptiveDifficultyRecommendations';
@@ -276,6 +284,24 @@ export default function Practice() {
               </div>
             )}
 
+            {/* Sessão de Treino Guiada */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-white">🎓 Sessão de Treino Guiada</h2>
+                <Badge variant="outline" className="border-purple-500/30 text-purple-400 text-xs">
+                  Recomendado
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Siga um treino completo passo a passo, como um professor ao seu lado. Começo, meio e fim claros.
+              </p>
+              <GuidedTrainingSession
+                onComplete={() => {
+                  console.log('Sessão guiada concluída!');
+                }}
+              />
+            </div>
+
             {/* Recomendações de Dificuldade Adaptativa */}
             <div>
               <h2 className="text-2xl font-bold text-white mb-4">📊 Recomendações Personalizadas</h2>
@@ -308,6 +334,102 @@ export default function Practice() {
                 Ouça a melodia e reproduza no seu violão
               </p>
               <TranscriptionExercise />
+            </div>
+
+            {/* Chord Progression Practice */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-white">🎸 Treino de Troca de Acordes</h2>
+                <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs">
+                  Novo
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Pratique progressões reais com metrônomo. Desenvolva velocidade e antecipação motora.
+              </p>
+              <ChordProgressionPractice
+                onComplete={(accuracy, finalBpm) => {
+                  console.log(`Prática concluída: ${accuracy}% de precisão a ${finalBpm} BPM`);
+                }}
+              />
+            </div>
+
+            {/* Rhythm Training */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-white">🥁 Treino Rítmico</h2>
+                <Badge variant="outline" className="border-orange-500/30 text-orange-400 text-xs">
+                  Novo
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Desenvolva seu pulso interno e precisão rítmica. Pratique palmas no 2 e 4, subdivisões e pulso constante.
+              </p>
+              <RhythmTraining
+                onComplete={(accuracy, avgDelay) => {
+                  console.log(`Treino rítmico concluído: ${accuracy}% de precisão, atraso médio ${avgDelay}ms`);
+                }}
+              />
+            </div>
+
+            {/* Motor Coordination Exercises */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-white">🏃 Coordenação Motora</h2>
+                <Badge variant="outline" className="border-blue-500/30 text-blue-400 text-xs">
+                  Novo
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Exercícios silenciosos para desenvolver independência das mãos. Reduza a carga cognitiva e melhore o controle motor.
+              </p>
+              <MotorCoordinationExercises
+                onComplete={(totalSessions, avgFatigue) => {
+                  console.log(`Exercícios concluídos: ${totalSessions} sessões, fadiga média ${avgFatigue.toFixed(1)}`);
+                }}
+              />
+            </div>
+
+            {/* Intervalos Essenciais - Treino Simples */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-white">🎯 Intervalos Essenciais</h2>
+                <Badge variant="outline" className="border-purple-500/30 text-purple-400 text-xs">
+                  Iniciante
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Desenvolva sua percepção de altura - compare duas notas sem nomenclatura técnica
+              </p>
+              <EssentialIntervalTraining />
+            </div>
+
+            {/* Acordes Maior x Menor - Treino Harmônico */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-white">🎸 Acordes: Alegre x Triste</h2>
+                <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-xs">
+                  Essencial
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Desenvolva reconhecimento harmônico - identifique o clima dos acordes
+              </p>
+              <MajorMinorChordTraining />
+            </div>
+
+            {/* Memória Auditiva Curta */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-white">🧠 Memória Auditiva Curta</h2>
+                <Badge variant="outline" className="border-purple-500/30 text-purple-400 text-xs">
+                  Retenção
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Desenvolva retenção sonora - lembre-se de sequências curtas
+              </p>
+              <ShortTermMemoryTraining />
             </div>
 
             {/* Ear Training */}
@@ -494,6 +616,62 @@ export default function Practice() {
               </Badge>
             </div>
             <ContextualEarTraining />
+          </div>
+
+          {/* Intervalos Essenciais - Mobile */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <h2 className="text-lg font-bold text-white">🎯 Intervalos Essenciais</h2>
+              <Badge variant="outline" className="border-purple-500/30 text-purple-400 text-xs">
+                Iniciante
+              </Badge>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">
+              Compare duas notas - desenvolva sua percepção de altura
+            </p>
+            <EssentialIntervalTraining />
+          </div>
+
+          {/* Acordes Maior x Menor - Mobile */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <h2 className="text-lg font-bold text-white">🎸 Acordes: Alegre x Triste</h2>
+              <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-xs">
+                Essencial
+              </Badge>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">
+              Identifique o clima dos acordes - desenvolva reconhecimento harmônico
+            </p>
+            <MajorMinorChordTraining />
+          </div>
+
+          {/* Ritmo Auditivo Ativo - Mobile */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <h2 className="text-lg font-bold text-white">👏 Ritmo Auditivo Ativo</h2>
+              <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs">
+                Escuta Ativa
+              </Badge>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">
+              Desenvolva escuta ativa de pulso - reduza dependência visual
+            </p>
+            <ActiveRhythmTraining />
+          </div>
+
+          {/* Memória Auditiva Curta - Mobile */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <h2 className="text-lg font-bold text-white">🧠 Memória Auditiva Curta</h2>
+              <Badge variant="outline" className="border-purple-500/30 text-purple-400 text-xs">
+                Retenção
+              </Badge>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">
+              Desenvolva retenção sonora - lembre-se de sequências curtas
+            </p>
+            <ShortTermMemoryTraining />
           </div>
 
           <div>

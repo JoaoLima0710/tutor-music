@@ -130,26 +130,31 @@ export function ContextualEarTraining() {
         // Mapear acorde para notas (simplificado)
         const chordNotes = getChordNotes(chordName);
         
-        // Tocar acorde (notas simultâneas com delay mínimo)
+        // Tocar acorde (notas simultâneas com delay otimizado para percepção auditiva)
+        // Duração otimizada: 1.0s - suficiente para distinguir, não muito longo
+        const chordDuration = 1.0;
+        
         const playPromises = chordNotes.map((note, index) => {
           return new Promise<void>((resolve) => {
             setTimeout(async () => {
               try {
-                await unifiedAudioService.playNote(note, 'guitar', 0.8);
+                // Duração consistente para todos os acordes na progressão
+                await unifiedAudioService.playNote(note, chordDuration);
                 resolve();
               } catch (error) {
                 console.error(`Erro ao tocar nota ${note}:`, error);
                 resolve();
               }
-            }, index * 20); // 20ms de delay entre notas do acorde
+            }, index * 18); // 18ms de delay - otimizado para clareza auditiva
           });
         });
         
         await Promise.all(playPromises);
         
-        // Pausa entre acordes (exceto após o último)
+        // Pausa entre acordes: suficiente para distinguir cada acorde
+        // Delay otimizado para percepção auditiva
         if (i < currentExercise.progression.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 600));
+          await new Promise(resolve => setTimeout(resolve, 650));
         }
       }
     } catch (error) {

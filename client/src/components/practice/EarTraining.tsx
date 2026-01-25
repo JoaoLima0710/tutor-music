@@ -114,16 +114,10 @@ export function EarTraining() {
     
     try {
       // Garantir que o audioService está inicializado
-      console.log('🎵 Inicializando audio service para treino de ouvido...');
+      console.log('🎵 Garantindo inicialização do audio service para treino de ouvido...');
       
       // Primeiro, garantir inicialização
-      const initialized = await unifiedAudioService.initialize();
-      
-      if (!initialized) {
-        console.error('❌ Falha ao inicializar serviço de áudio, tentando reinicializar...');
-        // Tentar reinicializar
-        await unifiedAudioService.reinitialize();
-      }
+      await unifiedAudioService.ensureInitialized();
       
       // Pequeno delay para garantir que tudo está pronto
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -131,64 +125,82 @@ export function EarTraining() {
       console.log('✅ Audio service inicializado, tocando exercício:', exerciseType);
       console.log('🎼 Notas a tocar:', notes);
       
+      // Configurações otimizadas para percepção auditiva:
+      // - Duração consistente para melhor distinção
+      // - Delay adequado entre notas para clareza
+      // - Volumes normalizados
+      
       if (exerciseType === 'chords') {
-        // Para acordes, precisamos tocar as notas simultaneamente
-        // Mas como não temos um método playChord com notas específicas,
-        // vamos tocar as notas com delay muito pequeno para parecer simultâneo
-        console.log('🎸 Tocando acorde:', notes);
+        // Para acordes, tocar as notas quase simultaneamente com duração otimizada
+        console.log('🎸 [Ear Training] Tocando acorde:', notes);
         
-        const startTime = Date.now();
-        // Tocar todas as notas quase simultaneamente (delay de 10ms entre cada)
+        // Duração otimizada para acordes: suficiente para distinguir, não muito longo
+        const chordDuration = 1.2;
+        
+        // Tocar todas as notas quase simultaneamente (delay de 15ms entre cada para clareza)
         const playPromises = notes.map((note, index) => {
           return new Promise<void>((resolve) => {
             setTimeout(async () => {
               try {
-                await unifiedAudioService.playNote(note, 1.5);
+                // Duração consistente para todos os acordes
+                await unifiedAudioService.playNote(note, chordDuration);
                 resolve();
               } catch (error) {
                 console.error(`Erro ao tocar nota ${note}:`, error);
                 resolve();
               }
-            }, index * 10); // 10ms de delay entre cada nota
+            }, index * 15); // 15ms de delay para melhor separação auditiva
           });
         });
         
         await Promise.all(playPromises);
-        console.log('✅ Acorde tocado com sucesso');
+        console.log('✅ [Ear Training] Acorde tocado com sucesso');
         
       } else if (exerciseType === 'intervals') {
-        // Para intervalos, tocar as duas notas sequencialmente
-        console.log('🎵 Tocando intervalo:', notes);
+        // Para intervalos, tocar as duas notas sequencialmente com duração otimizada
+        console.log('🎵 [Ear Training] Tocando intervalo:', notes);
+        
+        // Duração otimizada para intervalos: clara e distinta
+        const intervalDuration = 0.9;
+        // Delay entre notas: suficiente para distinguir, não muito longo
+        const intervalDelay = 450;
         
         for (let i = 0; i < notes.length; i++) {
           const note = notes[i];
-          console.log(`🎼 Tocando nota ${i + 1}/${notes.length}:`, note);
+          console.log(`🎼 [Ear Training] Tocando nota ${i + 1}/${notes.length}:`, note);
           
-          await unifiedAudioService.playNote(note, 0.8);
+          // Duração consistente para melhor comparação entre intervalos
+          await unifiedAudioService.playNote(note, intervalDuration);
           
           // Delay entre notas (exceto após a última)
           if (i < notes.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 400));
+            await new Promise(resolve => setTimeout(resolve, intervalDelay));
           }
         }
-        console.log('✅ Intervalo tocado com sucesso');
+        console.log('✅ [Ear Training] Intervalo tocado com sucesso');
         
       } else {
-        // Para melodias, tocar sequência de notas
-        console.log('🎶 Tocando melodia:', notes);
+        // Para melodias, tocar sequência de notas com duração otimizada
+        console.log('🎶 [Ear Training] Tocando melodia:', notes);
+        
+        // Duração otimizada para melodias: clara mas fluida
+        const melodyDuration = 0.7;
+        // Delay entre notas: ritmo natural
+        const melodyDelay = 550;
         
         for (let i = 0; i < notes.length; i++) {
           const note = notes[i];
-          console.log(`🎼 Tocando nota ${i + 1}/${notes.length}:`, note);
+          console.log(`🎼 [Ear Training] Tocando nota ${i + 1}/${notes.length}:`, note);
           
-          await unifiedAudioService.playNote(note, 0.6);
+          // Duração consistente para melhor reconhecimento melódico
+          await unifiedAudioService.playNote(note, melodyDuration);
           
           // Delay entre notas (exceto após a última)
           if (i < notes.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, melodyDelay));
           }
         }
-        console.log('✅ Melodia tocada com sucesso');
+        console.log('✅ [Ear Training] Melodia tocada com sucesso');
       }
       
     } catch (error) {

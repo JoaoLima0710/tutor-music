@@ -48,15 +48,20 @@ export function IntervalTheory({ rootNote = 'C' }: IntervalTheoryProps) {
     setSelectedInterval(interval);
     
     try {
-      // CRÍTICO para tablets: Inicializar áudio primeiro
-      await unifiedAudioService.initialize();
+      // CRÍTICO para tablets: Garantir inicialização primeiro
+      await unifiedAudioService.ensureInitialized();
       // Delay extra para tablets garantirem AudioContext ativo
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      console.log('🎵 Tocando intervalo:', interval.name);
+      console.log('🎵 [Ear Training] Tocando intervalo:', interval.name);
+      
+      // Durações otimizadas para percepção auditiva:
+      // - Notas individuais: 0.85s (clara e distinta)
+      // - Notas juntas: 0.9s (suficiente para distinguir)
+      // - Delay entre notas: 500ms (tempo adequado para processar)
       
       // Tocar nota raiz
-      await unifiedAudioService.playNote(`${rootNote}4`, 0.6);
+      await unifiedAudioService.playNote(`${rootNote}4`, 0.85);
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Tocar nota do intervalo
@@ -65,13 +70,14 @@ export function IntervalTheory({ rootNote = 'C' }: IntervalTheoryProps) {
       const targetIndex = (rootIndex + interval.semitones) % 12;
       const targetNote = NOTES[targetIndex];
       
-      await unifiedAudioService.playNote(`${targetNote}4`, 0.6);
+      await unifiedAudioService.playNote(`${targetNote}4`, 0.85);
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Tocar ambas juntas (uma após a outra para tablets)
-      await unifiedAudioService.playNote(`${rootNote}4`, 0.8);
-      await new Promise(resolve => setTimeout(resolve, 100));
-      await unifiedAudioService.playNote(`${targetNote}4`, 0.8);
+      // Delay reduzido para 80ms para melhor percepção de harmonia
+      await unifiedAudioService.playNote(`${rootNote}4`, 0.9);
+      await new Promise(resolve => setTimeout(resolve, 80));
+      await unifiedAudioService.playNote(`${targetNote}4`, 0.9);
       
     } catch (error) {
       console.error('Erro ao tocar intervalo:', error);

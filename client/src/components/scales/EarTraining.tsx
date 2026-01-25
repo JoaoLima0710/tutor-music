@@ -45,14 +45,15 @@ export function EarTraining({ scaleName, root, intervals }: EarTrainingProps) {
     setReplayCountdown(0);
     
     try {
-      // CRÍTICO para tablets: Inicializar áudio primeiro
-      await unifiedAudioService.initialize();
+      // CRÍTICO para tablets: Garantir inicialização primeiro
+      await unifiedAudioService.ensureInitialized();
       // Delay extra para tablets garantirem AudioContext ativo
       await new Promise(resolve => setTimeout(resolve, 100));
       
       const note = scaleNotes[degree];
-      console.log('🎵 Tocando grau', degree + 1, ':', note);
-      await unifiedAudioService.playNote(`${note}4`, 1.0);
+      console.log('🎵 [Ear Training] Tocando grau', degree + 1, ':', note);
+      // Duração otimizada para percepção auditiva: 0.9s - clara e distinta
+      await unifiedAudioService.playNote(`${note}4`, 0.9);
       
       // Auto-replay após 3 segundos se habilitado
       if (autoReplay) {
