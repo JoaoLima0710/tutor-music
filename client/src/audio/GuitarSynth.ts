@@ -33,6 +33,12 @@ import { NOTE_NAMES, A4_FREQUENCY, A4_MIDI_NUMBER } from './types';
  */
 
 /**
+ * Lista de acordes bloqueados (samples não disponíveis)
+ * Estes acordes não têm samples e não devem ser reproduzidos
+ */
+const BLOCKED_CHORDS = new Set(['B7', 'E7', 'G7']);
+
+/**
  * Tabela de ganhos de normalização por acorde
  * Compensação musical legítima: acordes graves acumulam mais energia
  * 
@@ -117,10 +123,11 @@ class ChordPlayer {
    * REFATORADO: Usa sample único por acorde, não monta nota por nota
    * 
    * Comportamento:
-   * 1. Resolve o nome do acorde (ex: "C", "Am", "G7")
-   * 2. Monta URL: /samples/chords/{chordName}.mp3
-   * 3. Aplica normalização via metadata (ganho leve)
-   * 4. Reproduz usando AudioBus.playSampleFromUrl()
+   * 1. Valida se o acorde não está bloqueado (sem sample)
+   * 2. Resolve o nome do acorde (ex: "C", "Am", "G7")
+   * 3. Monta URL: /samples/chords/{chordName}.mp3
+   * 4. Aplica normalização via metadata (ganho leve)
+   * 5. Reproduz usando AudioBus.playSampleFromUrl()
    * 
    * ⚠️ ChordPlayer NÃO carrega sample (AudioBus faz isso)
    * ⚠️ ChordPlayer NÃO agenda tempo (AudioBus faz isso)
@@ -128,6 +135,12 @@ class ChordPlayer {
    * ⚠️ Normalização: aplicação leve via metadata, sem análise de áudio
    */
   public async playChord(chordName: string): Promise<void> {
+    // Validação: bloquear acordes sem samples
+    if (BLOCKED_CHORDS.has(chordName)) {
+      console.error(`[ChordPlayer] Acorde '${chordName}' bloqueado: sample não disponível. Use outro acorde ou adicione o sample.`);
+      return;
+    }
+
     await this.audioEngine.ensureResumed();
 
     const audioBus = getAudioBus();
@@ -208,14 +221,24 @@ class ChordPlayer {
   }
 
   /**
-   * Lista todos os acordes disponíveis
+   * Lista todos os acordes disponíveis (exclui acordes bloqueados)
    */
   public getAvailableChords(): string[] {
-    return [
+    const allChords = [
       'C', 'D', 'E', 'F', 'G', 'A', 'B',
       'Am', 'Bm', 'Cm', 'Dm', 'Em', 'Fm', 'Gm',
       'A7', 'B7', 'C7', 'D7', 'E7', 'G7'
     ];
+    
+    // Filtrar acordes bloqueados (sem samples)
+    return allChords.filter(chord => !BLOCKED_CHORDS.has(chord));
+  }
+
+  /**
+   * Verifica se um acorde está disponível (não bloqueado)
+   */
+  public isChordAvailable(chordName: string): boolean {
+    return !BLOCKED_CHORDS.has(chordName);
   }
 }
 

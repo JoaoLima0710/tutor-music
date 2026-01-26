@@ -46,3 +46,16 @@ test('audio does not play automatically on page load', async ({ page }) => {
   const activateButton = page.getByText('Ativar Áudio');
   await expect(activateButton).toBeVisible();
 });
+
+test('áudio toca após interação do usuário', async ({ page }) => {
+  await page.goto('http://localhost:5173');
+
+  // Simula gesto do usuário
+  await page.click('button:has-text("Ativar Áudio")');
+
+  const audioState = await page.evaluate(() => {
+    return (window as any).__audioEngine?.getContext().state;
+  });
+
+  expect(audioState).toBe('running');
+});

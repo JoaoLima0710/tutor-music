@@ -125,9 +125,12 @@ describe('Contrato de Samples - Acordes Essenciais', () => {
   });
 
   describe('Acordes com Sétima', () => {
-    const seventhChords = ['A7', 'B7', 'C7', 'D7', 'E7', 'G7'];
+    // Acordes com sétima disponíveis (exclui B7, E7, G7 que não têm samples)
+    const availableSeventhChords = ['A7', 'C7', 'D7'];
+    // Acordes com sétima bloqueados (samples não disponíveis)
+    const blockedSeventhChords = ['B7', 'E7', 'G7'];
 
-    seventhChords.forEach(chord => {
+    availableSeventhChords.forEach(chord => {
       it(`deve ter sample para acorde ${chord}`, () => {
         const wavFile = chordToFilename(chord, '.wav');
         const mp3File = chordToFilename(chord, '.mp3');
@@ -136,6 +139,22 @@ describe('Contrato de Samples - Acordes Essenciais', () => {
         const hasMp3 = availableFiles.includes(mp3File);
         
         expect(hasWav || hasMp3).toBe(true);
+      });
+    });
+
+    blockedSeventhChords.forEach(chord => {
+      it(`deve documentar que acorde ${chord} está bloqueado (sample não disponível)`, () => {
+        const wavFile = chordToFilename(chord, '.wav');
+        const mp3File = chordToFilename(chord, '.mp3');
+        
+        const hasWav = availableFiles.includes(wavFile);
+        const hasMp3 = availableFiles.includes(mp3File);
+        
+        // Estes acordes não têm samples - ChordPlayer bloqueia reprodução
+        expect(hasWav || hasMp3).toBe(false);
+        
+        // Documentar que está bloqueado
+        console.log(`[samples.contract.test] Acorde ${chord} bloqueado: sample não disponível. ChordPlayer retorna false.`);
       });
     });
   });

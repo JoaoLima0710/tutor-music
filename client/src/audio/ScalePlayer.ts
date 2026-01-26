@@ -1,5 +1,6 @@
 import AudioEngine from './AudioEngine';
 import SampleLoader from './SampleLoader';
+import { getAudioBus } from './index';
 import { ScaleNotes, NOTE_NAMES, A4_FREQUENCY, A4_MIDI_NUMBER } from './types';
 
 /**
@@ -44,7 +45,7 @@ class ScalePlayer {
     await this.audioEngine.ensureResumed();
     
     const frequency = this.noteToFrequency(noteName);
-    this.synthesizeNote(frequency, this.noteDuration / 1000);
+    await this.synthesizeNote(frequency, this.noteDuration / 1000);
   }
 
   /**
@@ -86,7 +87,7 @@ class ScalePlayer {
       
       // Tocar a nota
       const frequency = this.noteToFrequency(note);
-      this.synthesizeNote(frequency, this.noteDuration / 1000);
+      await this.synthesizeNote(frequency, this.noteDuration / 1000);
       
       // Esperar antes da próxima nota
       await this.delay(this.noteDuration);
@@ -105,40 +106,28 @@ class ScalePlayer {
   }
 
   /**
-   * Sintetiza uma nota
-   * TODO: migrate to AudioBus
-   * Substituir criação direta de oscilador e conexão com masterGain por:
-   * const audioBus = getAudioBus();
-   * audioBus.playOscillator({ frequency, type: 'triangle', duration, channel: 'scales', volume: this.volume * 0.4 });
+   * Sintetiza uma nota usando AudioBus (única forma permitida)
    */
-  private synthesizeNote(frequency: number, duration: number): void {
-    const audioContext = this.audioEngine.getContext();
-    const masterGain = this.audioEngine.getMasterGain();
-    const currentTime = audioContext.currentTime;
+  private async synthesizeNote(frequency: number, duration: number): Promise<void> {
+    const audioBus = getAudioBus();
+    if (!audioBus) {
+      console.warn('[ScalePlayer] AudioBus não disponível');
+      return;
+    }
 
-    // Oscilador
-    const osc = audioContext.createOscillator();
-    osc.type = 'triangle';
-    osc.frequency.value = frequency;
+    // Tocar através do AudioBus com envelope padrão
+    // O AudioBus já cria envelope automaticamente, então não precisamos criar manualmente
+    const success = await audioBus.playOscillator({
+      frequency,
+      type: 'triangle',
+      duration,
+      channel: 'scales',
+      volume: this.volume * 0.4,
+    });
 
-    // Envelope
-    const gainNode = audioContext.createGain();
-    gainNode.gain.setValueAtTime(0, currentTime);
-    gainNode.gain.linearRampToValueAtTime(this.volume * 0.4, currentTime + 0.02);
-    gainNode.gain.setValueAtTime(this.volume * 0.4, currentTime + duration * 0.7);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, currentTime + duration);
-
-    // Filtro
-    const filter = audioContext.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 3000;
-
-    osc.connect(filter);
-    filter.connect(gainNode);
-    gainNode.connect(masterGain);
-
-    osc.start(currentTime);
-    osc.stop(currentTime + duration);
+    if (!success) {
+      console.warn('[ScalePlayer] Falha ao tocar nota:', frequency, 'Hz');
+    }
   }
 
   /**

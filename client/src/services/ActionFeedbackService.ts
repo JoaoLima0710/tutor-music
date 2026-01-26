@@ -97,7 +97,7 @@ class ActionFeedbackService {
         case 'button_click':
           // Som de clique: nota intermediária curta (D4 = 293.66 Hz)
           // Tom neutro e discreto para feedback de interação
-          audioBus.playOscillator({
+          await audioBus.playOscillator({
             frequency: 293.66, // D4 - tom neutro
             type: 'sine',
             duration: 0.08, // 80ms - muito curto para latência mínima
@@ -109,7 +109,7 @@ class ActionFeedbackService {
         case 'training_start':
           // Som de início de treino: duas notas rápidas ascendentes (C4 → E4)
           // Tom positivo mas discreto
-          audioBus.playOscillator({
+          await audioBus.playOscillator({
             frequency: 261.63, // C4
             type: 'sine',
             duration: 0.1, // 100ms
@@ -117,8 +117,8 @@ class ActionFeedbackService {
             volume: clampedVolume,
           });
           // Segunda nota após 40ms
-          setTimeout(() => {
-            audioBus?.playOscillator({
+          setTimeout(async () => {
+            await audioBus?.playOscillator({
               frequency: 329.63, // E4
               type: 'sine',
               duration: 0.1,
@@ -131,7 +131,7 @@ class ActionFeedbackService {
         case 'confirmation':
           // Som de confirmação: nota aguda curta (F5 = 698.46 Hz)
           // Tom positivo e claro
-          audioBus.playOscillator({
+          await audioBus.playOscillator({
             frequency: 698.46, // F5 - tom agudo e positivo
             type: 'sine',
             duration: 0.1, // 100ms
@@ -143,7 +143,7 @@ class ActionFeedbackService {
         case 'step_progress':
           // Som de avanço: nota intermediária com leve glissando (G4 = 392.00 Hz)
           // Tom neutro e suave
-          audioBus.playOscillator({
+          await audioBus.playOscillator({
             frequency: 392.00, // G4 - tom intermediário
             type: 'sine',
             duration: 0.12, // 120ms

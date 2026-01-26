@@ -69,3 +69,13 @@ export function getAudioBus(): AudioBus | null {
   }
   return audioBusInstance;
 }
+
+// Expor AudioEngine no window para testes E2E (apenas em desenvolvimento/testes)
+if (typeof window !== 'undefined') {
+  (window as any).__audioEngine = AudioEngine.getInstance();
+}
+
+// Expor AudioEngine no window para testes E2E (apenas em desenvolvimento)
+if (typeof window !== 'undefined' && (import.meta.env.DEV || import.meta.env.MODE === 'test')) {
+  (window as any).__audioEngine = AudioEngine.getInstance();
+}

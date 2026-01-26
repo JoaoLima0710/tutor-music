@@ -1,5 +1,6 @@
 import AudioEngine from './AudioEngine';
 import SampleLoader from './SampleLoader';
+import { getAudioBus } from './index';
 import { MetronomeConfig, MetronomeState, SampleData } from './types';
 
 /**
@@ -158,10 +159,17 @@ class Metronome {
     const currentTime = this.audioEngine.getCurrentTime();
 
     // Agendar todas as notas dentro da janela de lookahead
+    // Usar Promise.all para agendar múltiplas notas em paralelo
+    const schedulePromises: Promise<void>[] = [];
     while (this.nextNoteTime < currentTime + this.scheduleAheadTime) {
-      this.scheduleNote(this.state.currentBeat, this.state.currentSubdivision, this.nextNoteTime);
+      schedulePromises.push(this.scheduleNote(this.state.currentBeat, this.state.currentSubdivision, this.nextNoteTime));
       this.advanceNote();
     }
+
+    // Aguardar todas as notas serem agendadas (não bloqueia o scheduler)
+    Promise.all(schedulePromises).catch(error => {
+      console.warn('[Metronome] Erro ao agendar nota:', error);
+    });
 
     // Reagendar o scheduler
     this.schedulerTimerId = window.setTimeout(() => this.scheduler(), this.lookahead);
@@ -170,9 +178,8 @@ class Metronome {
   /**
    * Agenda uma nota para tocar em um tempo específico
    */
-  private scheduleNote(beat: number, subdivision: number, time: number): void {
+  private async scheduleNote(beat: number, subdivision: number, time: number): Promise<void> {
     const audioContext = this.audioEngine.getContext();
-    const masterGain = this.audioEngine.getMasterGain();
 
     // Selecionar o sample correto
     let clickSample: SampleData | null;
@@ -195,22 +202,23 @@ class Metronome {
 
     if (!clickSample) return;
 
-    // TODO: migrate to AudioBus
-    // Substituir criação direta de source e conexão com masterGain por:
-    // const audioBus = getAudioBus();
-    // audioBus.playSample({ sample: clickSample, channel: 'metronome', volume: this.config.volume * volumeMultiplier, when: time });
+    // Usar AudioBus para playback (única forma permitida)
+    const audioBus = getAudioBus();
+    if (!audioBus) {
+      console.warn('[Metronome] AudioBus não disponível');
+      return;
+    }
 
-    // Criar source e gain
-    const source = audioContext.createBufferSource();
-    const gainNode = audioContext.createGain();
+    // Calcular volume final
+    const finalVolume = this.config.volume * volumeMultiplier;
 
-    source.buffer = clickSample.buffer;
-    gainNode.gain.value = this.config.volume * volumeMultiplier;
-
-    source.connect(gainNode);
-    gainNode.connect(masterGain);
-
-    source.start(time);
+    // Tocar através do AudioBus com timing preciso
+    await audioBus.playSample({
+      sample: clickSample,
+      channel: 'metronome',
+      volume: finalVolume,
+      when: time,
+    });
 
     // Notificar callbacks de beat (apenas no beat principal, não subdivisão)
     if (subdivision === 0) {

@@ -15,6 +15,22 @@ import { useEffect } from "react";
 import { FloatingActionButton } from "./components/layout/FloatingActionButton";
 import { useAudioNavigationGuard } from './hooks/useAudioNavigationGuard';
 
+// Detectar gestos do usuário para desbloquear áudio
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', () => {
+    console.log('User gesture detected');
+    const audioEngine = (window as any).__audioEngine;
+    if (audioEngine) {
+      try {
+        const ctx = audioEngine.getContext();
+        console.log('AudioContext state:', ctx?.state);
+      } catch {
+        console.log('AudioContext not initialized yet');
+      }
+    }
+  });
+}
+
 // Lazy load pages for code splitting
 const Home = lazy(() => import("./pages/Home"));
 const Chords = lazy(() => import("./pages/Chords"));

@@ -19,7 +19,8 @@ interface ScaleImprovisationProps {
 const BACKING_TRACKS = [
   { id: 'major', name: 'Backing Track Maior', chords: ['C', 'F', 'G', 'Am'], description: 'Progressão I-IV-V-vi' },
   { id: 'minor', name: 'Backing Track Menor', chords: ['Am', 'Dm', 'Em', 'F'], description: 'Progressão i-iv-v-VI' },
-  { id: 'blues', name: 'Backing Track Blues', chords: ['A7', 'D7', 'E7'], description: 'Progressão blues clássica' },
+  // E7 bloqueado (sample não disponível) - usando A7, D7, C7 como alternativa
+  { id: 'blues', name: 'Backing Track Blues', chords: ['A7', 'D7', 'C7'], description: 'Progressão blues (E7 não disponível)' },
 ];
 
 export function ScaleImprovisation({ scaleName, root, intervals }: ScaleImprovisationProps) {

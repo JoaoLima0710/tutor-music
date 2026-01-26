@@ -122,17 +122,21 @@ class SampleLoader {
 
   /**
    * Pré-carrega samples de acordes
+   * Exclui acordes bloqueados (sem samples disponíveis)
    */
   public async preloadChordSamples(): Promise<void> {
+    // Lista de acordes bloqueados (samples não disponíveis)
+    const BLOCKED_CHORDS = new Set(['B7', 'E7', 'G7']);
+    
     const chordNames = [
       'A', 'Am', 'A7',
-      'B', 'Bm', 'B7',
+      'B', 'Bm', // B7 bloqueado
       'C', 'Cm', 'C7',
       'D', 'Dm', 'D7',
-      'E', 'Em', 'E7',
+      'E', 'Em', // E7 bloqueado
       'F', 'Fm', 'F7',
-      'G', 'Gm', 'G7',
-    ];
+      'G', 'Gm', // G7 bloqueado
+    ].filter(chord => !BLOCKED_CHORDS.has(chord));
 
     const urls = chordNames.map(chord => `/samples/chords/${chord}.mp3`);
     await this.preloadSamples(urls);

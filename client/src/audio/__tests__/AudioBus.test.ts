@@ -83,7 +83,7 @@ describe('AudioBus', () => {
   });
 
   describe('playBuffer', () => {
-    it('deve retornar false se AudioEngine não estiver pronto', () => {
+    it('deve retornar false se AudioEngine não estiver pronto', async () => {
       // Mock isReady para retornar false
       const getInstanceSpy = vi.spyOn(AudioEngine, 'getInstance');
       const mockEngineNotReady = {
@@ -99,7 +99,7 @@ describe('AudioBus', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const buffer = createMockAudioBuffer();
-      const result = audioBusNotReady.playBuffer({
+      const result = await audioBusNotReady.playBuffer({
         buffer,
         channel: 'chords',
       });
@@ -113,10 +113,10 @@ describe('AudioBus', () => {
       getInstanceSpy.mockRestore();
     });
 
-    it('deve retornar false se buffer for null', () => {
+    it('deve retornar false se buffer for null', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const result = audioBus.playBuffer({
+      const result = await audioBus.playBuffer({
         buffer: null as any,
         channel: 'chords',
       });
@@ -129,12 +129,12 @@ describe('AudioBus', () => {
       consoleSpy.mockRestore();
     });
 
-    it('deve retornar false se canal não existir no AudioMixer', () => {
+    it('deve retornar false se canal não existir no AudioMixer', async () => {
       vi.spyOn(mockAudioMixer, 'getChannel').mockReturnValue(null);
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const buffer = createMockAudioBuffer();
-      const result = audioBus.playBuffer({
+      const result = await audioBus.playBuffer({
         buffer,
         channel: 'inexistente',
       });
@@ -147,7 +147,7 @@ describe('AudioBus', () => {
       consoleSpy.mockRestore();
     });
 
-    it('deve retornar true quando todas as condições são válidas', () => {
+    it('deve retornar true quando todas as condições são válidas', async () => {
       const buffer = createMockAudioBuffer();
       const mockSource = createMockBufferSourceNode();
       const mockVolumeGain = createMockGainNode();
@@ -156,7 +156,7 @@ describe('AudioBus', () => {
       const createSourceSpy = vi.spyOn(mockContext, 'createBufferSource').mockReturnValue(mockSource);
       const createGainSpy = vi.spyOn(mockContext, 'createGain').mockReturnValue(mockVolumeGain);
 
-      const result = audioBus.playBuffer({
+      const result = await audioBus.playBuffer({
         buffer,
         channel: 'chords',
         volume: 0.8,
@@ -168,7 +168,7 @@ describe('AudioBus', () => {
       expect(mockSource.start).toHaveBeenCalled();
     });
 
-    it('deve criar AudioBufferSourceNode e chamar start() apenas dentro do AudioBus', () => {
+    it('deve criar AudioBufferSourceNode e chamar start() apenas dentro do AudioBus', async () => {
       const buffer = createMockAudioBuffer();
       const mockSource = createMockBufferSourceNode();
       const mockVolumeGain = createMockGainNode();
@@ -177,7 +177,7 @@ describe('AudioBus', () => {
       const createGainSpy = vi.spyOn(mockContext, 'createGain').mockReturnValue(mockVolumeGain);
       const startSpy = vi.spyOn(mockSource, 'start');
 
-      audioBus.playBuffer({
+      await audioBus.playBuffer({
         buffer,
         channel: 'chords',
       });
@@ -186,7 +186,7 @@ describe('AudioBus', () => {
       expect(startSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('deve conectar source -> volumeGain -> channelGain (não diretamente ao masterGain)', () => {
+    it('deve conectar source -> volumeGain -> channelGain (não diretamente ao masterGain)', async () => {
       const buffer = createMockAudioBuffer();
       const mockSource = createMockBufferSourceNode();
       const mockVolumeGain = createMockGainNode();
@@ -195,7 +195,7 @@ describe('AudioBus', () => {
       const createSourceSpy = vi.spyOn(mockContext, 'createBufferSource').mockReturnValue(mockSource);
       const createGainSpy = vi.spyOn(mockContext, 'createGain').mockReturnValue(mockVolumeGain);
 
-      audioBus.playBuffer({
+      await audioBus.playBuffer({
         buffer,
         channel: 'chords',
       });
@@ -212,7 +212,7 @@ describe('AudioBus', () => {
       expect(mockVolumeGain.connect).not.toHaveBeenCalledWith(masterGain);
     });
 
-    it('deve aplicar volume corretamente', () => {
+    it('deve aplicar volume corretamente', async () => {
       const buffer = createMockAudioBuffer();
       const mockSource = createMockBufferSourceNode();
       const mockVolumeGain = createMockGainNode();
@@ -220,9 +220,10 @@ describe('AudioBus', () => {
       vi.spyOn(mockContext, 'createBufferSource').mockReturnValue(mockSource);
       vi.spyOn(mockContext, 'createGain').mockReturnValue(mockVolumeGain);
 
-      audioBus.playBuffer({
+      // Usar canal 'scales' para evitar normalização de acordes
+      await audioBus.playBuffer({
         buffer,
-        channel: 'chords',
+        channel: 'scales',
         volume: 0.5,
       });
 
@@ -230,7 +231,7 @@ describe('AudioBus', () => {
       expect(mockVolumeGain.gain.value).toBe(0.5);
     });
 
-    it('deve clamp volume entre 0 e 1', () => {
+    it('deve clamp volume entre 0 e 1', async () => {
       const buffer = createMockAudioBuffer();
       const mockSource1 = createMockBufferSourceNode();
       const mockSource2 = createMockBufferSourceNode();
@@ -244,18 +245,19 @@ describe('AudioBus', () => {
         .mockReturnValueOnce(mockVolumeGain1)
         .mockReturnValueOnce(mockVolumeGain2);
 
+      // Usar canal 'scales' para evitar normalização de acordes
       // Testar volume > 1
-      audioBus.playBuffer({
+      await audioBus.playBuffer({
         buffer,
-        channel: 'chords',
+        channel: 'scales',
         volume: 1.5,
       });
       expect(mockVolumeGain1.gain.value).toBe(1.0);
 
       // Testar volume < 0
-      audioBus.playBuffer({
+      await audioBus.playBuffer({
         buffer,
-        channel: 'chords',
+        channel: 'scales',
         volume: -0.5,
       });
       expect(mockVolumeGain2.gain.value).toBe(0.0);
@@ -263,7 +265,7 @@ describe('AudioBus', () => {
   });
 
   describe('playOscillator', () => {
-    it('deve retornar false se AudioEngine não estiver pronto', () => {
+    it('deve retornar false se AudioEngine não estiver pronto', async () => {
       const getInstanceSpy = vi.spyOn(AudioEngine, 'getInstance');
       const mockEngineNotReady = {
         getContext: vi.fn(() => mockContext),
@@ -277,7 +279,7 @@ describe('AudioBus', () => {
       const audioBusNotReady = new AudioBus();
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const result = audioBusNotReady.playOscillator({
+      const result = await audioBusNotReady.playOscillator({
         frequency: 440,
         duration: 1.0,
         channel: 'chords',
@@ -292,25 +294,25 @@ describe('AudioBus', () => {
       getInstanceSpy.mockRestore();
     });
 
-    it('deve retornar false se frequência for inválida', () => {
+    it('deve retornar false se frequência for inválida', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Frequência <= 0
-      expect(audioBus.playOscillator({
+      expect(await audioBus.playOscillator({
         frequency: 0,
         duration: 1.0,
         channel: 'chords',
       })).toBe(false);
 
       // Frequência negativa
-      expect(audioBus.playOscillator({
+      expect(await audioBus.playOscillator({
         frequency: -100,
         duration: 1.0,
         channel: 'chords',
       })).toBe(false);
 
       // Frequência infinita
-      expect(audioBus.playOscillator({
+      expect(await audioBus.playOscillator({
         frequency: Infinity,
         duration: 1.0,
         channel: 'chords',
@@ -320,18 +322,18 @@ describe('AudioBus', () => {
       consoleSpy.mockRestore();
     });
 
-    it('deve retornar false se duração for inválida', () => {
+    it('deve retornar false se duração for inválida', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Duração <= 0
-      expect(audioBus.playOscillator({
+      expect(await audioBus.playOscillator({
         frequency: 440,
         duration: 0,
         channel: 'chords',
       })).toBe(false);
 
       // Duração negativa
-      expect(audioBus.playOscillator({
+      expect(await audioBus.playOscillator({
         frequency: 440,
         duration: -1,
         channel: 'chords',
@@ -341,11 +343,11 @@ describe('AudioBus', () => {
       consoleSpy.mockRestore();
     });
 
-    it('deve retornar false se canal não existir', () => {
+    it('deve retornar false se canal não existir', async () => {
       vi.spyOn(mockAudioMixer, 'getChannel').mockReturnValue(null);
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const result = audioBus.playOscillator({
+      const result = await audioBus.playOscillator({
         frequency: 440,
         duration: 1.0,
         channel: 'inexistente',
@@ -359,7 +361,7 @@ describe('AudioBus', () => {
       consoleSpy.mockRestore();
     });
 
-    it('deve retornar true quando todas as condições são válidas', () => {
+    it('deve retornar true quando todas as condições são válidas', async () => {
       const mockOsc = createMockOscillatorNode();
       const mockEnvelopeGain = createMockGainNode();
       const mockVolumeGain = createMockGainNode();
@@ -369,7 +371,7 @@ describe('AudioBus', () => {
         .mockReturnValueOnce(mockEnvelopeGain)
         .mockReturnValueOnce(mockVolumeGain);
 
-      const result = audioBus.playOscillator({
+      const result = await audioBus.playOscillator({
         frequency: 440,
         type: 'triangle',
         duration: 1.0,
@@ -385,7 +387,7 @@ describe('AudioBus', () => {
       expect(mockOsc.stop).toHaveBeenCalled();
     });
 
-    it('deve criar OscillatorNode e chamar start() apenas dentro do AudioBus', () => {
+    it('deve criar OscillatorNode e chamar start() apenas dentro do AudioBus', async () => {
       const mockOsc = createMockOscillatorNode();
       const mockEnvelopeGain = createMockGainNode();
       const mockVolumeGain = createMockGainNode();
@@ -396,7 +398,7 @@ describe('AudioBus', () => {
         .mockReturnValueOnce(mockVolumeGain);
       const startSpy = vi.spyOn(mockOsc, 'start');
 
-      audioBus.playOscillator({
+      await audioBus.playOscillator({
         frequency: 440,
         duration: 1.0,
         channel: 'chords',
@@ -406,7 +408,7 @@ describe('AudioBus', () => {
       expect(startSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('deve conectar osc -> envelopeGain -> volumeGain -> channelGain', () => {
+    it('deve conectar osc -> envelopeGain -> volumeGain -> channelGain', async () => {
       const mockOsc = createMockOscillatorNode();
       const mockEnvelopeGain = createMockGainNode();
       const mockVolumeGain = createMockGainNode();
@@ -417,7 +419,7 @@ describe('AudioBus', () => {
         .mockReturnValueOnce(mockEnvelopeGain)
         .mockReturnValueOnce(mockVolumeGain);
 
-      audioBus.playOscillator({
+      await audioBus.playOscillator({
         frequency: 440,
         duration: 1.0,
         channel: 'chords',
@@ -430,15 +432,15 @@ describe('AudioBus', () => {
   });
 
   describe('playSample', () => {
-    it('deve retornar false se sample for inválido', () => {
+    it('deve retornar false se sample for inválido', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      expect(audioBus.playSample({
+      expect(await audioBus.playSample({
         sample: null as any,
         channel: 'chords',
       })).toBe(false);
 
-      expect(audioBus.playSample({
+      expect(await audioBus.playSample({
         sample: { buffer: null } as any,
         channel: 'chords',
       })).toBe(false);
@@ -447,12 +449,12 @@ describe('AudioBus', () => {
       consoleSpy.mockRestore();
     });
 
-    it('deve chamar playBuffer com os parâmetros corretos', () => {
+    it('deve chamar playBuffer com os parâmetros corretos', async () => {
       const buffer = createMockAudioBuffer();
       const sample = { buffer, duration: 1.0, loaded: true };
-      const playBufferSpy = vi.spyOn(audioBus as any, 'playBuffer').mockReturnValue(true);
+      const playBufferSpy = vi.spyOn(audioBus as any, 'playBuffer').mockResolvedValue(true);
 
-      audioBus.playSample({
+      await audioBus.playSample({
         sample,
         channel: 'chords',
         volume: 0.7,

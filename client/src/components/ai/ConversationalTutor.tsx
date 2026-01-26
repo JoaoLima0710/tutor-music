@@ -608,9 +608,8 @@ Como você está se sentindo hoje? O que gostaria de trabalhar?`,
                     <optgroup label="Com 7ª">
                       <option value="C7">C7</option>
                       <option value="D7">D7</option>
-                      <option value="E7">E7</option>
-                      <option value="G7">G7</option>
                       <option value="A7">A7</option>
+                      {/* E7 e G7 bloqueados: samples não disponíveis */}
                     </optgroup>
                   </>
                 ) : practiceType === 'scale' ? (

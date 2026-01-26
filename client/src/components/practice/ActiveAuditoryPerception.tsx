@@ -132,7 +132,7 @@ export function ActiveAuditoryPerception() {
     }
 
     // Tocar nota com envelope claro para percepção auditiva
-    const success = audioBus.playOscillator({
+    const success = await audioBus.playOscillator({
       frequency,
       type: AUDIO_CONFIG.oscillatorType, // Sine para máxima clareza
       duration: AUDIO_CONFIG.duration,

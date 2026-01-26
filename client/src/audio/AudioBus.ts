@@ -75,22 +75,22 @@ class AudioBus {
     offset?: number;
     duration?: number;
   }): Promise<boolean> {
-    // Validação 1: AudioEngine deve estar pronto
-    if (!this.audioEngine.isReady()) {
-      console.error('[AudioBus] playBuffer falhou: AudioEngine não está pronto');
-      return false;
-    }
-
-    // Validação 2: Buffer deve existir
+    // Validação 1: Buffer deve existir (parâmetros)
     if (!buffer) {
       console.error('[AudioBus] playBuffer falhou: buffer é null ou undefined');
       return false;
     }
 
-    // Validação 3: Canal deve existir no mixer
+    // Validação 2: Canal deve existir no mixer
     const channelGain = this.audioMixer.getChannel(channel);
     if (!channelGain) {
       console.error(`[AudioBus] playBuffer falhou: canal '${channel}' não existe no AudioMixer`);
+      return false;
+    }
+
+    // Validação 3: AudioEngine deve estar pronto
+    if (!this.audioEngine.isReady()) {
+      console.error('[AudioBus] playBuffer falhou: AudioEngine não está pronto');
       return false;
     }
 
@@ -175,9 +175,9 @@ class AudioBus {
    * @param channel - Nome do canal
    * @param volume - Volume adicional (0.0 a 1.0)
    * @param when - Tempo de início (em segundos, relativo ao currentTime)
-   * @returns true se o áudio foi agendado com sucesso, false caso contrário
+   * @returns Promise que resolve com true se o áudio foi agendado com sucesso, false caso contrário
    */
-  public playOscillator({
+  public async playOscillator({
     frequency,
     type = 'triangle',
     duration,
@@ -193,29 +193,29 @@ class AudioBus {
     volume?: number;
     when?: number;
     useClearEnvelope?: boolean;
-  }): boolean {
-    // Validação 1: AudioEngine deve estar pronto
-    if (!this.audioEngine.isReady()) {
-      console.error('[AudioBus] playOscillator falhou: AudioEngine não está pronto');
-      return false;
-    }
-
-    // Validação 2: Frequência deve ser válida
+  }): Promise<boolean> {
+    // Validação 1: Frequência deve ser válida (parâmetros)
     if (frequency <= 0 || !isFinite(frequency)) {
       console.error(`[AudioBus] playOscillator falhou: frequência inválida ${frequency}`);
       return false;
     }
 
-    // Validação 3: Duração deve ser válida
+    // Validação 2: Duração deve ser válida (parâmetros)
     if (duration <= 0 || !isFinite(duration)) {
       console.error(`[AudioBus] playOscillator falhou: duração inválida ${duration}`);
       return false;
     }
 
-    // Validação 4: Canal deve existir no mixer
+    // Validação 3: Canal deve existir no mixer
     const channelGain = this.audioMixer.getChannel(channel);
     if (!channelGain) {
       console.error(`[AudioBus] playOscillator falhou: canal '${channel}' não existe no AudioMixer`);
+      return false;
+    }
+
+    // Validação 4: AudioEngine deve estar pronto
+    if (!this.audioEngine.isReady()) {
+      console.error('[AudioBus] playOscillator falhou: AudioEngine não está pronto');
       return false;
     }
 

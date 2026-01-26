@@ -1309,7 +1309,7 @@ class AudioManager {
       // Tocar som de confirmação: A4 (440Hz) - tom neutro e confortável
       // Duração: 250ms - curto o suficiente para não distrair
       // Volume: 0.08 - baixo e não intrusivo
-      const success = audioBus.playOscillator({
+      const success = await audioBus.playOscillator({
         frequency: 440, // A4 - tom neutro e confortável
         type: 'sine', // Sine wave - som suave e agradável
         duration: 0.25, // 250ms - <300ms conforme requisito
