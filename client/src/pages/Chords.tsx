@@ -72,11 +72,14 @@ export default function Chords() {
   };
 
   const handlePlayChord = async () => {
+    console.log('🔍 [DEBUG] handlePlayChord chamado!', { selectedChord, isPlaying });
+
     try {
       setIsPlaying(true);
 
       // CRÍTICO para tablets: Garantir inicialização primeiro
       // A inicialização precisa acontecer em resposta a um gesto do usuário
+      console.log('🔍 [DEBUG] Chamando ensureInitialized...');
       await unifiedAudioService.ensureInitialized();
 
       // Pequeno delay para garantir que o AudioContext está pronto
@@ -87,7 +90,7 @@ export default function Chords() {
 
       setTimeout(() => setIsPlaying(false), 2500);
     } catch (error) {
-      console.error('Erro ao tocar acorde:', error);
+      console.error('❌ Erro ao tocar acorde:', error);
       setIsPlaying(false);
     }
   };
