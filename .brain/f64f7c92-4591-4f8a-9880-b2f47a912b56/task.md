@@ -19,3 +19,8 @@
 - [x] Bug Fix: Duplicate Import
     - [x] Remove duplicate `Card` import in `MajorMinorChordTraining.tsx`
     - [x] Verify build
+
+- [x] Review other pages for errors
+    - [x] Fix `ReferenceError` in `Theory.tsx`
+    - [x] Fix `ReferenceError` in `RhythmTraining.tsx`
+    - [x] Verify pages load correctly

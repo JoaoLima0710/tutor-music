@@ -57,15 +57,15 @@ const isIntermediateOrAdvanced = (level: 'basic' | 'intermediate' | 'advanced') 
 };
 
 // Componente simples de exercício de fixação
-function SimpleFixationExercise({ 
-  question, 
-  options, 
-  correctAnswer, 
-  explanation 
-}: { 
-  question: string; 
-  options: string[]; 
-  correctAnswer: number; 
+function SimpleFixationExercise({
+  question,
+  options,
+  correctAnswer,
+  explanation
+}: {
+  question: string;
+  options: string[];
+  correctAnswer: number;
   explanation: string;
 }) {
   const [selected, setSelected] = useState<number | null>(null);
@@ -91,20 +91,19 @@ function SimpleFixationExercise({
         {options.map((option, index) => {
           let bgColor = 'bg-white/5 hover:bg-white/10';
           let borderColor = 'border-white/10';
-          
+
           if (showResult && selected === index) {
             bgColor = isCorrect ? 'bg-green-500/20' : 'bg-red-500/20';
             borderColor = isCorrect ? 'border-green-500/50' : 'border-red-500/50';
           }
-          
+
           return (
             <button
               key={index}
               onClick={() => handleSelect(index)}
               disabled={showResult}
-              className={`w-full text-left p-3 rounded border ${bgColor} ${borderColor} transition-colors ${
-                showResult ? 'cursor-default' : 'cursor-pointer'
-              }`}
+              className={`w-full text-left p-3 rounded border ${bgColor} ${borderColor} transition-colors ${showResult ? 'cursor-default' : 'cursor-pointer'
+                }`}
             >
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-gray-400 w-6">{String.fromCharCode(65 + index)}.</span>
@@ -121,20 +120,18 @@ function SimpleFixationExercise({
           );
         })}
       </div>
-      
+
       {showResult && (
-        <div className={`p-3 rounded mb-3 ${
-          isCorrect ? 'bg-green-500/10 border border-green-500/30' : 'bg-red-500/10 border border-red-500/30'
-        }`}>
-          <p className={`text-sm font-semibold mb-1 ${
-            isCorrect ? 'text-green-400' : 'text-red-400'
+        <div className={`p-3 rounded mb-3 ${isCorrect ? 'bg-green-500/10 border border-green-500/30' : 'bg-red-500/10 border border-red-500/30'
           }`}>
+          <p className={`text-sm font-semibold mb-1 ${isCorrect ? 'text-green-400' : 'text-red-400'
+            }`}>
             {isCorrect ? '✅ Correto!' : '❌ Revise isso:'}
           </p>
           <p className="text-xs text-gray-300">{explanation}</p>
         </div>
       )}
-      
+
       {showResult && (
         <button
           onClick={reset}
@@ -160,7 +157,7 @@ const THEORY_MODULES: TheoryModule[] = [
     level: 'basic',
     prerequisites: [],
     topics: ['Ritmo', 'Melodia', 'Harmonia', 'Função dos elementos'],
-    content: (
+    content: (currentLevel) => (
       <div className="space-y-6">
         {/* INDICADOR: Esta teoria destrava treinos */}
         <div className="p-4 rounded-lg bg-emerald-500/10 border-l-4 border-emerald-500 mb-6">
@@ -192,7 +189,7 @@ const THEORY_MODULES: TheoryModule[] = [
             </div>
             <h3 className="text-2xl font-bold text-white">Os 3 Elementos da Música</h3>
           </div>
-          
+
           <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30 mb-6">
             <p className="text-gray-300 text-sm leading-relaxed">
               Toda música tem <strong className="text-white">três partes</strong> que trabalham juntas.
@@ -209,7 +206,7 @@ const THEORY_MODULES: TheoryModule[] = [
               <div>
                 <p className="text-yellow-200 font-semibold mb-2">Pense antes de continuar:</p>
                 <p className="text-gray-300 text-sm">
-                  Escolha uma música que você conhece. Consegue identificar 3 coisas diferentes nela? 
+                  Escolha uma música que você conhece. Consegue identificar 3 coisas diferentes nela?
                   (Não precisa saber os nomes ainda - apenas observe!)
                 </p>
               </div>
@@ -225,7 +222,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 </div>
                 <h4 className="text-xl font-bold text-white">1. Ritmo</h4>
               </div>
-              
+
               <div className="space-y-3">
                 <p className="text-gray-300">
                   O <span className="text-[#06b6d4] font-semibold">ritmo</span> é quando você bate o pé ou balança a cabeça na música.
@@ -233,7 +230,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-gray-300">
                   É o <strong className="text-white">"quando"</strong> tocar - a batida que organiza tudo.
                 </p>
-                
+
                 <div className="p-3 rounded bg-[#06b6d4]/10 border border-[#06b6d4]/30">
                   <p className="text-sm text-gray-300 mb-2">
                     <strong className="text-[#06b6d4]">Isso serve para você conseguir:</strong>
@@ -244,7 +241,7 @@ const THEORY_MODULES: TheoryModule[] = [
                     <li>É o primeiro erro que as pessoas percebem!</li>
                   </ul>
                 </div>
-                
+
                 <div className="p-3 rounded bg-white/5 border border-white/10">
                   <p className="text-sm text-gray-300">
                     <span className="font-semibold text-[#06b6d4]">💡 Exemplo:</span> Bateria, palmas, o "tum-tum-tum" que você sente na música.
@@ -261,7 +258,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 </div>
                 <h4 className="text-xl font-bold text-white">2. Melodia</h4>
               </div>
-              
+
               <div className="space-y-3">
                 <p className="text-gray-300">
                   A <span className="text-[#8b5cf6] font-semibold">melodia</span> é o que você canta ou assobia.
@@ -269,7 +266,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-gray-300">
                   É a <strong className="text-white">"música"</strong> que fica na cabeça - notas tocadas uma depois da outra.
                 </p>
-                
+
                 <div className="p-3 rounded bg-[#8b5cf6]/10 border border-[#8b5cf6]/30">
                   <p className="text-sm text-gray-300 mb-2">
                     <strong className="text-[#8b5cf6]">Isso serve para você conseguir:</strong>
@@ -281,7 +278,7 @@ const THEORY_MODULES: TheoryModule[] = [
                     <li>É o que você toca com a mão direita no violão</li>
                   </ul>
                 </div>
-                
+
                 <div className="p-3 rounded bg-white/5 border border-white/10">
                   <p className="text-sm text-gray-300">
                     <span className="font-semibold text-[#8b5cf6]">💡 Exemplo:</span> A voz do cantor, um solo de guitarra, a parte que você canta junto.
@@ -298,7 +295,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 </div>
                 <h4 className="text-xl font-bold text-white">3. Harmonia</h4>
               </div>
-              
+
               <div className="space-y-3">
                 <p className="text-gray-300">
                   A <span className="text-[#10b981] font-semibold">harmonia</span> são os acordes.
@@ -309,7 +306,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-gray-300">
                   É a base que sustenta a melodia.
                 </p>
-                
+
                 <div className="p-3 rounded bg-[#10b981]/10 border border-[#10b981]/30">
                   <p className="text-sm text-gray-300 mb-2">
                     <strong className="text-[#10b981]">Isso serve para você conseguir:</strong>
@@ -320,7 +317,7 @@ const THEORY_MODULES: TheoryModule[] = [
                     <li>Entender por que alguns acordes combinam</li>
                   </ul>
                 </div>
-                
+
                 <div className="p-3 rounded bg-white/5 border border-white/10">
                   <p className="text-sm text-gray-300">
                     <span className="font-semibold text-[#10b981]">💡 Exemplo:</span> Os acordes que você toca no violão enquanto alguém canta a melodia.
@@ -345,11 +342,11 @@ const THEORY_MODULES: TheoryModule[] = [
               <span className="text-2xl">🎯</span>
               <h4 className="text-lg font-bold text-white">Por que isso importa?</h4>
             </div>
-            
+
             <p className="text-gray-300 mb-4 text-sm">
               Quando você toca errado, as pessoas percebem nesta ordem:
             </p>
-            
+
             {/* BLOCO VISUAL: Fluxo de Erros */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="flex flex-col items-center p-4 rounded-lg bg-[#ef4444]/20 border-2 border-[#ef4444]/50">
@@ -359,11 +356,11 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-sm font-bold text-white mb-1">Ritmo</p>
                 <p className="text-xs text-gray-400 text-center">Erro mais óbvio</p>
               </div>
-              
+
               <div className="flex items-center justify-center">
                 <span className="text-2xl text-gray-500">→</span>
               </div>
-              
+
               <div className="flex flex-col items-center p-4 rounded-lg bg-[#f97316]/20 border-2 border-[#f97316]/50">
                 <div className="w-12 h-12 rounded-full bg-[#f97316] flex items-center justify-center mb-2">
                   <span className="text-white font-bold">2º</span>
@@ -372,11 +369,11 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-xs text-gray-400 text-center">Nota errada</p>
               </div>
             </div>
-            
+
             <div className="flex justify-center mb-4">
               <span className="text-2xl text-gray-500">↓</span>
             </div>
-            
+
             <div className="flex justify-center">
               <div className="flex flex-col items-center p-4 rounded-lg bg-[#eab308]/20 border-2 border-[#eab308]/50">
                 <div className="w-12 h-12 rounded-full bg-[#eab308] flex items-center justify-center mb-2">
@@ -386,10 +383,10 @@ const THEORY_MODULES: TheoryModule[] = [
                 <p className="text-xs text-gray-400 text-center">Acorde errado</p>
               </div>
             </div>
-            
+
             <div className="mt-4 p-3 rounded bg-yellow-500/20 border border-yellow-500/30">
               <p className="text-xs text-gray-300 text-center">
-                <strong className="text-yellow-200">💡 Dica:</strong> Comece sempre pelo ritmo! 
+                <strong className="text-yellow-200">💡 Dica:</strong> Comece sempre pelo ritmo!
                 Se você tocar no tempo certo, mesmo com nota errada, já soa melhor.
               </p>
             </div>
@@ -424,13 +421,13 @@ const THEORY_MODULES: TheoryModule[] = [
                 <strong>Para iniciantes:</strong> Foque em dominar cada elemento separadamente antes de combiná-los.
               </p>
               <p className="text-gray-300 mb-3 text-sm">
-                <strong>Para intermediários:</strong> Os 3 elementos trabalham juntos de forma interdependente. 
-                A harmonia define a escala, a melodia segue a harmonia, e o ritmo organiza tudo. 
+                <strong>Para intermediários:</strong> Os 3 elementos trabalham juntos de forma interdependente.
+                A harmonia define a escala, a melodia segue a harmonia, e o ritmo organiza tudo.
                 Entender essas relações permite criar músicas mais coesas e expressivas.
               </p>
               <div className="p-3 rounded bg-purple-500/10">
                 <p className="text-xs text-gray-300">
-                  <strong>Exemplo prático:</strong> Em uma progressão C-G-Am-F, a melodia deve usar principalmente 
+                  <strong>Exemplo prático:</strong> Em uma progressão C-G-Am-F, a melodia deve usar principalmente
                   notas da escala de Dó Maior (harmonia), organizadas em frases rítmicas que respiram (ritmo).
                 </p>
               </div>
@@ -480,7 +477,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <Target className="w-5 h-5 text-indigo-400" />
                 <h4 className="text-lg font-bold text-white">Fixação: Teste seu conhecimento</h4>
               </div>
-              
+
               <div className="space-y-4">
                 <SimpleFixationExercise
                   question="Qual é a ordem de percepção de erros quando você toca?"
@@ -493,7 +490,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={0}
                   explanation="O ritmo é o primeiro erro que as pessoas percebem. Por isso, sempre comece praticando o ritmo antes de se preocupar com notas ou acordes!"
                 />
-                
+
                 <SimpleFixationExercise
                   question="Qual dos 3 elementos da música é o 'quando' tocar?"
                   options={[
@@ -505,7 +502,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={0}
                   explanation="O ritmo é o 'quando' tocar - organiza o tempo e a batida. Melodia é o 'o quê' tocar (notas), e Harmonia é o 'clima' (acordes)."
                 />
-                
+
                 <SimpleFixationExercise
                   question="Por que é importante começar praticando o ritmo?"
                   options={[
@@ -603,7 +600,7 @@ const THEORY_MODULES: TheoryModule[] = [
       </div>
     ),
   },
-  
+
   // 2. NOTAS NO BRAÇO - Primeiro passo prático
   {
     id: 'fretboard-notes',
@@ -620,31 +617,31 @@ const THEORY_MODULES: TheoryModule[] = [
       <div className="space-y-4">
         <div className="p-4 rounded-lg bg-white/5 border border-white/10">
           <h4 className="text-lg font-bold text-white mb-3">🎸 Explore o Braço</h4>
-            <p className="text-gray-300 mb-3 text-sm">
+          <p className="text-gray-300 mb-3 text-sm">
             Use o diagrama acima para encontrar notas. Clique em qualquer posição para ouvir a nota!
             <strong className="text-white"> Isso serve para você conseguir:</strong> Memorizar onde cada nota está e encontrar rapidamente qualquer nota no braço.
           </p>
           <div className="space-y-2 text-sm text-gray-300">
-            <p><strong className="text-green-400">1. Cordas abertas:</strong> E, A, D, G, B, E (da mais grave para mais aguda). 
+            <p><strong className="text-green-400">1. Cordas abertas:</strong> E, A, D, G, B, E (da mais grave para mais aguda).
               Memorize essas 6 notas primeiro!</p>
-            <p><strong className="text-green-400">2. Cada traste:</strong> Aumenta 1 semitom (meio tom). 
+            <p><strong className="text-green-400">2. Cada traste:</strong> Aumenta 1 semitom (meio tom).
               É como subir um degrau na escada musical.</p>
-            <p><strong className="text-green-400">3. Padrão:</strong> A cada 12 trastes, a mesma nota se repete (oitava). 
+            <p><strong className="text-green-400">3. Padrão:</strong> A cada 12 trastes, a mesma nota se repete (oitava).
               Isso serve para encontrar a mesma nota em vários lugares.</p>
-            <p><strong className="text-green-400">4. Pratique:</strong> Encontre todas as notas Dó (C) no braço. 
+            <p><strong className="text-green-400">4. Pratique:</strong> Encontre todas as notas Dó (C) no braço.
               Isso treina sua memória visual!</p>
           </div>
         </div>
         <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
-            <p className="text-xs text-gray-300">
-            <strong className="text-blue-400">💡 Dica:</strong> Comece memorizando as notas nas cordas 5 (A) e 6 (E grave). 
-            <strong className="text-white"> Isso serve para você conseguir:</strong> Encontrar qualquer nota rapidamente, 
+          <p className="text-xs text-gray-300">
+            <strong className="text-blue-400">💡 Dica:</strong> Comece memorizando as notas nas cordas 5 (A) e 6 (E grave).
+            <strong className="text-white"> Isso serve para você conseguir:</strong> Encontrar qualquer nota rapidamente,
             pois essas cordas são muito usadas como "referência" no violão.
           </p>
         </div>
       </div>
     ),
-    content: (
+    content: (currentLevel) => (
       <div className="space-y-6">
         {/* INDICADOR: Esta teoria destrava treinos */}
         <div className="p-4 rounded-lg bg-emerald-500/10 border-l-4 border-emerald-500 mb-6">
@@ -676,7 +673,7 @@ const THEORY_MODULES: TheoryModule[] = [
             </div>
             <h3 className="text-2xl font-bold text-white">O Braço do Violão</h3>
           </div>
-          
+
           <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30 mb-4">
             <p className="text-gray-300 text-sm leading-relaxed">
               O braço do violão é como um <span className="text-[#06b6d4] font-semibold">mapa</span>.
@@ -704,7 +701,7 @@ const THEORY_MODULES: TheoryModule[] = [
               <div>
                 <p className="text-yellow-200 font-semibold mb-2">Antes de continuar:</p>
                 <p className="text-gray-300 text-sm">
-                  Olhe para o braço do seu violão. Quantas cordas você vê? 
+                  Olhe para o braço do seu violão. Quantas cordas você vê?
                   Consegue contar quantos trastes há até o corpo do violão?
                 </p>
               </div>
@@ -712,7 +709,7 @@ const THEORY_MODULES: TheoryModule[] = [
           </div>
 
           <div className="mb-6">
-            <FullFretboardView 
+            <FullFretboardView
               scaleName="Cromática"
               root="C"
               intervals={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]}
@@ -728,11 +725,11 @@ const THEORY_MODULES: TheoryModule[] = [
                 </div>
                 <h4 className="text-xl font-bold text-white">Cordas Abertas</h4>
               </div>
-              
+
               <p className="text-gray-300 mb-4 text-sm">
                 As 6 cordas do violão (da mais grave para mais aguda):
               </p>
-              
+
               {/* BLOCO VISUAL: Grid de Cordas */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {[
@@ -752,10 +749,10 @@ const THEORY_MODULES: TheoryModule[] = [
                   </div>
                 ))}
               </div>
-              
+
               <div className="mt-4 p-3 rounded bg-[#06b6d4]/10 border border-[#06b6d4]/30">
                 <p className="text-xs text-gray-300">
-                  <strong className="text-[#06b6d4]">💡 Dica:</strong> Memorize essa sequência: 
+                  <strong className="text-[#06b6d4]">💡 Dica:</strong> Memorize essa sequência:
                   <span className="font-mono text-white ml-1">E-A-D-G-B-E</span>
                 </p>
               </div>
@@ -769,7 +766,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 </div>
                 <h4 className="text-xl font-bold text-white">Como Funciona</h4>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="p-3 rounded bg-white/5 border border-white/10">
                   <p className="text-sm font-semibold text-white mb-2">Cada traste:</p>
@@ -780,7 +777,7 @@ const THEORY_MODULES: TheoryModule[] = [
                     É como subir um degrau na escada musical.
                   </p>
                 </div>
-                
+
                 <div className="p-3 rounded bg-white/5 border border-white/10">
                   <p className="text-sm font-semibold text-white mb-2">Exemplo prático:</p>
                   <div className="flex items-center gap-2 text-sm text-gray-300">
@@ -794,7 +791,7 @@ const THEORY_MODULES: TheoryModule[] = [
                     Corda 6 (E) aberta = E. No 1º traste = F. No 2º traste = F#.
                   </p>
                 </div>
-                
+
                 <div className="p-3 rounded bg-white/5 border border-white/10">
                   <p className="text-sm font-semibold text-white mb-2">Oitava:</p>
                   <p className="text-sm text-gray-300">
@@ -804,7 +801,7 @@ const THEORY_MODULES: TheoryModule[] = [
                     Isso serve para encontrar a mesma nota em vários lugares.
                   </p>
                 </div>
-                
+
                 <div className="p-3 rounded bg-white/5 border border-white/10">
                   <p className="text-sm font-semibold text-white mb-2">Padrão:</p>
                   <p className="text-sm text-gray-300">
@@ -825,11 +822,11 @@ const THEORY_MODULES: TheoryModule[] = [
                 </div>
                 <h4 className="text-xl font-bold text-white">Dica de Memorização</h4>
               </div>
-              
+
               <p className="text-gray-300 mb-4 text-sm">
                 Memorize estas posições importantes primeiro:
               </p>
-              
+
               {/* BLOCO VISUAL: Posições Importantes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[
@@ -857,7 +854,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <div>
                   <p className="text-indigo-200 font-semibold mb-2">Pense:</p>
                   <p className="text-gray-300 text-sm">
-                    Por que você acha que é importante memorizar essas posições específicas? 
+                    Por que você acha que é importante memorizar essas posições específicas?
                     (Dica: elas são muito usadas como referência!)
                   </p>
                 </div>
@@ -916,7 +913,7 @@ const THEORY_MODULES: TheoryModule[] = [
               <div className="p-4 rounded-lg bg-white/5 border border-white/10">
                 <p className="font-semibold text-white mb-2">Ação 2: Encontre todas as notas C</p>
                 <p className="text-sm mb-3">
-                  Desafio: encontre TODAS as notas C (Dó) no braço do seu violão. 
+                  Desafio: encontre TODAS as notas C (Dó) no braço do seu violão.
                   Use o diagrama para verificar. Quantas você encontrou?
                 </p>
                 <p className="text-xs text-gray-400">
@@ -933,7 +930,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <Target className="w-5 h-5 text-indigo-400" />
                 <h4 className="text-lg font-bold text-white">Fixação: Teste seu conhecimento</h4>
               </div>
-              
+
               <div className="space-y-4">
                 <SimpleFixationExercise
                   question="Quantos semitons (meios tons) há em uma oitava?"
@@ -946,7 +943,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={1}
                   explanation="Uma oitava tem exatamente 12 semitons. Isso significa que a cada 12 trastes, a mesma nota se repete (mais aguda ou mais grave)."
                 />
-                
+
                 <SimpleFixationExercise
                   question="Qual é a sequência das cordas abertas do violão (da mais grave para mais aguda)?"
                   options={[
@@ -958,7 +955,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={0}
                   explanation="As cordas abertas do violão são E-A-D-G-B-E (da mais grave para mais aguda). Memorize essa sequência - é fundamental para encontrar notas no braço!"
                 />
-                
+
                 <SimpleFixationExercise
                   question="Cada traste no violão aumenta a nota em quanto?"
                   options={[
@@ -1009,8 +1006,8 @@ const THEORY_MODULES: TheoryModule[] = [
               <div>
                 <p className="text-blue-200 font-semibold mb-1">Lembre-se:</p>
                 <p className="text-sm text-gray-300">
-                  Você já aprendeu sobre <strong className="text-white">Ritmo, Melodia e Harmonia</strong> no módulo anterior. 
-                  Agora você está aprendendo onde estão as <strong className="text-white">notas</strong> no braço - 
+                  Você já aprendeu sobre <strong className="text-white">Ritmo, Melodia e Harmonia</strong> no módulo anterior.
+                  Agora você está aprendendo onde estão as <strong className="text-white">notas</strong> no braço -
                   isso é essencial para tocar tanto <strong className="text-white">melodias</strong> quanto <strong className="text-white">harmonias</strong> (acordes)!
                 </p>
               </div>
@@ -1071,7 +1068,7 @@ const THEORY_MODULES: TheoryModule[] = [
       </div>
     ),
   },
-  
+
   // 3. ACORDES BÁSICOS - Aplicação prática imediata
   {
     id: 'chord-formation',
@@ -1091,7 +1088,7 @@ const THEORY_MODULES: TheoryModule[] = [
           <p className="text-gray-300 mb-4 text-sm">
             Agora que você sabe que Dó Maior é formado por C-E-G, veja 3 formas diferentes de tocar no violão:
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
               <h5 className="font-bold text-white mb-2">Forma 1: Posição Aberta</h5>
@@ -1104,10 +1101,10 @@ const THEORY_MODULES: TheoryModule[] = [
                   <p>• Corda 1 (E) e 3 (G) abertas</p>
                 </div>
               </div>
-              <p className="text-xs text-gray-400">Som: Brilhante e aberto. 
+              <p className="text-xs text-gray-400">Som: Brilhante e aberto.
                 <strong className="text-white"> Serve para:</strong> Início de músicas e criar sensação de abertura.</p>
             </div>
-            
+
             <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
               <h5 className="font-bold text-white mb-2">Forma 2: Com Pestana (3º traste)</h5>
               <div className="mb-3">
@@ -1118,10 +1115,10 @@ const THEORY_MODULES: TheoryModule[] = [
                   <p>• Mesmas notas, som mais cheio</p>
                 </div>
               </div>
-              <p className="text-xs text-gray-400">Som: Mais encorpado. 
+              <p className="text-xs text-gray-400">Som: Mais encorpado.
                 <strong className="text-white"> Serve para:</strong> Solos e acompanhamentos com som mais cheio.</p>
             </div>
-            
+
             <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/30">
               <h5 className="font-bold text-white mb-2">Forma 3: Inversão (8º traste)</h5>
               <div className="mb-3">
@@ -1132,16 +1129,16 @@ const THEORY_MODULES: TheoryModule[] = [
                   <p>• Inversão: E-G-C (não C-E-G)</p>
                 </div>
               </div>
-              <p className="text-xs text-gray-400">Som: Mais agudo. 
+              <p className="text-xs text-gray-400">Som: Mais agudo.
                 <strong className="text-white"> Serve para:</strong> Criar movimento e variação, evitando repetição monótona.</p>
             </div>
           </div>
-          
+
           <div className="mt-4 p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
             <p className="text-sm text-gray-300">
-              <strong className="text-cyan-400">💡 Dica:</strong> Todas as 3 formas são o mesmo acorde C (C-E-G), 
-              mas cada uma tem um "sabor" diferente. 
-              <strong className="text-white"> Isso serve para você conseguir:</strong> Variar o som do mesmo acorde 
+              <strong className="text-cyan-400">💡 Dica:</strong> Todas as 3 formas são o mesmo acorde C (C-E-G),
+              mas cada uma tem um "sabor" diferente.
+              <strong className="text-white"> Isso serve para você conseguir:</strong> Variar o som do mesmo acorde
               e escolher a forma mais fácil para trocar entre acordes.
             </p>
           </div>
@@ -1190,7 +1187,7 @@ const THEORY_MODULES: TheoryModule[] = [
         </div>
       </div>
     ),
-    content: (
+    content: (currentLevel) => (
       <div className="space-y-6">
         {/* INDICADOR: Esta teoria destrava treinos */}
         <div className="p-4 rounded-lg bg-emerald-500/10 border-l-4 border-emerald-500 mb-6">
@@ -1218,12 +1215,12 @@ const THEORY_MODULES: TheoryModule[] = [
         </div>
 
         <ChordBuilder />
-        
+
         <div className="p-6 rounded-xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-white/10">
           <h3 className="text-2xl font-bold text-white mb-4">Como Acordes são Construídos?</h3>
           <p className="text-gray-300 mb-6">
-            Acordes são <span className="text-[#06b6d4] font-semibold">3 ou mais notas tocadas juntas</span>. 
-            <strong className="text-white"> Isso serve para você conseguir:</strong> Entender por que um acorde C tem as notas C-E-G, 
+            Acordes são <span className="text-[#06b6d4] font-semibold">3 ou mais notas tocadas juntas</span>.
+            <strong className="text-white"> Isso serve para você conseguir:</strong> Entender por que um acorde C tem as notas C-E-G,
             criar seus próprios acordes e saber quais notas tocar quando vê um acorde escrito.
           </p>
 
@@ -1234,7 +1231,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 3 notas: <span className="text-[#10b981] font-semibold">Nota base + 3ª maior + 5ª justa</span>
               </p>
               <p className="text-gray-300 mb-3 text-sm">
-                <strong className="text-[#10b981]">Isso serve para você conseguir:</strong> Tocar acordes maiores (C, G, F, D, etc.) 
+                <strong className="text-[#10b981]">Isso serve para você conseguir:</strong> Tocar acordes maiores (C, G, F, D, etc.)
                 e entender por que eles têm som "alegre" ou "brilhante".
               </p>
               <div className="p-3 rounded bg-[#10b981]/10 mb-3">
@@ -1253,13 +1250,13 @@ const THEORY_MODULES: TheoryModule[] = [
                 </p>
                 <AudioPlayChordButton chordNotes={["C4", "E4", "G4"]} duration={0.5} label="🎵 Ouvir Acorde Maior (C)" />
               </div>
-              
+
               {/* AÇÃO PRÁTICA IMEDIATA - Acorde Maior */}
               <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
                 <p className="text-xs font-semibold text-green-400 mb-2">🎸 Agora toque:</p>
                 <p className="text-xs text-gray-300 mb-2">
-                  <strong>1. Ouça</strong> o acorde C acima - perceba o som alegre e brilhante! 
-                  <strong> 2. Identifique</strong> as 3 notas: C-E-G. 
+                  <strong>1. Ouça</strong> o acorde C acima - perceba o som alegre e brilhante!
+                  <strong> 2. Identifique</strong> as 3 notas: C-E-G.
                   <strong> 3. Toque</strong> no violão: corda 5, 3º traste (C) + corda 4, 2º traste (E) + corda 3 aberta (G).
                 </p>
                 <p className="text-xs text-gray-400">
@@ -1274,7 +1271,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 3 notas: <span className="text-[#3b82f6] font-semibold">Nota base + 3ª menor + 5ª justa</span>
               </p>
               <p className="text-gray-300 mb-3 text-sm">
-                <strong className="text-[#3b82f6]">Isso serve para você conseguir:</strong> Tocar acordes menores (Am, Dm, Em, etc.) 
+                <strong className="text-[#3b82f6]">Isso serve para você conseguir:</strong> Tocar acordes menores (Am, Dm, Em, etc.)
                 e entender por que eles têm som "triste" ou "melancólico".
               </p>
               <div className="p-3 rounded bg-[#3b82f6]/10 mb-3">
@@ -1293,13 +1290,13 @@ const THEORY_MODULES: TheoryModule[] = [
                 </p>
                 <AudioPlayChordButton chordNotes={["A3", "C4", "E4"]} duration={0.5} label="🎵 Ouvir Acorde Menor (Am)" />
               </div>
-              
+
               {/* AÇÃO PRÁTICA IMEDIATA - Acorde Menor */}
               <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
                 <p className="text-xs font-semibold text-green-400 mb-2">🎸 Agora toque:</p>
                 <p className="text-xs text-gray-300 mb-2">
-                  <strong>1. Ouça</strong> o acorde Am acima e <strong>compare</strong> com C - perceba a diferença de "clima"! 
-                  <strong> 2. Identifique</strong> o som triste/melancólico. 
+                  <strong>1. Ouça</strong> o acorde Am acima e <strong>compare</strong> com C - perceba a diferença de "clima"!
+                  <strong> 2. Identifique</strong> o som triste/melancólico.
                   <strong> 3. Toque</strong> no violão: corda 5 aberta (A) + corda 4, 2º traste (C) + corda 3, 2º traste (E).
                 </p>
                 <p className="text-xs text-gray-400">
@@ -1311,7 +1308,7 @@ const THEORY_MODULES: TheoryModule[] = [
             <div className="p-5 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/30">
               <h4 className="text-lg font-bold text-white mb-3">💡 Diferença Simples</h4>
               <p className="text-gray-300 mb-2">
-                A única diferença entre <span className="font-semibold">Maior</span> e <span className="font-semibold">Menor</span> 
+                A única diferença entre <span className="font-semibold">Maior</span> e <span className="font-semibold">Menor</span>
                 é a segunda nota (a "terça"):
               </p>
               <ul className="text-sm text-gray-300 space-y-1 list-disc list-inside">
@@ -1338,15 +1335,15 @@ const THEORY_MODULES: TheoryModule[] = [
                 <div className="p-3 rounded bg-purple-500/10">
                   <ul className="text-sm text-gray-300 space-y-2">
                     <li>
-                      <strong>7ª Dominante (C7):</strong> C-E-G-Bb. Adiciona uma 7ª menor. 
+                      <strong>7ª Dominante (C7):</strong> C-E-G-Bb. Adiciona uma 7ª menor.
                       Usado em blues e cria tensão que resolve.
                     </li>
                     <li>
-                      <strong>7ª Maior (Cmaj7):</strong> C-E-G-B. Adiciona uma 7ª maior. 
+                      <strong>7ª Maior (Cmaj7):</strong> C-E-G-B. Adiciona uma 7ª maior.
                       Som mais suave e sofisticado, usado em jazz.
                     </li>
                     <li>
-                      <strong>Suspenso (Csus2, Csus4):</strong> Substitui a terça por 2ª ou 4ª. 
+                      <strong>Suspenso (Csus2, Csus4):</strong> Substitui a terça por 2ª ou 4ª.
                       Som neutro, sem sensação de maior ou menor.
                     </li>
                   </ul>
@@ -1365,7 +1362,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <Target className="w-5 h-5 text-indigo-400" />
                 <h4 className="text-lg font-bold text-white">Fixação: Teste seu conhecimento</h4>
               </div>
-              
+
               <div className="space-y-4">
                 <SimpleFixationExercise
                   question="Qual é a diferença entre um acorde Maior e um acorde Menor?"
@@ -1378,7 +1375,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={1}
                   explanation="A única diferença é a terça (segunda nota): Maior tem terça maior (4 semitons = som alegre), Menor tem terça menor (3 semitons = som triste)."
                 />
-                
+
                 <SimpleFixationExercise
                   question="Quantas notas formam uma tríade (acorde básico)?"
                   options={[
@@ -1390,7 +1387,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={1}
                   explanation="Uma tríade tem exatamente 3 notas: fundamental, terça (maior ou menor) e quinta justa. Exemplo: C (C-E-G) ou Am (A-C-E)."
                 />
-                
+
                 <SimpleFixationExercise
                   question="Por que acordes maiores soam 'alegres' e menores soam 'tristes'?"
                   options={[
@@ -1441,8 +1438,8 @@ const THEORY_MODULES: TheoryModule[] = [
               <div>
                 <p className="text-blue-200 font-semibold mb-1">Lembre-se:</p>
                 <p className="text-sm text-gray-300">
-                  Você já sabe onde estão as <strong className="text-white">notas no braço</strong>. 
-                  Agora você está aprendendo a <strong className="text-white">combinar notas</strong> para formar acordes. 
+                  Você já sabe onde estão as <strong className="text-white">notas no braço</strong>.
+                  Agora você está aprendendo a <strong className="text-white">combinar notas</strong> para formar acordes.
                   Isso é a <strong className="text-white">harmonia</strong> que você viu nos Fundamentos!
                 </p>
               </div>
@@ -1503,7 +1500,7 @@ const THEORY_MODULES: TheoryModule[] = [
       </div>
     ),
   },
-  
+
   // 4. RITMO PRÁTICO - Desenvolver pulso
   {
     id: 'straight-swing',
@@ -1543,21 +1540,21 @@ const THEORY_MODULES: TheoryModule[] = [
         <div className="p-6 rounded-xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-white/10">
           <h3 className="text-2xl font-bold text-white mb-4">Straight vs Swing</h3>
           <p className="text-gray-300 mb-6">
-            Existem dois tipos principais de "feeling" rítmico. 
-            <strong className="text-white"> Isso serve para você conseguir:</strong> Tocar no estilo certo da música, 
+            Existem dois tipos principais de "feeling" rítmico.
+            <strong className="text-white"> Isso serve para você conseguir:</strong> Tocar no estilo certo da música,
             não misturar ritmos diferentes e entender por que algumas músicas "balançam" e outras não.
           </p>
-          
+
           <div className="space-y-4">
             <div className="p-5 rounded-lg bg-gradient-to-r from-[#06b6d4]/20 to-transparent border-l-4 border-[#06b6d4]">
               <h4 className="text-xl font-bold text-white mb-3">📏 Straight (Reto) - Ritmo "matemático"</h4>
               <p className="text-gray-300 mb-3">
-                Pulsação <span className="text-[#06b6d4] font-semibold">perfeitamente regular</span>, como um relógio. 
+                Pulsação <span className="text-[#06b6d4] font-semibold">perfeitamente regular</span>, como um relógio.
                 Cada batida tem o mesmo espaço de tempo.
               </p>
               <div className="p-3 rounded bg-[#06b6d4]/10 mb-3">
                 <p className="text-sm text-gray-300">
-                  <span className="font-semibold text-[#06b6d4]">Como identificar:</span> Imagine tocando um chocalho. 
+                  <span className="font-semibold text-[#06b6d4]">Como identificar:</span> Imagine tocando um chocalho.
                   Se sua mão se move sempre no mesmo ritmo, igualzinho → <span className="font-bold">STRAIGHT</span>
                 </p>
               </div>
@@ -1572,12 +1569,12 @@ const THEORY_MODULES: TheoryModule[] = [
             <div className="p-5 rounded-lg bg-gradient-to-r from-[#8b5cf6]/20 to-transparent border-l-4 border-[#8b5cf6]">
               <h4 className="text-xl font-bold text-white mb-3">🎵 Swing - Ritmo "balançado"</h4>
               <p className="text-gray-300 mb-3">
-                Pulsação com <span className="text-[#8b5cf6] font-semibold">"balanço" natural</span>. 
+                Pulsação com <span className="text-[#8b5cf6] font-semibold">"balanço" natural</span>.
                 Não é matemático - tem um leve atraso que cria o "swing".
               </p>
               <div className="p-3 rounded bg-[#8b5cf6]/10 mb-3">
                 <p className="text-sm text-gray-300">
-                  <span className="font-semibold text-[#8b5cf6]">Como identificar:</span> Se sua mão se move como "de 2 em 2" 
+                  <span className="font-semibold text-[#8b5cf6]">Como identificar:</span> Se sua mão se move como "de 2 em 2"
                   com um balanço natural, tipo dançar → <span className="font-bold">SWING</span>
                 </p>
               </div>
@@ -1592,9 +1589,9 @@ const THEORY_MODULES: TheoryModule[] = [
           <div className="mt-6 p-5 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/30">
             <h4 className="text-lg font-bold text-white mb-3">💡 Dica Prática</h4>
             <p className="text-gray-300">
-              Algumas músicas <span className="font-semibold">mudam de feeling</span> no meio! 
-              Podem começar em Straight e depois ir para Swing, ou vice-versa. 
-              <strong className="text-white"> Isso serve para você conseguir:</strong> Identificar quando mudar seu estilo de tocar 
+              Algumas músicas <span className="font-semibold">mudam de feeling</span> no meio!
+              Podem começar em Straight e depois ir para Swing, ou vice-versa.
+              <strong className="text-white"> Isso serve para você conseguir:</strong> Identificar quando mudar seu estilo de tocar
               para acompanhar a música corretamente.
             </p>
           </div>
@@ -1614,15 +1611,15 @@ const THEORY_MODULES: TheoryModule[] = [
               <div className="p-3 rounded bg-purple-500/10">
                 <ul className="text-sm text-gray-300 space-y-2">
                   <li>
-                    <strong>Subdivisões:</strong> Dividir cada batida em partes menores (ex: 1-e-&-a). 
+                    <strong>Subdivisões:</strong> Dividir cada batida em partes menores (ex: 1-e-&-a).
                     Permite criar ritmos mais complexos e interessantes.
                   </li>
                   <li>
-                    <strong>Síncope:</strong> Acentuar notas que não estão na batida forte. 
+                    <strong>Síncope:</strong> Acentuar notas que não estão na batida forte.
                     Cria "surpresa" e movimento na música.
                   </li>
                   <li>
-                    <strong>Polirritmia:</strong> Tocar dois ritmos diferentes ao mesmo tempo 
+                    <strong>Polirritmia:</strong> Tocar dois ritmos diferentes ao mesmo tempo
                     (ex: 3 contra 2). Usado em jazz e música clássica.
                   </li>
                 </ul>
@@ -1648,15 +1645,15 @@ const THEORY_MODULES: TheoryModule[] = [
               <div className="p-3 rounded bg-purple-500/10">
                 <ul className="text-sm text-gray-300 space-y-2">
                   <li>
-                    <strong>Subdivisões:</strong> Dividir cada batida em partes menores (ex: 1-e-&-a). 
+                    <strong>Subdivisões:</strong> Dividir cada batida em partes menores (ex: 1-e-&-a).
                     Permite criar ritmos mais complexos e interessantes.
                   </li>
                   <li>
-                    <strong>Síncope:</strong> Acentuar notas que não estão na batida forte. 
+                    <strong>Síncope:</strong> Acentuar notas que não estão na batida forte.
                     Cria "surpresa" e movimento na música.
                   </li>
                   <li>
-                    <strong>Polirritmia:</strong> Tocar dois ritmos diferentes ao mesmo tempo 
+                    <strong>Polirritmia:</strong> Tocar dois ritmos diferentes ao mesmo tempo
                     (ex: 3 contra 2). Usado em jazz e música clássica.
                   </li>
                 </ul>
@@ -1723,7 +1720,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <Target className="w-5 h-5 text-indigo-400" />
                 <h4 className="text-lg font-bold text-white">Fixação: Teste seu conhecimento</h4>
               </div>
-              
+
               <div className="space-y-4">
                 <SimpleFixationExercise
                   question="Qual é a principal diferença entre ritmo Straight e Swing?"
@@ -1736,7 +1733,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={1}
                   explanation="Straight é perfeitamente regular (como um relógio), enquanto Swing tem um balanço natural com leve atraso que cria o 'swing'. Ambos são importantes em diferentes estilos musicais."
                 />
-                
+
                 <SimpleFixationExercise
                   question="Qual estilo musical geralmente usa ritmo Straight?"
                   options={[
@@ -1748,7 +1745,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={1}
                   explanation="Rock, Pop e Samba geralmente usam ritmo Straight (matemático e regular). Jazz e Blues usam mais o Swing (balançado)."
                 />
-                
+
                 <SimpleFixationExercise
                   question="Por que é importante identificar o tipo de ritmo (Straight vs Swing) em uma música?"
                   options={[
@@ -1799,7 +1796,7 @@ const THEORY_MODULES: TheoryModule[] = [
               <div>
                 <p className="text-blue-200 font-semibold mb-1">Lembre-se:</p>
                 <p className="text-sm text-gray-300">
-                  Você já aprendeu que o <strong className="text-white">ritmo</strong> é um dos 3 elementos fundamentais da música 
+                  Você já aprendeu que o <strong className="text-white">ritmo</strong> é um dos 3 elementos fundamentais da música
                   e é o <strong className="text-white">erro mais perceptível</strong>. Agora você está aprendendo os dois tipos principais de ritmo!
                 </p>
               </div>
@@ -1847,7 +1844,7 @@ const THEORY_MODULES: TheoryModule[] = [
       </div>
     ),
   },
-  
+
   // 5. ESCALAS APLICADAS - Melodias e solos
   {
     id: 'scales',
@@ -1868,20 +1865,20 @@ const THEORY_MODULES: TheoryModule[] = [
             Agora que você sabe a Escala Maior de Dó (C-D-E-F-G-A-B), use-a para improvisar:
           </p>
           <div className="space-y-2 text-sm text-gray-300">
-            <p><strong className="text-green-400">1. Toque a escala:</strong> Pratique subindo e descendo. 
+            <p><strong className="text-green-400">1. Toque a escala:</strong> Pratique subindo e descendo.
               <strong className="text-white"> Serve para:</strong> Memorizar as notas e treinar coordenação.</p>
-            <p><strong className="text-green-400">2. Crie melodias:</strong> Toque notas da escala em ordem aleatória. 
+            <p><strong className="text-green-400">2. Crie melodias:</strong> Toque notas da escala em ordem aleatória.
               <strong className="text-white"> Serve para:</strong> Começar a improvisar sem errar muito.</p>
-            <p><strong className="text-green-400">3. Use sobre acordes:</strong> Escala de C funciona sobre acorde C, F, G. 
+            <p><strong className="text-green-400">3. Use sobre acordes:</strong> Escala de C funciona sobre acorde C, F, G.
               <strong className="text-white"> Serve para:</strong> Saber quais notas tocar quando alguém está tocando esses acordes.</p>
-            <p><strong className="text-green-400">4. Experimente ritmos:</strong> Toque rápido, lento, com pausas. 
+            <p><strong className="text-green-400">4. Experimente ritmos:</strong> Toque rápido, lento, com pausas.
               <strong className="text-white"> Serve para:</strong> Criar variação e expressão no seu solo.</p>
           </div>
         </div>
         <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/30">
           <p className="text-xs text-gray-300">
-            <strong className="text-purple-400">💡 Dica:</strong> Comece com a Escala Pentatônica Maior (C-D-E-G-A). 
-            <strong className="text-white"> Isso serve para você conseguir:</strong> Improvisar mais fácil, 
+            <strong className="text-purple-400">💡 Dica:</strong> Comece com a Escala Pentatônica Maior (C-D-E-G-A).
+            <strong className="text-white"> Isso serve para você conseguir:</strong> Improvisar mais fácil,
             pois tem menos notas (5 em vez de 7) e soa bem sobre qualquer acorde maior!
           </p>
         </div>
@@ -1915,13 +1912,13 @@ const THEORY_MODULES: TheoryModule[] = [
         </div>
 
         <ScaleBuilder />
-        
+
         <div className="p-6 rounded-xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-white/10">
           <h3 className="text-2xl font-bold text-white mb-4">O que são Escalas?</h3>
           <p className="text-gray-300 mb-6">
-            Escalas são <span className="text-[#06b6d4] font-semibold">grupos de notas que combinam entre si</span>, 
-            como um "alfabeto musical". <strong className="text-white"> Isso serve para você conseguir:</strong> 
-            Saber quais notas tocar em um solo, improvisar sem errar e entender por que algumas notas soam bem juntas 
+            Escalas são <span className="text-[#06b6d4] font-semibold">grupos de notas que combinam entre si</span>,
+            como um "alfabeto musical". <strong className="text-white"> Isso serve para você conseguir:</strong>
+            Saber quais notas tocar em um solo, improvisar sem errar e entender por que algumas notas soam bem juntas
             e outras não.
           </p>
 
@@ -1930,7 +1927,7 @@ const THEORY_MODULES: TheoryModule[] = [
               <h4 className="text-xl font-bold text-white mb-3">🎶 Escala Maior (som alegre)</h4>
               <p className="text-gray-300 mb-3">
                 A escala mais comum! Som <span className="text-[#06b6d4] font-semibold">alegre e brilhante</span>.
-                <strong className="text-white"> Isso serve para você conseguir:</strong> Tocar solos em músicas alegres, 
+                <strong className="text-white"> Isso serve para você conseguir:</strong> Tocar solos em músicas alegres,
                 improvisar sobre acordes maiores e entender a base da maioria das músicas populares.
               </p>
               <div className="p-3 rounded bg-[#06b6d4]/10 mb-3">
@@ -1943,12 +1940,12 @@ const THEORY_MODULES: TheoryModule[] = [
                 </p>
                 <AudioPlayChordButton chordNotes={["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"]} duration={0.3} sequential label="🎵 Ouvir Escala Maior" />
               </div>
-              
+
               {/* AÇÃO PRÁTICA IMEDIATA - Escala Maior */}
               <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
                 <p className="text-xs font-semibold text-green-400 mb-2">🎸 Agora toque:</p>
                 <p className="text-xs text-gray-300 mb-2">
-                  <strong>1. Ouça</strong> a escala acima clicando no botão. <strong>2. Identifique</strong> o som alegre e brilhante. 
+                  <strong>1. Ouça</strong> a escala acima clicando no botão. <strong>2. Identifique</strong> o som alegre e brilhante.
                   <strong> 3. Toque</strong> no violão: corda 5 (A), 3º traste (C) → 5º traste (D) → 7º traste (E) → corda 4 aberta (F).
                 </p>
                 <p className="text-xs text-gray-400">
@@ -1961,7 +1958,7 @@ const THEORY_MODULES: TheoryModule[] = [
               <h4 className="text-xl font-bold text-white mb-3">🎶 Escala Menor (som triste/melancólico)</h4>
               <p className="text-gray-300 mb-3">
                 Som <span className="text-[#8b5cf6] font-semibold">melancólico e introspectivo</span>.
-                <strong className="text-white"> Isso serve para você conseguir:</strong> Tocar solos em músicas tristes, 
+                <strong className="text-white"> Isso serve para você conseguir:</strong> Tocar solos em músicas tristes,
                 improvisar sobre acordes menores e criar melodias mais emocionais.
               </p>
               <div className="p-3 rounded bg-[#8b5cf6]/10 mb-3">
@@ -1973,12 +1970,12 @@ const THEORY_MODULES: TheoryModule[] = [
                 </p>
                 <AudioPlayChordButton chordNotes={["A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4"]} duration={0.3} sequential label="🎵 Ouvir Escala Menor" />
               </div>
-              
+
               {/* AÇÃO PRÁTICA IMEDIATA - Escala Menor */}
               <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
                 <p className="text-xs font-semibold text-green-400 mb-2">🎸 Agora toque:</p>
                 <p className="text-xs text-gray-300 mb-2">
-                  <strong>1. Ouça</strong> a escala acima e <strong>compare</strong> com a escala maior - perceba a diferença de "clima". 
+                  <strong>1. Ouça</strong> a escala acima e <strong>compare</strong> com a escala maior - perceba a diferença de "clima".
                   <strong> 2. Identifique</strong> o som melancólico. <strong>3. Toque</strong> no violão: corda 5 aberta (A) → 2º traste (B) → 3º traste (C).
                 </p>
                 <p className="text-xs text-gray-400">
@@ -1990,8 +1987,8 @@ const THEORY_MODULES: TheoryModule[] = [
             <div className="p-5 rounded-lg bg-gradient-to-r from-[#10b981]/20 to-transparent border-l-4 border-[#10b981]">
               <h4 className="text-xl font-bold text-white mb-3">🎶 Escala Pentatônica (5 notas - mais fácil!)</h4>
               <p className="text-gray-300 mb-3">
-                Apenas 5 notas! <span className="text-[#10b981] font-semibold">Fácil de usar e versátil</span>. 
-                <strong className="text-white"> Isso serve para você conseguir:</strong> Começar a improvisar sem errar muito, 
+                Apenas 5 notas! <span className="text-[#10b981] font-semibold">Fácil de usar e versátil</span>.
+                <strong className="text-white"> Isso serve para você conseguir:</strong> Começar a improvisar sem errar muito,
                 tocar solos de blues e rock, e entender escalas de forma mais simples.
               </p>
               <div className="p-3 rounded bg-[#10b981]/10 mb-3">
@@ -2001,13 +1998,13 @@ const THEORY_MODULES: TheoryModule[] = [
                 </p>
                 <AudioPlayChordButton chordNotes={["A3", "C4", "D4", "E4", "G4"]} duration={0.3} sequential label="🎵 Ouvir Pentatônica" />
               </div>
-              
+
               {/* AÇÃO PRÁTICA IMEDIATA - Pentatônica */}
               <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
                 <p className="text-xs font-semibold text-green-400 mb-2">🎸 Agora toque:</p>
                 <p className="text-xs text-gray-300 mb-2">
-                  <strong>1. Ouça</strong> a pentatônica acima - perceba como soa bem mesmo sendo simples! 
-                  <strong> 2. Identifique</strong> que tem apenas 5 notas (mais fácil!). 
+                  <strong>1. Ouça</strong> a pentatônica acima - perceba como soa bem mesmo sendo simples!
+                  <strong> 2. Identifique</strong> que tem apenas 5 notas (mais fácil!).
                   <strong> 3. Toque</strong> no violão: corda 5 aberta (A) → 3º traste (C) → 5º traste (D) → 7º traste (E) → corda 4, 2º traste (G).
                 </p>
                 <p className="text-xs text-gray-400">
@@ -2064,7 +2061,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <Target className="w-5 h-5 text-indigo-400" />
                 <h4 className="text-lg font-bold text-white">Fixação: Teste seu conhecimento</h4>
               </div>
-              
+
               <div className="space-y-4">
                 <SimpleFixationExercise
                   question="Quantas notas tem a Escala Pentatônica?"
@@ -2077,7 +2074,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={1}
                   explanation="A Pentatônica tem apenas 5 notas, por isso é mais fácil de usar e menos provável de errar. É perfeita para começar a improvisar!"
                 />
-                
+
                 <SimpleFixationExercise
                   question="Qual é o padrão da Escala Maior?"
                   options={[
@@ -2089,7 +2086,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={0}
                   explanation="O padrão da Escala Maior é: Tom-Tom-Semitom-Tom-Tom-Tom-Semitom. Isso cria o som alegre e brilhante característico das escalas maiores!"
                 />
-                
+
                 <SimpleFixationExercise
                   question="Por que a Pentatônica é mais fácil para iniciantes?"
                   options={[
@@ -2140,8 +2137,8 @@ const THEORY_MODULES: TheoryModule[] = [
               <div>
                 <p className="text-blue-200 font-semibold mb-1">Lembre-se:</p>
                 <p className="text-sm text-gray-300">
-                  Você já aprendeu sobre <strong className="text-white">notas no braço</strong> e <strong className="text-white">acordes</strong>. 
-                  As escalas são grupos de notas que você pode usar para criar <strong className="text-white">melodias</strong> 
+                  Você já aprendeu sobre <strong className="text-white">notas no braço</strong> e <strong className="text-white">acordes</strong>.
+                  As escalas são grupos de notas que você pode usar para criar <strong className="text-white">melodias</strong>
                   (um dos 3 elementos fundamentais que você viu no início)!
                 </p>
               </div>
@@ -2189,7 +2186,7 @@ const THEORY_MODULES: TheoryModule[] = [
       </div>
     ),
   },
-  
+
   // 6. INTERVALOS (OUVINDO) - Desenvolver ouvido
   {
     id: 'intervals',
@@ -2226,8 +2223,8 @@ const THEORY_MODULES: TheoryModule[] = [
         </div>
         <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
           <p className="text-xs text-gray-300">
-            <strong className="text-blue-400">💡 Dica:</strong> Pratique identificando intervalos em músicas que você conhece. 
-            <strong className="text-white"> Isso serve para você conseguir:</strong> Reconhecer notas pelo som, 
+            <strong className="text-blue-400">💡 Dica:</strong> Pratique identificando intervalos em músicas que você conhece.
+            <strong className="text-white"> Isso serve para você conseguir:</strong> Reconhecer notas pelo som,
             tocar músicas de ouvido e desenvolver seu "ouvido musical" - uma das habilidades mais importantes para um músico!
           </p>
         </div>
@@ -2261,12 +2258,12 @@ const THEORY_MODULES: TheoryModule[] = [
         </div>
 
         <IntervalBuilder />
-        
+
         <div className="p-6 rounded-xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-white/10">
           <h3 className="text-2xl font-bold text-white mb-4">O que são Intervalos?</h3>
           <p className="text-gray-300 mb-6">
-            Intervalos são a <span className="text-[#06b6d4] font-semibold">distância entre duas notas</span>. 
-            <strong className="text-white"> Isso serve para você conseguir:</strong> Reconhecer notas pelo som (treinar ouvido), 
+            Intervalos são a <span className="text-[#06b6d4] font-semibold">distância entre duas notas</span>.
+            <strong className="text-white"> Isso serve para você conseguir:</strong> Reconhecer notas pelo som (treinar ouvido),
             entender como acordes são feitos e saber quais notas tocar juntas para criar diferentes sensações (alegre, triste, tenso).
           </p>
 
@@ -2280,67 +2277,67 @@ const THEORY_MODULES: TheoryModule[] = [
                     <span className="text-sm text-gray-400">1 semitom (meio tom)</span>
                   </div>
                   <p className="text-sm text-gray-300 mb-2">
-                    <strong>Som:</strong> Tenso, como no tema de "Tubarão" (dó-dó#). 
+                    <strong>Som:</strong> Tenso, como no tema de "Tubarão" (dó-dó#).
                     <strong className="text-white"> Serve para:</strong> Criar suspense e tensão na música.
                   </p>
                   <AudioPlayChordButton chordNotes={["C4", "C#4"]} duration={0.5} label="🎵 Ouvir 2ª Menor" />
                   <div className="mt-2 p-2 rounded bg-green-500/10 border border-green-500/20">
                     <p className="text-xs text-gray-300">
-                      <strong className="text-green-400">🎸 Toque:</strong> Corda 5, 3º traste (C) → 4º traste (C#). 
+                      <strong className="text-green-400">🎸 Toque:</strong> Corda 5, 3º traste (C) → 4º traste (C#).
                       <strong> Identifique</strong> a tensão - soa como suspense!
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="p-3 rounded bg-white/5">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-white">Terça Maior</span>
                     <span className="text-sm text-gray-400">4 semitons</span>
                   </div>
                   <p className="text-sm text-gray-300 mb-2">
-                    <strong>Som:</strong> Alegre e brilhante. 
+                    <strong>Som:</strong> Alegre e brilhante.
                     <strong className="text-white"> Serve para:</strong> Formar acordes maiores (C, G, F, etc.) e criar sensação de felicidade.
                   </p>
                   <AudioPlayChordButton chordNotes={["C4", "E4"]} duration={0.5} label="🎵 Ouvir 3ª Maior" />
                   <div className="mt-2 p-2 rounded bg-green-500/10 border border-green-500/20">
                     <p className="text-xs text-gray-300">
-                      <strong className="text-green-400">🎸 Toque:</strong> Corda 5, 3º traste (C) → Corda 4, 2º traste (E). 
+                      <strong className="text-green-400">🎸 Toque:</strong> Corda 5, 3º traste (C) → Corda 4, 2º traste (E).
                       <strong> Identifique</strong> o som alegre - é a base dos acordes maiores!
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="p-3 rounded bg-white/5">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-white">Quinta Justa</span>
                     <span className="text-sm text-gray-400">7 semitons</span>
                   </div>
                   <p className="text-sm text-gray-300 mb-2">
-                    <strong>Som:</strong> Estável e poderoso. 
+                    <strong>Som:</strong> Estável e poderoso.
                     <strong className="text-white"> Serve para:</strong> Criar power chords (muito usados no rock) e dar força aos acordes.
                   </p>
                   <AudioPlayChordButton chordNotes={["C4", "G4"]} duration={0.5} label="🎵 Ouvir 5ª Justa" />
                   <div className="mt-2 p-2 rounded bg-green-500/10 border border-green-500/20">
                     <p className="text-xs text-gray-300">
-                      <strong className="text-green-400">🎸 Toque:</strong> Corda 5, 3º traste (C) → Corda 3 aberta (G). 
+                      <strong className="text-green-400">🎸 Toque:</strong> Corda 5, 3º traste (C) → Corda 3 aberta (G).
                       <strong> Identifique</strong> o som poderoso - é o power chord do rock!
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="p-3 rounded bg-white/5">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-white">Oitava</span>
                     <span className="text-sm text-gray-400">12 semitons</span>
                   </div>
                   <p className="text-sm text-gray-300 mb-2">
-                    <strong>Som:</strong> Mesma nota, só que mais aguda ou grave. 
+                    <strong>Som:</strong> Mesma nota, só que mais aguda ou grave.
                     <strong className="text-white"> Serve para:</strong> Encontrar a mesma nota em outro lugar do braço e criar som mais cheio.
                   </p>
                   <AudioPlayChordButton chordNotes={["C4", "C5"]} duration={0.5} label="🎵 Ouvir Oitava" />
                   <div className="mt-2 p-2 rounded bg-green-500/10 border border-green-500/20">
                     <p className="text-xs text-gray-300">
-                      <strong className="text-green-400">🎸 Toque:</strong> Corda 5, 3º traste (C) → Corda 2, 1º traste (C). 
+                      <strong className="text-green-400">🎸 Toque:</strong> Corda 5, 3º traste (C) → Corda 2, 1º traste (C).
                       <strong> Identifique</strong> que é a mesma nota, só mais aguda - isso ajuda a encontrar notas em vários lugares!
                     </p>
                   </div>
@@ -2360,11 +2357,11 @@ const THEORY_MODULES: TheoryModule[] = [
             <div className="p-5 rounded-lg bg-[#8b5cf6]/10 border border-[#8b5cf6]/30">
               <h4 className="text-lg font-bold text-white mb-3">🎯 Como Memorizar</h4>
               <p className="text-gray-300 mb-2">
-                Associe intervalos com músicas que você conhece! 
+                Associe intervalos com músicas que você conhece!
                 <strong className="text-white"> Isso serve para você conseguir:</strong> Reconhecer intervalos pelo som rapidamente.
               </p>
               <p className="text-sm text-gray-300">
-                <strong>Exemplo:</strong> <span className="font-semibold">Quinta Justa</span> = início de "Parabéns pra Você" (Pa-ra-béns). 
+                <strong>Exemplo:</strong> <span className="font-semibold">Quinta Justa</span> = início de "Parabéns pra Você" (Pa-ra-béns).
                 Quando ouvir esse som, você já sabe que é uma quinta justa!
               </p>
             </div>
@@ -2384,15 +2381,15 @@ const THEORY_MODULES: TheoryModule[] = [
                 <div className="p-3 rounded bg-purple-500/10">
                   <ul className="text-sm text-gray-300 space-y-2">
                     <li>
-                      <strong>Intervalos Compostos:</strong> Maiores que uma oitava (ex: 9ª, 11ª, 13ª). 
+                      <strong>Intervalos Compostos:</strong> Maiores que uma oitava (ex: 9ª, 11ª, 13ª).
                       Usados em acordes estendidos (C9, Cmaj7, etc.).
                     </li>
                     <li>
-                      <strong>Inversão de Intervalos:</strong> Trocar a ordem das notas (ex: C-E vira E-C). 
+                      <strong>Inversão de Intervalos:</strong> Trocar a ordem das notas (ex: C-E vira E-C).
                       A soma sempre dá 9 (3ª maior invertida = 6ª menor).
                     </li>
                     <li>
-                      <strong>Intervalos Aumentados/Diminutos:</strong> Variações dos intervalos justos e maiores/menores. 
+                      <strong>Intervalos Aumentados/Diminutos:</strong> Variações dos intervalos justos e maiores/menores.
                       Criam tensão e movimento harmônico.
                     </li>
                   </ul>
@@ -2502,7 +2499,7 @@ const THEORY_MODULES: TheoryModule[] = [
               <div>
                 <p className="text-blue-200 font-semibold mb-1">Lembre-se:</p>
                 <p className="text-sm text-gray-300">
-                  Você já aprendeu que <strong className="text-white">acordes são formados por intervalos</strong> (3ª e 5ª). 
+                  Você já aprendeu que <strong className="text-white">acordes são formados por intervalos</strong> (3ª e 5ª).
                   Agora você está aprendendo a reconhecer esses intervalos pelo som - isso ajuda a entender melhor os acordes!
                 </p>
               </div>
@@ -2582,7 +2579,7 @@ const THEORY_MODULES: TheoryModule[] = [
       }
     ],
   },
-  
+
   // 7. CAMPO HARMÔNICO APLICADO - Progressões e relações
   {
     id: 'progressions',
@@ -2630,8 +2627,8 @@ const THEORY_MODULES: TheoryModule[] = [
         <div className="p-6 rounded-xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-white/10">
           <h3 className="text-2xl font-bold text-white mb-4">Campo Harmônico e Progressões</h3>
           <p className="text-gray-300 mb-6">
-            Progressões são <span className="text-[#06b6d4] font-semibold">sequências de acordes</span> que criam movimento na música. 
-            <strong className="text-white"> Isso serve para você conseguir:</strong> Acompanhar músicas conhecendo os acordes que vêm depois, 
+            Progressões são <span className="text-[#06b6d4] font-semibold">sequências de acordes</span> que criam movimento na música.
+            <strong className="text-white"> Isso serve para você conseguir:</strong> Acompanhar músicas conhecendo os acordes que vêm depois,
             entender por que algumas sequências de acordes são tão comuns e criar suas próprias músicas.
           </p>
 
@@ -2643,20 +2640,20 @@ const THEORY_MODULES: TheoryModule[] = [
             <div className="p-5 rounded-lg bg-gradient-to-r from-[#10b981]/20 to-transparent border-l-4 border-[#10b981]">
               <h4 className="text-xl font-bold text-white mb-3">🎯 Função dos Acordes (o que cada um faz)</h4>
               <p className="text-gray-300 mb-3 text-sm">
-                Cada acorde tem uma "função" - um papel na música. 
+                Cada acorde tem uma "função" - um papel na música.
                 <strong className="text-white"> Isso serve para você conseguir:</strong> Saber qual acorde vem depois e entender o "caminho" da música.
               </p>
               <div className="space-y-3 text-gray-300">
                 <div>
-                  <strong className="text-green-400">Tônica (I, vi):</strong> O "casa" - sensação de repouso e estabilidade. 
+                  <strong className="text-green-400">Tônica (I, vi):</strong> O "casa" - sensação de repouso e estabilidade.
                   É para onde a música quer voltar.
                 </div>
                 <div>
-                  <strong className="text-blue-400">Subdominante (IV, ii):</strong> O "passeio" - afasta da tônica, prepara para voltar. 
+                  <strong className="text-blue-400">Subdominante (IV, ii):</strong> O "passeio" - afasta da tônica, prepara para voltar.
                   Cria movimento.
                 </div>
                 <div>
-                  <strong className="text-amber-400">Dominante (V, vii°):</strong> O "tensão" - cria vontade de voltar para a tônica. 
+                  <strong className="text-amber-400">Dominante (V, vii°):</strong> O "tensão" - cria vontade de voltar para a tônica.
                   É como uma pergunta que precisa de resposta.
                 </div>
               </div>
@@ -2665,7 +2662,7 @@ const THEORY_MODULES: TheoryModule[] = [
             <div className="p-5 rounded-lg bg-gradient-to-r from-[#8b5cf6]/20 to-transparent border-l-4 border-[#8b5cf6]">
               <h4 className="text-xl font-bold text-white mb-3">💡 Progressões Comuns (que você já ouviu!)</h4>
               <p className="text-gray-300 mb-3 text-sm">
-                <strong className="text-white">Isso serve para você conseguir:</strong> Reconhecer essas progressões em músicas famosas 
+                <strong className="text-white">Isso serve para você conseguir:</strong> Reconhecer essas progressões em músicas famosas
                 e tocar milhares de músicas conhecendo apenas alguns padrões.
               </p>
               <ul className="text-gray-300 space-y-2">
@@ -2695,15 +2692,15 @@ const THEORY_MODULES: TheoryModule[] = [
                 <div className="p-3 rounded bg-purple-500/10">
                   <ul className="text-sm text-gray-300 space-y-2">
                     <li>
-                      <strong>Substituição de Trítono:</strong> Trocar V7 por outro acorde dominante (ex: G7 por Db7). 
+                      <strong>Substituição de Trítono:</strong> Trocar V7 por outro acorde dominante (ex: G7 por Db7).
                       Mantém a função dominante com som diferente.
                     </li>
                     <li>
-                      <strong>Acordes de Empréstimo Modal:</strong> Usar acordes de outros modos da mesma tônica 
+                      <strong>Acordes de Empréstimo Modal:</strong> Usar acordes de outros modos da mesma tônica
                       (ex: bVII, bVI em progressões maiores). Cria cores diferentes.
                     </li>
                     <li>
-                      <strong>Progressões Secundárias:</strong> Criar "mini-progressões" dentro da progressão principal. 
+                      <strong>Progressões Secundárias:</strong> Criar "mini-progressões" dentro da progressão principal.
                       Usado em jazz e música clássica.
                     </li>
                   </ul>
@@ -2750,7 +2747,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   <li>Volte para <strong>C</strong> e repita</li>
                 </ul>
                 <p className="text-xs text-gray-400 mt-3">
-                  <strong>Por quê?</strong> Essa progressão é usada em MILHARES de músicas. Se você souber tocar isso, 
+                  <strong>Por quê?</strong> Essa progressão é usada em MILHARES de músicas. Se você souber tocar isso,
                   já consegue acompanhar muitas músicas!
                 </p>
               </div>
@@ -2764,7 +2761,7 @@ const THEORY_MODULES: TheoryModule[] = [
                 <Target className="w-5 h-5 text-indigo-400" />
                 <h4 className="text-lg font-bold text-white">Fixação: Teste seu conhecimento</h4>
               </div>
-              
+
               <div className="space-y-4">
                 <SimpleFixationExercise
                   question="Qual é a função do acorde V (dominante) em uma progressão?"
@@ -2777,7 +2774,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={1}
                   explanation="O acorde V (dominante) cria tensão que naturalmente quer resolver para a tônica (I). É como uma pergunta que precisa de resposta - por isso progressões V-I são tão fortes!"
                 />
-                
+
                 <SimpleFixationExercise
                   question="Qual progressão é conhecida como 'a progressão mais famosa do pop'?"
                   options={[
@@ -2789,7 +2786,7 @@ const THEORY_MODULES: TheoryModule[] = [
                   correctAnswer={1}
                   explanation="A progressão I-V-vi-IV (C-G-Am-F) é usada em centenas de músicas pop famosas como 'Let It Be', 'No Woman No Cry' e muitas outras!"
                 />
-                
+
                 <SimpleFixationExercise
                   question="Qual acorde cria sensação de 'casa' ou repouso em uma progressão?"
                   options={[
@@ -2840,8 +2837,8 @@ const THEORY_MODULES: TheoryModule[] = [
               <div>
                 <p className="text-blue-200 font-semibold mb-1">Lembre-se:</p>
                 <p className="text-sm text-gray-300">
-                  Você já aprendeu sobre <strong className="text-white">acordes</strong> (como são formados) e 
-                  <strong className="text-white"> escalas</strong> (grupos de notas). As progressões são sequências de acordes 
+                  Você já aprendeu sobre <strong className="text-white">acordes</strong> (como são formados) e
+                  <strong className="text-white"> escalas</strong> (grupos de notas). As progressões são sequências de acordes
                   que criam movimento - isso é a <strong className="text-white">harmonia</strong> em ação!
                 </p>
               </div>
@@ -2902,7 +2899,7 @@ const THEORY_MODULES: TheoryModule[] = [
       </div>
     ),
   },
-  
+
   {
     id: 'circle-of-fifths',
     title: 'Círculo das Quintas',
@@ -2944,15 +2941,15 @@ const THEORY_MODULES: TheoryModule[] = [
         <div className="p-6 rounded-xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-white/10">
           <h3 className="text-2xl font-bold text-white mb-4">O Círculo das Quintas</h3>
           <p className="text-gray-300 mb-6">
-            O <span className="text-[#06b6d4] font-semibold">Círculo das Quintas</span> é um "mapa" que mostra como todas as tonalidades se relacionam. 
-            <strong className="text-white"> Isso serve para você conseguir:</strong> Saber quais acordes combinam, 
+            O <span className="text-[#06b6d4] font-semibold">Círculo das Quintas</span> é um "mapa" que mostra como todas as tonalidades se relacionam.
+            <strong className="text-white"> Isso serve para você conseguir:</strong> Saber quais acordes combinam,
             entender por que algumas músicas mudam de tom (modulação) e encontrar escalas relacionadas rapidamente.
           </p>
 
           {/* CONTEÚDO ESSENCIAL - Visível para todos */}
           <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
             <p className="text-xs text-gray-300">
-              <strong className="text-blue-400">💡 Para Iniciantes:</strong> Foque em entender que acordes próximos no círculo combinam bem. 
+              <strong className="text-blue-400">💡 Para Iniciantes:</strong> Foque em entender que acordes próximos no círculo combinam bem.
               Isso já é suficiente para tocar muitas músicas!
             </p>
           </div>
@@ -2965,13 +2962,13 @@ const THEORY_MODULES: TheoryModule[] = [
             <div className="p-5 rounded-lg bg-gradient-to-r from-[#06b6d4]/20 to-transparent border-l-4 border-[#06b6d4]">
               <h4 className="text-xl font-bold text-white mb-3">🎯 Como Funciona?</h4>
               <ul className="text-gray-300 space-y-2 list-disc list-inside">
-                <li><strong>Sentido horário:</strong> Cada passo = quinta acima (C → G → D → A...). 
+                <li><strong>Sentido horário:</strong> Cada passo = quinta acima (C → G → D → A...).
                   <strong className="text-white"> Serve para:</strong> Encontrar acordes que combinam bem.</li>
-                <li><strong>Sentido anti-horário:</strong> Cada passo = quarta acima (C → F → Bb → Eb...). 
+                <li><strong>Sentido anti-horário:</strong> Cada passo = quarta acima (C → F → Bb → Eb...).
                   <strong className="text-white"> Serve para:</strong> Encontrar acordes relacionados na direção oposta.</li>
-                <li><strong>Relativas:</strong> Cada maior tem uma menor "irmã" (C ↔ Am, G ↔ Em). 
+                <li><strong>Relativas:</strong> Cada maior tem uma menor "irmã" (C ↔ Am, G ↔ Em).
                   <strong className="text-white"> Serve para:</strong> Usar a mesma escala em acordes maiores e menores relacionados.</li>
-                <li><strong>Armaduras:</strong> Quanto mais longe do C, mais sustenidos (#) ou bemóis (b) a escala tem. 
+                <li><strong>Armaduras:</strong> Quanto mais longe do C, mais sustenidos (#) ou bemóis (b) a escala tem.
                   <strong className="text-white"> Serve para:</strong> Saber quais notas tocar em cada tonalidade.</li>
               </ul>
             </div>
@@ -2979,15 +2976,15 @@ const THEORY_MODULES: TheoryModule[] = [
             <div className="p-5 rounded-lg bg-gradient-to-r from-[#10b981]/20 to-transparent border-l-4 border-[#10b981]">
               <h4 className="text-xl font-bold text-white mb-3">💡 Como Usar na Prática</h4>
               <ul className="text-gray-300 space-y-2">
-                <li><strong>Mudar de tom (modulação):</strong> Tonalidades vizinhas no círculo são fáceis de mudar. 
+                <li><strong>Mudar de tom (modulação):</strong> Tonalidades vizinhas no círculo são fáceis de mudar.
                   <strong className="text-white"> Serve para:</strong> Transpor músicas para tons mais fáceis de tocar.</li>
-                <li><strong>Progressões fortes:</strong> Movimento por quintas (V → I) é mais forte. 
+                <li><strong>Progressões fortes:</strong> Movimento por quintas (V → I) é mais forte.
                   <strong className="text-white"> Serve para:</strong> Criar progressões que "resolvem" bem.</li>
                 {isIntermediateOrAdvanced(currentLevel) && (
                   <>
-                    <li><strong>Criar músicas:</strong> Escolha tonalidades próximas no círculo para transições suaves. 
+                    <li><strong>Criar músicas:</strong> Escolha tonalidades próximas no círculo para transições suaves.
                       <strong className="text-white"> Serve para:</strong> Compor sem criar "choques" harmônicos.</li>
-                    <li><strong>Analisar músicas:</strong> Identifique relações entre acordes usando o círculo. 
+                    <li><strong>Analisar músicas:</strong> Identifique relações entre acordes usando o círculo.
                       <strong className="text-white"> Serve para:</strong> Entender por que algumas músicas soam bem.</li>
                   </>
                 )}
@@ -3009,15 +3006,15 @@ const THEORY_MODULES: TheoryModule[] = [
                 <div className="p-3 rounded bg-purple-500/10">
                   <ul className="text-sm text-gray-300 space-y-2">
                     <li>
-                      <strong>Modulação por Terça:</strong> Mudar para tonalidade relativa (ex: C → Am). 
+                      <strong>Modulação por Terça:</strong> Mudar para tonalidade relativa (ex: C → Am).
                       Mantém as mesmas notas, apenas muda a tônica.
                     </li>
                     <li>
-                      <strong>Modulação Cromática:</strong> Mudar para tonalidade meio tom acima/abaixo. 
+                      <strong>Modulação Cromática:</strong> Mudar para tonalidade meio tom acima/abaixo.
                       Cria efeito dramático.
                     </li>
                     <li>
-                      <strong>Análise de Armaduras:</strong> Usar o círculo para identificar quantos sustenidos/bemóis 
+                      <strong>Análise de Armaduras:</strong> Usar o círculo para identificar quantos sustenidos/bemóis
                       cada tonalidade tem, facilitando leitura de partituras.
                     </li>
                   </ul>
@@ -3122,8 +3119,8 @@ const THEORY_MODULES: TheoryModule[] = [
               <div>
                 <p className="text-blue-200 font-semibold mb-1">Lembre-se:</p>
                 <p className="text-sm text-gray-300">
-                  Você já aprendeu sobre <strong className="text-white">escalas</strong>, <strong className="text-white">acordes</strong> e 
-                  <strong className="text-white"> progressões</strong>. O Círculo das Quintas conecta tudo isso - 
+                  Você já aprendeu sobre <strong className="text-white">escalas</strong>, <strong className="text-white">acordes</strong> e
+                  <strong className="text-white"> progressões</strong>. O Círculo das Quintas conecta tudo isso -
                   mostra como escalas, acordes e progressões se relacionam entre diferentes tonalidades!
                 </p>
               </div>
@@ -3197,21 +3194,21 @@ export default function Theory() {
     completeModule,
     getMissingRequirements,
   } = useTheoryProgressionStore();
-  
+
   const { checkAndUnlockFromTheory } = usePracticeUnlockStore();
-  
+
   const userName = user?.name || "Usuário";
-  
+
   // Filtrar módulos por nível e desbloqueio
   const availableModules = THEORY_MODULES.filter(module => {
     // Verificar se está no nível correto
     if (module.level === 'advanced' && currentLevel !== 'advanced') return false;
     if (module.level === 'intermediate' && currentLevel === 'basic') return false;
-    
+
     // Verificar desbloqueio
     return isModuleUnlocked(module.id, module.prerequisites, module.minAccuracy);
   });
-  
+
   const lockedModules = THEORY_MODULES.filter(module => {
     return !isModuleUnlocked(module.id, module.prerequisites, module.minAccuracy);
   });
@@ -3220,14 +3217,14 @@ export default function Theory() {
     <>
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
-        <Sidebar 
+        <Sidebar
           userName={userName}
           userLevel={level}
           currentXP={xp}
           xpToNextLevel={xpToNextLevel}
           streak={currentStreak}
         />
-        
+
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto p-8 space-y-8">
             <Breadcrumbs />
@@ -3264,13 +3261,12 @@ export default function Theory() {
                       <span>{selectedModule.duration}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        selectedModule.difficulty === 'beginner' ? 'bg-[#10b981]/20 text-[#10b981]' :
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedModule.difficulty === 'beginner' ? 'bg-[#10b981]/20 text-[#10b981]' :
                         selectedModule.difficulty === 'intermediate' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
-                        'bg-[#ef4444]/20 text-[#ef4444]'
-                      }`}>
+                          'bg-[#ef4444]/20 text-[#ef4444]'
+                        }`}>
                         {selectedModule.difficulty === 'beginner' ? 'Iniciante' :
-                         selectedModule.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                          selectedModule.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
                       </span>
                     </div>
                   </div>
@@ -3284,10 +3280,10 @@ export default function Theory() {
                     />
                   ) : (
                     <>
-                      {typeof selectedModule.content === 'function' 
+                      {typeof selectedModule.content === 'function'
                         ? selectedModule.content(currentLevel)
                         : selectedModule.content}
-                      
+
                       {/* Seção "Na Prática" */}
                       {selectedModule.practicalApplication && (
                         <div className="mt-8 p-6 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
@@ -3303,7 +3299,7 @@ export default function Theory() {
                             : selectedModule.practicalApplication}
                         </div>
                       )}
-                      
+
                       {/* Botões de Ação */}
                       <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
                         {selectedModule.quiz && (
@@ -3315,7 +3311,7 @@ export default function Theory() {
                             Fazer Quiz
                           </Button>
                         )}
-                        
+
                         {/* Botão de Prática baseado no módulo */}
                         {(() => {
                           const practiceRoutes: Record<string, { path: string; label: string }> = {
@@ -3328,9 +3324,9 @@ export default function Theory() {
                             'progressions': { path: '/songs', label: 'Tocar Músicas' },
                             'circle-of-fifths': { path: '/songs', label: 'Explorar Músicas' },
                           };
-                          
+
                           const practice = practiceRoutes[selectedModule.id];
-                          
+
                           return practice ? (
                             <Link href={practice.path}>
                               <Button
@@ -3391,46 +3387,45 @@ export default function Theory() {
                         className="p-6 bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border-white/10 hover:border-[#8b5cf6]/50 transition-all cursor-pointer group"
                         onClick={() => setSelectedModule(module)}
                       >
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="p-3 rounded-lg bg-gradient-to-br from-[#8b5cf6] to-[#a855f7] group-hover:scale-110 transition-transform">
-                        <module.icon className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-white mb-2">{module.title}</h3>
-                        <p className="text-sm text-gray-400 mb-3">{module.description}</p>
-                        
-                        <div className="flex items-center gap-4 mb-3">
-                          <span className="text-xs text-gray-500">{module.duration}</span>
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            module.difficulty === 'beginner' ? 'bg-[#10b981]/20 text-[#10b981]' :
-                            module.difficulty === 'intermediate' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
-                            'bg-[#ef4444]/20 text-[#ef4444]'
-                          }`}>
-                            {module.difficulty === 'beginner' ? 'Iniciante' :
-                             module.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
-                          </span>
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className="p-3 rounded-lg bg-gradient-to-br from-[#8b5cf6] to-[#a855f7] group-hover:scale-110 transition-transform">
+                            <module.icon className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-white mb-2">{module.title}</h3>
+                            <p className="text-sm text-gray-400 mb-3">{module.description}</p>
+
+                            <div className="flex items-center gap-4 mb-3">
+                              <span className="text-xs text-gray-500">{module.duration}</span>
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${module.difficulty === 'beginner' ? 'bg-[#10b981]/20 text-[#10b981]' :
+                                module.difficulty === 'intermediate' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
+                                  'bg-[#ef4444]/20 text-[#ef4444]'
+                                }`}>
+                                {module.difficulty === 'beginner' ? 'Iniciante' :
+                                  module.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                              </span>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              {module.topics.map((topic) => (
+                                <span
+                                  key={topic}
+                                  className="px-2 py-1 rounded bg-white/5 text-xs text-gray-400"
+                                >
+                                  {topic}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-2">
-                          {module.topics.map((topic) => (
-                            <span
-                              key={topic}
-                              className="px-2 py-1 rounded bg-white/5 text-xs text-gray-400"
-                            >
-                              {topic}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <Button
-                      className="w-full bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] hover:from-[#7c3aed] hover:to-[#9333ea] text-white"
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      Começar Módulo
-                    </Button>
-                  </Card>
+                        <Button
+                          className="w-full bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] hover:from-[#7c3aed] hover:to-[#9333ea] text-white"
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          Começar Módulo
+                        </Button>
+                      </Card>
                     ))}
                   </div>
                 </div>
@@ -3449,7 +3444,7 @@ export default function Theory() {
                           module.prerequisites,
                           module.minAccuracy
                         );
-                        
+
                         return (
                           <Card
                             key={module.id}
@@ -3487,13 +3482,12 @@ export default function Theory() {
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                                module.level === 'basic' ? 'bg-blue-500/20 text-blue-400' :
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${module.level === 'basic' ? 'bg-blue-500/20 text-blue-400' :
                                 module.level === 'intermediate' ? 'bg-purple-500/20 text-purple-400' :
-                                'bg-red-500/20 text-red-400'
-                              }`}>
+                                  'bg-red-500/20 text-red-400'
+                                }`}>
                                 {module.level === 'basic' ? 'Básico' :
-                                 module.level === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                                  module.level === 'intermediate' ? 'Intermediário' : 'Avançado'}
                               </span>
                             </div>
                           </Card>
@@ -3510,7 +3504,7 @@ export default function Theory() {
 
       {/* MOBILE VERSION */}
       <div className="lg:hidden min-h-screen bg-[#0f0f1a] text-white pb-20">
-        <MobileSidebar 
+        <MobileSidebar
           isOpen={isMobileSidebarOpen}
           onClose={() => setIsMobileSidebarOpen(false)}
           userName={userName}
@@ -3519,8 +3513,8 @@ export default function Theory() {
           xpToNextLevel={xpToNextLevel}
           streak={currentStreak}
         />
-        
-        <MobileHeader 
+
+        <MobileHeader
           userName={userName}
           onMenuClick={() => setIsMobileSidebarOpen(true)}
         />
@@ -3556,8 +3550,10 @@ export default function Theory() {
                   />
                 ) : (
                   <>
-                    {selectedModule.content}
-                    
+                    {typeof selectedModule.content === 'function'
+                      ? selectedModule.content(currentLevel)
+                      : selectedModule.content}
+
                     {/* Botões de Ação */}
                     <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
                       {selectedModule.quiz && (
@@ -3569,22 +3565,22 @@ export default function Theory() {
                           Fazer Quiz
                         </Button>
                       )}
-                      
-                        <Button
-                          onClick={() => {
-                            // Completar módulo ao sair
-                            completeModule(selectedModule.id, 100); // Assumir 100% se completou visualização
-                            
-                            if (selectedModule.id === 'intervals') window.location.href = '/practice';
-                            if (selectedModule.id === 'scales') window.location.href = '/scales';
-                            if (selectedModule.id === 'chord-formation') window.location.href = '/chords';
-                            if (selectedModule.id === 'progressions') window.location.href = '/songs';
-                          }}
-                          className="w-full bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white py-6 text-lg"
-                        >
-                          <Play className="w-5 h-5 mr-2" />
-                          Praticar Agora
-                        </Button>
+
+                      <Button
+                        onClick={() => {
+                          // Completar módulo ao sair
+                          completeModule(selectedModule.id, 100); // Assumir 100% se completou visualização
+
+                          if (selectedModule.id === 'intervals') window.location.href = '/practice';
+                          if (selectedModule.id === 'scales') window.location.href = '/scales';
+                          if (selectedModule.id === 'chord-formation') window.location.href = '/chords';
+                          if (selectedModule.id === 'progressions') window.location.href = '/songs';
+                        }}
+                        className="w-full bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white py-6 text-lg"
+                      >
+                        <Play className="w-5 h-5 mr-2" />
+                        Praticar Agora
+                      </Button>
                     </div>
                   </>
                 )}
@@ -3605,16 +3601,15 @@ export default function Theory() {
                     <div className="flex-1">
                       <h3 className="text-lg font-bold text-white mb-1">{module.title}</h3>
                       <p className="text-sm text-gray-400 mb-2">{module.description}</p>
-                      
+
                       <div className="flex items-center gap-3 mb-2">
                         <span className="text-xs text-gray-500">{module.duration}</span>
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                          module.difficulty === 'beginner' ? 'bg-[#10b981]/20 text-[#10b981]' :
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${module.difficulty === 'beginner' ? 'bg-[#10b981]/20 text-[#10b981]' :
                           module.difficulty === 'intermediate' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
-                          'bg-[#ef4444]/20 text-[#ef4444]'
-                        }`}>
+                            'bg-[#ef4444]/20 text-[#ef4444]'
+                          }`}>
                           {module.difficulty === 'beginner' ? 'Iniciante' :
-                           module.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                            module.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
                         </span>
                       </div>
                     </div>

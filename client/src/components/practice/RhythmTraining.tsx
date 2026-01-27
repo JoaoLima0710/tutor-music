@@ -81,15 +81,16 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
   const [currentBeat, setCurrentBeat] = useState(0);
   const [isDownbeat, setIsDownbeat] = useState(false);
   const [bpm, setBpm] = useState(80);
-  
+
   // Exercício e resultados
   const [targetBeats, setTargetBeats] = useState<number[]>([]);
   const [timingResults, setTimingResults] = useState<TimingResult[]>([]);
   const [currentFeedback, setCurrentFeedback] = useState<string>('');
+  const [feedbackExplanation, setFeedbackExplanation] = useState<string>('');
   const [feedbackColor, setFeedbackColor] = useState<'green' | 'yellow' | 'red' | 'gray'>('gray');
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
-  
+
   // Refs
   const expectedBeatTimesRef = useRef<Map<number, number>>(new Map());
   const expectedAudioTimesRef = useRef<Map<number, number>>(new Map()); // AudioContext times
@@ -97,7 +98,7 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
   const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const exerciseStartTimeRef = useRef<number>(0);
   const audioContextRef = useRef<AudioContext | null>(null);
-  
+
   const { recordSession } = usePracticeMetricsStore();
 
   // Configurar exercício
@@ -118,7 +119,7 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
     beatCallbackRef.current = (beat: number, isDownbeat: boolean) => {
       setCurrentBeat(beat);
       setIsDownbeat(isDownbeat);
-      
+
       // Armazenar tempo esperado usando AudioContext (preciso) e Date.now() (para feedback visual)
       if (targetBeats.includes(beat)) {
         const audioContext = unifiedAudioService.getAudioContext();
@@ -140,7 +141,7 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
 
     return () => {
       if (beatCallbackRef.current) {
-        metronomeService.onBeat(() => {}); // Limpar callback
+        metronomeService.onBeat(() => { }); // Limpar callback
       }
     };
   }, [targetBeats]);
@@ -160,14 +161,14 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
 
     const actualTime = Date.now();
     const currentExpectedTime = expectedBeatTimesRef.current.get(currentBeat);
-    
+
     if (currentExpectedTime === undefined) {
       // Usuário bateu em tempo que não deveria
       setCurrentFeedback('Espere o tempo correto!');
       setFeedbackExplanation('Você bateu antes do metrônomo indicar o tempo. Aguarde o tempo correto aparecer antes de bater.');
       setFeedbackColor('red');
       setAttempts((prev) => prev + 1);
-      
+
       if (feedbackTimeoutRef.current) {
         clearTimeout(feedbackTimeoutRef.current);
       }
@@ -188,7 +189,7 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
       setFeedbackExplanation(`Você deve bater apenas nos tempos ${targetBeats.map(b => b + 1).join(' e ')}. Este é o tempo ${currentBeat + 1}.`);
       setFeedbackColor('red');
       setAttempts((prev) => prev + 1);
-      
+
       if (feedbackTimeoutRef.current) {
         clearTimeout(feedbackTimeoutRef.current);
       }
@@ -272,15 +273,15 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
       // Registrar sessão de lifecycle
       const { audioLifecycleManager } = await import('@/services/AudioLifecycleManager');
       audioLifecycleManager.startSession('training', 'RhythmTraining', true);
-      
+
       // Definir contexto de treino (prioridade máxima)
       const { audioPriorityManager } = await import('@/services/AudioPriorityManager');
       audioPriorityManager.setContext('training');
-      
+
       // Feedback sonoro de início de treino
       const { actionFeedbackService } = await import('@/services/ActionFeedbackService');
       actionFeedbackService.playActionFeedback('training_start');
-      
+
       await metronomeService.initialize();
       await metronomeService.start(bpm, '4/4');
       setIsPlaying(true);
@@ -293,7 +294,7 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
       expectedBeatTimesRef.current.clear();
       expectedAudioTimesRef.current.clear();
       exerciseStartTimeRef.current = Date.now();
-      
+
       // Inicializar RhythmScheduler para compensação de latência
       try {
         await rhythmScheduler.initialize();
@@ -316,30 +317,30 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
     import('@/services/AudioLifecycleManager').then(({ audioLifecycleManager }) => {
       audioLifecycleManager.pauseSession();
     });
-    
+
     // Remover contexto de treino
     import('@/services/AudioPriorityManager').then(({ audioPriorityManager }) => {
       audioPriorityManager.setContext(null);
     });
-    
+
     metronomeService.stop();
     rhythmScheduler.cancelAll();
     setIsPlaying(false);
-    
+
     // Registrar sessão se houver tentativas
     if (attempts > 0) {
       const duration = Math.round((Date.now() - exerciseStartTimeRef.current) / 1000);
       const accuracy = attempts > 0 ? Math.round((score / attempts) * 100) : 0;
-      
+
       // Calcular consistência baseado na variação dos delays
       const delays = timingResults.map(r => Math.abs(r.delay));
-      const avgDelay = delays.length > 0 
-        ? delays.reduce((sum, d) => sum + d, 0) / delays.length 
+      const avgDelay = delays.length > 0
+        ? delays.reduce((sum, d) => sum + d, 0) / delays.length
         : 0;
-      const consistency = avgDelay > 0 
+      const consistency = avgDelay > 0
         ? Math.max(0, Math.round(100 - (avgDelay / 10))) // Menor delay = maior consistência
         : 100;
-      
+
       recordSession({
         type: 'rhythm',
         duration,
@@ -352,7 +353,7 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
           bpm,
         },
       });
-      
+
       if (onComplete) {
         onComplete(accuracy, avgDelay);
       }
@@ -379,8 +380,8 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
   const accuracy = attempts > 0 ? Math.round((score / attempts) * 100) : 0;
   const avgDelay = timingResults.length > 0
     ? Math.round(
-        timingResults.reduce((sum, r) => sum + Math.abs(r.delay), 0) / timingResults.length
-      )
+      timingResults.reduce((sum, r) => sum + Math.abs(r.delay), 0) / timingResults.length
+    )
     : 0;
 
   const config = EXERCISE_CONFIG[exerciseType];
@@ -464,19 +465,18 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
           {[0, 1, 2, 3].map((beat) => {
             const isTarget = targetBeats.includes(beat);
             const isActive = currentBeat === beat && isPlaying;
-            
+
             return (
               <div
                 key={beat}
-                className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all ${
-                  isActive
+                className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all ${isActive
                     ? beat === 0
                       ? 'bg-orange-500 scale-125 shadow-lg shadow-orange-500/50'
                       : 'bg-purple-500 scale-110'
                     : isTarget
-                    ? 'bg-purple-500/30 border-2 border-purple-500'
-                    : 'bg-gray-700'
-                }`}
+                      ? 'bg-purple-500/30 border-2 border-purple-500'
+                      : 'bg-gray-700'
+                  }`}
               >
                 <span className="text-white font-bold">{beat + 1}</span>
                 {isTarget && (
@@ -488,7 +488,7 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
             );
           })}
         </div>
-        
+
         {/* Instrução visual */}
         <p className="text-center text-sm text-gray-400">
           {isPlaying
@@ -504,15 +504,14 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className={`mb-4 p-4 rounded-lg border-2 ${
-              feedbackColor === 'green'
+            className={`mb-4 p-4 rounded-lg border-2 ${feedbackColor === 'green'
                 ? 'bg-green-500/10 border-green-500/50'
                 : feedbackColor === 'yellow'
-                ? 'bg-yellow-500/10 border-yellow-500/50'
-                : feedbackColor === 'red'
-                ? 'bg-red-500/10 border-red-500/50'
-                : 'bg-gray-500/10 border-gray-500/50'
-            }`}
+                  ? 'bg-yellow-500/10 border-yellow-500/50'
+                  : feedbackColor === 'red'
+                    ? 'bg-red-500/10 border-red-500/50'
+                    : 'bg-gray-500/10 border-gray-500/50'
+              }`}
           >
             <div className="flex items-start gap-3">
               {feedbackColor === 'green' && <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />}
@@ -520,15 +519,14 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
               {feedbackColor === 'red' && <TrendingDown className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />}
               <div className="flex-1">
                 <p
-                  className={`text-lg font-semibold mb-1 ${
-                    feedbackColor === 'green'
+                  className={`text-lg font-semibold mb-1 ${feedbackColor === 'green'
                       ? 'text-green-400'
                       : feedbackColor === 'yellow'
-                      ? 'text-yellow-400'
-                      : feedbackColor === 'red'
-                      ? 'text-red-400'
-                      : 'text-gray-400'
-                  }`}
+                        ? 'text-yellow-400'
+                        : feedbackColor === 'red'
+                          ? 'text-red-400'
+                          : 'text-gray-400'
+                    }`}
                 >
                   {currentFeedback}
                 </p>
@@ -584,7 +582,7 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
               const maxDelay = 200; // Escala máxima
               const height = Math.min(100, (absDelay / maxDelay) * 100);
               const isLate = result.delay > 0;
-              
+
               return (
                 <div
                   key={index}
@@ -592,13 +590,12 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
                   title={`${isLate ? '+' : '-'}${Math.round(absDelay)}ms`}
                 >
                   <div
-                    className={`w-full rounded-t transition-all ${
-                      absDelay <= TIMING_TOLERANCE_MS
+                    className={`w-full rounded-t transition-all ${absDelay <= TIMING_TOLERANCE_MS
                         ? 'bg-green-500'
                         : absDelay < 100
-                        ? 'bg-yellow-500'
-                        : 'bg-red-500'
-                    }`}
+                          ? 'bg-yellow-500'
+                          : 'bg-red-500'
+                      }`}
                     style={{ height: `${height}%` }}
                   />
                 </div>
@@ -641,7 +638,7 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
                 Resetar
               </Button>
             </div>
-            
+
             <Button
               onClick={handleUserTap}
               size="lg"

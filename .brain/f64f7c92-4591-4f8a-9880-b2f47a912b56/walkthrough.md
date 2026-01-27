@@ -51,3 +51,22 @@ I fixed a build error caused by a duplicate import in `MajorMinorChordTraining.t
 - The component now compiles correctly.
 
 ![App Running Successfully](/Users/joao/.gemini/antigravity/brain/f64f7c92-4591-4f8a-9880-b2f47a912b56/.system_generated/click_feedback/click_feedback_1769533432768.png)
+
+## 4. Full Page Review & Fixes
+Upon further review of the application pages, two additional runtime errors were identified and fixed:
+
+### Theory Page (`Theory.tsx`)
+- **Issue:** `ReferenceError: currentLevel is not defined`.
+- **Cause:** The `currentLevel` variable was being accessed inside static module definitions where it wasn't available scope-wise.
+- **Fix:** Converted the `content` properties of `fundamentals`, `fretboard-notes`, and `chord-formation` modules into functions that accept `currentLevel` as an argument. Updated the rendering logic to execute these functions.
+
+### Practice Page (`RhythmTraining.tsx`)
+- **Issue:** `ReferenceError: setFeedbackExplanation is not defined`.
+- **Cause:** The state setter `setFeedbackExplanation` was being called but the state variable was never declared.
+- **Fix:** Added `const [feedbackExplanation, setFeedbackExplanation] = useState<string>('');` to the component state.
+
+### Verification
+- Verified that `/theory` loads modules correctly without errors.
+- Verified that `/practice` loads the rhythm training component without errors.
+
+![Theory Page Working](/Users/joao/.gemini/antigravity/brain/f64f7c92-4591-4f8a-9880-b2f47a912b56/.system_generated/click_feedback/click_feedback_1769534280363.png)
