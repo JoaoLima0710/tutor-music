@@ -126,7 +126,7 @@ class SampleLoader {
    */
   public async preloadChordSamples(): Promise<void> {
     // Lista de acordes bloqueados (samples não disponíveis)
-    const BLOCKED_CHORDS = new Set(['B7', 'E7', 'G7']);
+    const BLOCKED_CHORDS = new Set(['B7', 'E7', 'F7', 'G7']);
 
     const chordNames = [
       'A', 'Am', 'A7',
