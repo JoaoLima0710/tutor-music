@@ -86,7 +86,7 @@ const CHORD_GAIN_PRESETS: Record<string, number> = {
 
 class ChordPlayer {
   private audioEngine: AudioEngine;
-  
+
   // Configurações
   private volume: number = 0.7;
 
@@ -152,23 +152,23 @@ class ChordPlayer {
     }
 
     // Resolver o nome do acorde e montar URL
-    // Estrutura: /samples/chords/{chordName}.mp3 (ou .wav como fallback)
-    // Exemplos: C.mp3, D.mp3, Am.mp3, C7.mp3
-    // Fallback: tenta .wav se .mp3 não existir
+    // Estrutura: /samples/chords/{chordName}.wav (ou .mp3 como fallback)
+    // Exemplos: C.wav, D.wav, Am.wav, C7.wav
+    // Fallback: tenta .mp3 se .wav não existir
     const normalizationGain = this.getNormalizationGain(chordName);
     const finalVolume = this.volume * normalizationGain;
 
-    // Tentar .mp3 primeiro, depois .wav como fallback
-    let sampleUrl = `/samples/chords/${chordName}.mp3`;
+    // Tentar .wav primeiro (arquivos reais), depois .mp3 como fallback
+    let sampleUrl = `/samples/chords/${chordName}.wav`;
     let success = await audioBus.playSampleFromUrl({
       sampleUrl,
       channel: 'chords',
       volume: finalVolume,
     });
 
-    // Se .mp3 não existir, tentar .wav
+    // Se .wav não existir, tentar .mp3
     if (!success) {
-      sampleUrl = `/samples/chords/${chordName}.wav`;
+      sampleUrl = `/samples/chords/${chordName}.mp3`;
       success = await audioBus.playSampleFromUrl({
         sampleUrl,
         channel: 'chords',
@@ -212,7 +212,7 @@ class ChordPlayer {
 
     const note = match[1];
     const octave = parseInt(match[2]);
-    
+
     const noteIndex = NOTE_NAMES.indexOf(note as any);
     if (noteIndex === -1) return 440;
 
@@ -229,7 +229,7 @@ class ChordPlayer {
       'Am', 'Bm', 'Cm', 'Dm', 'Em', 'Fm', 'Gm',
       'A7', 'B7', 'C7', 'D7', 'E7', 'G7'
     ];
-    
+
     // Filtrar acordes bloqueados (sem samples)
     return allChords.filter(chord => !BLOCKED_CHORDS.has(chord));
   }

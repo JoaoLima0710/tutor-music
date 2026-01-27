@@ -6,7 +6,7 @@ import { SampleData, AudioErrorType } from './types';
  */
 class SampleLoader {
   private static instance: SampleLoader | null = null;
-  
+
   private audioEngine: AudioEngine;
   private cache: Map<string, SampleData> = new Map();
   private loadingPromises: Map<string, Promise<SampleData>> = new Map();
@@ -48,13 +48,13 @@ class SampleLoader {
 
     try {
       const sampleData = await loadPromise;
-      
+
       // Gerenciar tamanho do cache
       this.manageCacheSize();
-      
+
       // Adicionar ao cache
       this.cache.set(url, sampleData);
-      
+
       return sampleData;
     } finally {
       this.loadingPromises.delete(url);
@@ -67,14 +67,14 @@ class SampleLoader {
   private async fetchAndDecode(url: string): Promise<SampleData> {
     try {
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const arrayBuffer = await response.arrayBuffer();
       const audioContext = this.audioEngine.getContext();
-      
+
       // Decodificar o áudio
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
@@ -94,7 +94,7 @@ class SampleLoader {
    */
   public async preloadSamples(urls: string[]): Promise<void> {
     this.preloadQueue.push(...urls.filter(url => !this.cache.has(url)));
-    
+
     if (!this.isPreloading) {
       await this.processPreloadQueue();
     }
@@ -108,7 +108,7 @@ class SampleLoader {
 
     while (this.preloadQueue.length > 0) {
       const batch = this.preloadQueue.splice(0, this.PRELOAD_BATCH_SIZE);
-      
+
       await Promise.allSettled(
         batch.map(url => this.loadSample(url))
       );
@@ -127,7 +127,7 @@ class SampleLoader {
   public async preloadChordSamples(): Promise<void> {
     // Lista de acordes bloqueados (samples não disponíveis)
     const BLOCKED_CHORDS = new Set(['B7', 'E7', 'G7']);
-    
+
     const chordNames = [
       'A', 'Am', 'A7',
       'B', 'Bm', // B7 bloqueado
@@ -138,7 +138,7 @@ class SampleLoader {
       'G', 'Gm', // G7 bloqueado
     ].filter(chord => !BLOCKED_CHORDS.has(chord));
 
-    const urls = chordNames.map(chord => `/samples/chords/${chord}.mp3`);
+    const urls = chordNames.map(chord => `/samples/chords/${chord}.wav`);
     await this.preloadSamples(urls);
   }
 
@@ -150,10 +150,10 @@ class SampleLoader {
     const frets = [0, 1, 2, 3, 4, 5]; // Primeiras casas
 
     const urls: string[] = [];
-    
+
     for (const note of notes) {
       for (const fret of frets) {
-        urls.push(`/samples/notes/${note}_fret${fret}.mp3`);
+        urls.push(`/samples/notes/${note}_fret${fret}.wav`);
       }
     }
 
@@ -173,17 +173,17 @@ class SampleLoader {
     // Sintetizar som de violão simples (múltiplos harmônicos)
     const harmonics = [1, 2, 3, 4, 5, 6];
     const amplitudes = [1, 0.5, 0.25, 0.15, 0.1, 0.05];
-    
+
     for (let i = 0; i < length; i++) {
       const t = i / sampleRate;
       let sample = 0;
-      
+
       // Envelope ADSR simplificado
       const attack = 0.005;
       const decay = 0.1;
       const sustain = 0.7;
       const release = duration - 0.3;
-      
+
       let envelope = 0;
       if (t < attack) {
         envelope = t / attack;
@@ -194,12 +194,12 @@ class SampleLoader {
       } else {
         envelope = sustain * (1 - (t - release) / (duration - release));
       }
-      
+
       // Somar harmônicos
       for (let h = 0; h < harmonics.length; h++) {
         sample += amplitudes[h] * Math.sin(2 * Math.PI * frequency * harmonics[h] * t);
       }
-      
+
       data[i] = sample * envelope * 0.3;
     }
 
