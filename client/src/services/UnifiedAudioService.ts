@@ -38,6 +38,11 @@ class AudioManager {
   private hasUserInteracted = false;
   private hasPlayedActivationRitual = false;
 
+  // Debouncing e re-entry protection para stopAll
+  private lastStopTime = 0;
+  private readonly STOP_DEBOUNCE_MS = 100;
+  private isStopping = false;
+
   constructor() {
     this.detectMobileDevice();
     if (this.isMobile || this.isTablet) {
@@ -389,17 +394,31 @@ class AudioManager {
   }
 
   stopAll(): void {
-    // DEBUG: Rastrear quem está chamando stopAll
-    console.trace('🛑 [UnifiedAudioService] stopAll called from:');
+    // Guard 1: Debouncing - ignorar chamadas muito próximas (< 100ms)
+    const now = Date.now();
+    if (now - this.lastStopTime < this.STOP_DEBOUNCE_MS) {
+      console.log('⏭️ [UnifiedAudioService] stopAll debounced (too soon)');
+      return;
+    }
+
+    // Guard 2: Re-entry protection - prevenir execução simultânea
+    if (this.isStopping) {
+      console.log('⏭️ [UnifiedAudioService] stopAll in progress, skipping');
+      return;
+    }
+
+    this.lastStopTime = now;
+    this.isStopping = true;
 
     try {
+      console.log('🛑 [UnifiedAudioService] Stopping all audio...');
+
       // 1. Parar primeiro o serviço ativo (prioridade máxima)
       if (this.activeService?.stopAll) {
         this.activeService.stopAll();
       }
 
-      // 2. Parar motores secundários apenas se não forem o ativo, 
-      // para evitar logs duplicados e redundância
+      // 2. Parar motores secundários apenas se não forem o ativo
       if (this.currentEngine !== 'synthesis' && audioService.stopAll) {
         audioService.stopAll();
       }
@@ -414,6 +433,8 @@ class AudioManager {
       }
     } catch (error) {
       console.error('Error stopping audio:', error);
+    } finally {
+      this.isStopping = false;
     }
   }
 
