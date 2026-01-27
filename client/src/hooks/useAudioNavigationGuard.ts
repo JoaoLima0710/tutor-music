@@ -50,15 +50,16 @@ export function useAudioNavigationGuard() {
         const isTrainingActive = audioPriorityManager.isTrainingCurrentlyActive();
         const fadeOutDuration = isTrainingActive ? 0.2 : 0.15; // Fade-out um pouco mais longo para treino
 
-        // Fade-out suave de todo áudio
+        // Fade-out suave de todo áudio (já inclui stopAll internamente)
         unifiedAudioService.fadeOutAll(fadeOutDuration).catch((error) => {
-          console.error('[AudioGuard] Erro no fade-out, usando stop abrupto:', error);
-          unifiedAudioService.stopAll();
+          console.error('[AudioGuard] Erro no fade-out:', error);
+          // Não chamar stopAll aqui pois fadeOutAll já o faz
         });
       }).catch(() => {
         // Fallback se AudioPriorityManager não estiver disponível
-        unifiedAudioService.fadeOutAll(0.15).catch(() => {
-          unifiedAudioService.stopAll();
+        unifiedAudioService.fadeOutAll(0.15).catch((error) => {
+          console.error('[AudioGuard] Erro no fade-out fallback:', error);
+          // Não chamar stopAll aqui pois fadeOutAll já o faz
         });
       });
 
@@ -96,10 +97,10 @@ export function useAudioNavigationGuard() {
         audioLifecycleManager.suspendSession();
 
         try {
-          // Fade-out suave de todo áudio
+          // Fade-out suave de todo áudio (já inclui stopAll internamente)
           unifiedAudioService.fadeOutAll(0.15).catch((error) => {
-            console.error('[AudioGuard] Erro no fade-out, usando stop abrupto:', error);
-            unifiedAudioService.stopAll();
+            console.error('[AudioGuard] Erro no fade-out:', error);
+            // Não chamar stopAll aqui pois fadeOutAll já o faz
           });
 
           // Limpar AudioContextScheduler após fade-out começar
