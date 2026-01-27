@@ -48,7 +48,7 @@
       ]
     },
     {
-      "source": "/samples/**/*.wav",
+      "source": "/samples/(.*).wav",
       "headers": [
         {
           "key": "Content-Type",
@@ -65,7 +65,7 @@
       ]
     },
     {
-      "source": "/samples/**/*.mp3",
+      "source": "/samples/(.*).mp3",
       "headers": [
         {
           "key": "Content-Type",
