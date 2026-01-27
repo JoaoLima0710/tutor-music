@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AudioEngine, initializeAudioSystem, isAudioReady } from '../audio';
+import { unifiedAudioService } from '../services/UnifiedAudioService';
 
 interface UseAudioReturn {
   isReady: boolean;
@@ -7,10 +8,14 @@ interface UseAudioReturn {
   error: Error | null;
   initialize: () => Promise<void>;
   unlock: () => Promise<boolean>;
+  playNote: (note: string, duration?: number) => Promise<boolean>;
+  playNotes: (notes: string[], options?: { duration?: number; stagger?: number }) => Promise<void>;
+  playChord: (chordName: string, duration?: number) => Promise<boolean>;
+  stopAll: () => void;
 }
 
 /**
- * Hook para gerenciar inicialização do sistema de áudio
+ * Hook para gerenciar inicialização e reprodução do sistema de áudio
  */
 export function useAudio(): UseAudioReturn {
   const [isReady, setIsReady] = useState(false);
@@ -25,7 +30,7 @@ export function useAudio(): UseAudioReturn {
   // Listener para mudanças de estado
   useEffect(() => {
     const audioEngine = AudioEngine.getInstance();
-    
+
     const handleStateChange = () => {
       setIsReady(audioEngine.isReady());
     };
@@ -48,11 +53,7 @@ export function useAudio(): UseAudioReturn {
     setError(null);
 
     try {
-      // CRITICAL: Mark user interaction BEFORE initializing
-      // This ensures AudioContext.resume() can be called
-      const { unifiedAudioService } = await import('../services/UnifiedAudioService');
       unifiedAudioService.markUserInteraction();
-      
       await initializeAudioSystem();
       setIsReady(true);
     } catch (err) {
@@ -70,11 +71,37 @@ export function useAudio(): UseAudioReturn {
     return success;
   }, []);
 
+  const playNote = useCallback(async (note: string, duration?: number) => {
+    return await unifiedAudioService.playNote(note, duration);
+  }, []);
+
+  const playChord = useCallback(async (chordName: string, duration?: number) => {
+    return await unifiedAudioService.playChord(chordName, duration);
+  }, []);
+
+  const playNotes = useCallback(async (notes: string[], options?: { duration?: number; stagger?: number }) => {
+    const { duration = 0.5, stagger = 0 } = options || {};
+    for (let i = 0; i < notes.length; i++) {
+      unifiedAudioService.playNote(notes[i], duration);
+      if (stagger > 0 && i < notes.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, stagger * 1000));
+      }
+    }
+  }, []);
+
+  const stopAll = useCallback(() => {
+    unifiedAudioService.stopAll();
+  }, []);
+
   return {
     isReady,
     isInitializing,
     error,
     initialize,
     unlock,
+    playNote,
+    playNotes,
+    playChord,
+    stopAll,
   };
 }

@@ -5,7 +5,7 @@
  * Oferece som autêntico de guitarra gravada por profissionais.
  */
 
-import type { InstrumentType } from './AudioServiceWithSamples';
+import { InstrumentType } from '@/stores/useAudioSettingsStore';
 
 interface ChordManifest {
   [chordName: string]: {
@@ -69,20 +69,20 @@ class GuitarSetAudioService {
       // Detectar se é tablet/mobile para otimizações
       const isTablet = /ipad|android(?!.*mobile)/i.test(navigator.userAgent.toLowerCase());
       const isMobile = /android|iphone|ipod/i.test(navigator.userAgent.toLowerCase());
-      
+
       console.log('🎵 Initializing GuitarSet for', isTablet ? 'Tablet' : isMobile ? 'Mobile' : 'Desktop');
 
       // Create AudioContext with optimized settings for tablets
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      
+
       // Configurações otimizadas para cada dispositivo
       const contextOptions: AudioContextOptions = {
         sampleRate: 44100,
         latencyHint: isTablet ? 'playback' : 'interactive', // Tablets precisam de 'playback' para estabilidade
       };
-      
+
       this.audioContext = new AudioContextClass(contextOptions);
-      
+
       // Create gain node for volume control
       this.gainNode = this.audioContext.createGain();
       this.gainNode.connect(this.audioContext.destination);
@@ -156,7 +156,7 @@ class GuitarSetAudioService {
     // Preload common chords (C, D, E, G, A, Am, Em)
     // Expanded list for better tablet performance
     const essentialChords = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'Am', 'Dm', 'Em', 'Gm', 'C7', 'D7', 'G7', 'A7'];
-    
+
     // Load chords sequentially for tablets to prevent buffer issues
     // This ensures each chord is fully loaded before starting the next
     for (const chord of essentialChords) {
@@ -193,7 +193,7 @@ class GuitarSetAudioService {
       const file = this.chordManifest[chordName].file;
       // Arquivos com sustenido usam 'sharp' no nome (ex: Asharp.wav)
       const response = await fetch(`/samples/chords/${file}`);
-      
+
       if (!response.ok) {
         console.warn(`⚠️ Failed to load chord sample: ${file}`);
         return null;
@@ -201,10 +201,10 @@ class GuitarSetAudioService {
 
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      
+
       this.chordBuffers.set(chordName, audioBuffer);
       console.log(`✅ Loaded chord sample: ${chordName}`);
-      
+
       return audioBuffer;
     } catch (error) {
       console.error(`❌ Error loading chord sample ${chordName}:`, error);
@@ -237,16 +237,16 @@ class GuitarSetAudioService {
 
     try {
       const file = this.noteManifest[noteName].file;
-      
+
       // Validação adicional: garantir que o arquivo está na pasta de notas
       if (!file.endsWith('.wav')) {
         console.error(`❌ ERRO: Arquivo de nota inválido: ${file}`);
         return null;
       }
-      
+
       // Arquivos com sustenido usam 'sharp' no nome (ex: Asharp2.wav)
       const response = await fetch(`/samples/notes/${file}`);
-      
+
       if (!response.ok) {
         console.warn(`⚠️ Failed to load note sample: ${file} (HTTP ${response.status})`);
         return null;
@@ -254,7 +254,7 @@ class GuitarSetAudioService {
 
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      
+
       // Validação crítica para F2: verificar se o sample está correto
       if (noteName === 'F2') {
         // F2 problemático geralmente tem duração > 3s (característica de acorde)
@@ -266,18 +266,18 @@ class GuitarSetAudioService {
         }
         console.log(`✅ F2 validado: duração=${audioBuffer.duration.toFixed(2)}s (correto para nota individual)`);
       }
-      
+
       // Validação geral: verificar se o buffer tem duração razoável (notas individuais são mais curtas que acordes)
-      
+
       // Validação geral: verificar se o buffer tem duração razoável (notas individuais são mais curtas que acordes)
       // Acordes geralmente têm mais de 2s, notas individuais são mais curtas
       if (audioBuffer.duration > 3.0) {
         console.warn(`⚠️ AVISO: Sample ${noteName} tem duração muito longa (${audioBuffer.duration.toFixed(2)}s). Pode ser um acorde ao invés de nota individual!`);
       }
-      
+
       this.noteBuffers.set(noteName, audioBuffer);
       console.log(`✅ Loaded note sample: ${noteName} (duration: ${audioBuffer.duration.toFixed(2)}s)`);
-      
+
       return audioBuffer;
     } catch (error) {
       console.error(`❌ Error loading note sample ${noteName}:`, error);
@@ -323,15 +323,15 @@ class GuitarSetAudioService {
     // Criar NOVA fonte de áudio - cada nota precisa de sua própria fonte
     const source = this.audioContext.createBufferSource();
     source.buffer = buffer;
-    
+
     // Criar gain para normalização de volume (aplicado antes do envelope)
     const normalizationGainNode = this.audioContext.createGain();
     normalizationGainNode.gain.value = normalizationGain;
-    
+
     // Criar um GainNode separado para envelope ADSR (melhor controle de volume)
     // Cada fonte tem seu próprio envelope para evitar interferência
     const envelopeGain = this.audioContext.createGain();
-    
+
     // Conectar: source -> normalizationGain -> envelopeGain -> gainNode -> destination
     source.connect(normalizationGainNode);
     normalizationGainNode.connect(envelopeGain);
@@ -361,7 +361,7 @@ class GuitarSetAudioService {
     // Calcular duração real - usar a maior entre a duração solicitada e a do buffer
     const bufferDuration = buffer.duration;
     let actualDuration = duration;
-    
+
     // Se não especificada duração, usar a duração completa do buffer
     if (!actualDuration) {
       actualDuration = bufferDuration;
@@ -373,7 +373,7 @@ class GuitarSetAudioService {
     // Aplicar envelope ADSR padrão se normalização foi aplicada (indica que é acorde)
     // Caso contrário, usar envelope simplificado para notas individuais
     const isChord = normalizationGain !== 1.0;
-    
+
     try {
       if (isChord) {
         // Envelope ADSR padrão para acordes (garante consistência)
@@ -384,41 +384,41 @@ class GuitarSetAudioService {
         // Mínima complexidade para evitar qualquer sobreposição ou som de acorde
         const attackTime = 0.003; // 3ms - ataque quase instantâneo
         const releaseTime = Math.min(0.2, actualDuration * 0.06); // Release suave, máximo 200ms
-        
+
         const envelopeStart = actualStartTime;
         const envelopePeak = envelopeStart + attackTime;
         const envelopeEnd = envelopeStart + actualDuration;
         const envelopeReleaseStart = Math.max(envelopePeak, envelopeEnd - releaseTime);
-        
+
         // Envelope mínimo: Ataque quase instantâneo + Sustain máximo + Release suave
         // Garante que cada nota seja PERFEITAMENTE clara, única e identificável
         // Sem qualquer complexidade que possa causar sobreposição
-        
+
         // Iniciar em 0
         envelopeGain.gain.setValueAtTime(0, envelopeStart);
-        
+
         // Ataque quase instantâneo para volume máximo
         envelopeGain.gain.linearRampToValueAtTime(1.0, envelopePeak);
-        
+
         // Sustain - volume máximo durante quase toda a nota
         if (envelopeReleaseStart > envelopePeak) {
           envelopeGain.gain.setValueAtTime(1.0, envelopeReleaseStart);
         }
-        
+
         // Release suave apenas no final - fade out natural
         envelopeGain.gain.linearRampToValueAtTime(0, envelopeEnd);
       }
 
       // Iniciar a fonte
       source.start(actualStartTime);
-      
+
       // Parar a fonte no final exato da duração
       // O envelope já fez o fade out, então não haverá click
       const envelopeEnd = actualStartTime + actualDuration;
       source.stop(envelopeEnd);
-      
+
       console.log(`🎵 Playing buffer: start=${actualStartTime.toFixed(3)}, end=${envelopeEnd.toFixed(3)}, duration=${actualDuration.toFixed(3)}, normalized=${isChord}`);
-      
+
     } catch (error) {
       console.error('❌ Error starting audio source:', error);
       // Limpar em caso de erro
@@ -452,14 +452,14 @@ class GuitarSetAudioService {
     if (this.audioContext) {
       const state = this.audioContext.state;
       console.log('📱 AudioContext state before playing:', state);
-      
+
       if (state !== 'running') {
         console.log('📱 AudioContext not running, attempting to resume...');
         try {
           await this.audioContext.resume();
           // Delay extra para tablets
           await new Promise(resolve => setTimeout(resolve, 50));
-          
+
           // Verificar novamente
           if (this.audioContext.state !== 'running') {
             console.error('❌ AudioContext still not running after resume:', this.audioContext.state);
@@ -479,16 +479,16 @@ class GuitarSetAudioService {
     // Normalize chord name (handle variations)
     const normalizedChord = this.normalizeChordName(chordName);
     console.log('🎵 Normalized chord:', normalizedChord);
-    
+
     // Load sample if not already loaded (pre-loading is critical for smooth playback)
     let buffer = await this.loadChordSample(normalizedChord);
-    
+
     if (!buffer) {
       console.warn(`⚠️ Chord sample not available: ${normalizedChord}, trying fallback...`);
       // Try without suffix (e.g., "C" instead of "Cmaj")
       const root = normalizedChord.replace(/[m7#b]/g, '');
       buffer = await this.loadChordSample(root);
-      
+
       if (!buffer) {
         console.error(`❌ No sample available for chord: ${chordName}`);
         return;
@@ -507,10 +507,10 @@ class GuitarSetAudioService {
     // Isso garante que todos os acordes tenham loudness consistente
     const { chordNormalizer } = await import('./ChordNormalizer');
     const normalizationGain = chordNormalizer.analyzeAndNormalize(buffer, normalizedChord);
-    
+
     // Para tablets: usar duração completa do sample
     const fullDuration = duration || buffer.duration;
-    
+
     // Play the buffer with normalized gain and full duration
     // O envelope ADSR será aplicado automaticamente no playBuffer quando normalizationGain !== 1.0
     await this.playBuffer(buffer, undefined, fullDuration, normalizationGain);
@@ -522,7 +522,7 @@ class GuitarSetAudioService {
    */
   private async recreateAudioContext(): Promise<void> {
     console.log('🔄 Recreating AudioContext...');
-    
+
     try {
       // Fechar contexto antigo se existir
       if (this.audioContext) {
@@ -570,7 +570,7 @@ class GuitarSetAudioService {
     // Convert intervals to note names
     const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const rootIndex = NOTES.indexOf(root.toUpperCase());
-    
+
     if (rootIndex === -1) {
       console.error('❌ Invalid root note:', root);
       return;
@@ -587,11 +587,11 @@ class GuitarSetAudioService {
 
     // Play notes in sequence
     const startTime = this.audioContext!.currentTime;
-    
+
     for (let i = 0; i < scaleNotes.length; i++) {
       const noteName = scaleNotes[i];
       const noteWithOctave = noteName + '4'; // Use octave 4 for consistency
-      
+
       // CRÍTICO: Validar que a nota tem oitava antes de carregar
       if (!/\d/.test(noteWithOctave)) {
         console.error(`❌ ERRO: Nota sem oitava na escala: ${noteWithOctave}`);
@@ -600,7 +600,7 @@ class GuitarSetAudioService {
 
       // Try to load note sample - APENAS com oitava
       let buffer = await this.loadNoteSample(noteWithOctave);
-      
+
       // Tentar variações de oitava se não encontrar
       if (!buffer) {
         const noteBase = noteWithOctave.replace(/\d+$/, '');
@@ -609,7 +609,7 @@ class GuitarSetAudioService {
           `${noteBase}${currentOctave + 1}`,
           `${noteBase}${currentOctave - 1}`,
         ];
-        
+
         for (const variation of variations) {
           if (variation.match(/\d/) && this.noteManifest?.[variation]) {
             buffer = await this.loadNoteSample(variation);
@@ -624,7 +624,7 @@ class GuitarSetAudioService {
           console.error(`❌ ERRO: Sample ${noteWithOctave} parece ser acorde (duração: ${buffer.duration.toFixed(2)}s)`);
           continue;
         }
-        
+
         const noteStartTime = startTime + (i * duration);
         await this.playBuffer(buffer, noteStartTime, duration);
       } else {
@@ -647,7 +647,7 @@ class GuitarSetAudioService {
     // CRÍTICO: Parar todas as notas anteriores para evitar sobreposição
     // Isso garante que apenas uma nota toque por vez, sem soar como acorde
     this.stopAll();
-    
+
     // Delay adicional para garantir que o stop foi completamente processado
     // Isso é especialmente importante para evitar qualquer resíduo de áudio anterior
     await new Promise(resolve => setTimeout(resolve, 50));
@@ -679,12 +679,12 @@ class GuitarSetAudioService {
 
     // Carregar o sample da nota solicitada (sem substituições - cada nota é única)
     let buffer = await this.loadNoteSample(note);
-    
+
     if (!buffer) {
       console.error(`❌ ERRO: Note sample não disponível: ${note}. Verifique se o sample existe em /samples/notes/`);
       return;
     }
-    
+
     // Validação final: garantir que não é um acorde
     // Se o sample tiver duração > 3s, provavelmente é um acorde e não deve ser tocado
     if (buffer.duration > 3.0) {
@@ -696,14 +696,14 @@ class GuitarSetAudioService {
     // Para notas individuais, usar duração mínima de 3.0s se não especificada
     // Isso garante que a nota seja claramente audível e identificável
     const noteDuration = duration || Math.max(3.0, buffer.duration);
-    
+
     // Garantir que não há fontes ativas antes de tocar
     if (this.activeSources.size > 0) {
       console.error('❌ ERRO CRÍTICO: Ainda há fontes ativas antes de tocar nova nota!');
       this.stopAll();
       await new Promise(resolve => setTimeout(resolve, 50));
     }
-    
+
     await this.playBuffer(buffer, undefined, noteDuration);
     console.log('✅ Note played:', note, 'duration:', noteDuration.toFixed(2), 's', 'active sources:', this.activeSources.size);
   }
@@ -742,11 +742,11 @@ class GuitarSetAudioService {
 
   stopAll(): void {
     console.log('🛑 Stopping all GuitarSet audio...');
-    
+
     // Stop all active sources imediatamente - CRÍTICO para evitar sobreposição
     const sourcesToStop = Array.from(this.activeSources);
     const now = this.audioContext ? this.audioContext.currentTime : 0;
-    
+
     sourcesToStop.forEach(source => {
       try {
         // Desconectar todos os nós de áudio primeiro
@@ -758,7 +758,7 @@ class GuitarSetAudioService {
             // Pode já estar desconectado
           }
         }
-        
+
         // Parar imediatamente no tempo atual (ou antes se possível)
         // Usar um tempo ligeiramente no passado para garantir parada imediata
         const stopTime = this.audioContext ? Math.max(0, now - 0.001) : 0;
@@ -768,10 +768,10 @@ class GuitarSetAudioService {
         // Ignorar erro silenciosamente
       }
     });
-    
+
     // Limpar o set imediatamente
     this.activeSources.clear();
-    
+
     // Garantir que o gainNode também seja resetado se necessário
     if (this.gainNode && this.audioContext) {
       try {
@@ -783,7 +783,7 @@ class GuitarSetAudioService {
         // Ignorar se houver erro
       }
     }
-    
+
     console.log('✅ All audio stopped and disconnected');
   }
 
@@ -795,9 +795,9 @@ class GuitarSetAudioService {
 
   async dispose(): Promise<void> {
     console.log('🗑️ Disposing GuitarSetAudioService...');
-    
+
     this.stopAll();
-    
+
     if (this.gainNode) {
       this.gainNode.disconnect();
       this.gainNode = null;
@@ -811,7 +811,7 @@ class GuitarSetAudioService {
     this.chordBuffers.clear();
     this.noteBuffers.clear();
     this.isInitialized = false;
-    
+
     console.log('✅ GuitarSetAudioService disposed');
   }
 }

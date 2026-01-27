@@ -19,7 +19,7 @@ describe('AudioInitializer Chrome Compatibility', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Configurar mock padrão: áudio não está pronto (simula Chrome antes de interação)
     vi.mocked(useAudio).mockReturnValue({
       isReady: false,
@@ -27,6 +27,10 @@ describe('AudioInitializer Chrome Compatibility', () => {
       error: null,
       initialize: mockInitialize,
       unlock: vi.fn().mockResolvedValue(true),
+      playNote: vi.fn(),
+      playNotes: vi.fn(),
+      playChord: vi.fn(),
+      stopAll: vi.fn(),
     });
   });
 
@@ -100,6 +104,10 @@ describe('AudioInitializer Chrome Compatibility', () => {
         error: null,
         initialize: mockInitialize,
         unlock: vi.fn().mockResolvedValue(true),
+        playNote: vi.fn(),
+        playNotes: vi.fn(),
+        playChord: vi.fn(),
+        stopAll: vi.fn(),
       });
 
       render(
@@ -125,6 +133,10 @@ describe('AudioInitializer Chrome Compatibility', () => {
         error: null,
         initialize: mockInitialize,
         unlock: vi.fn().mockResolvedValue(true),
+        playNote: vi.fn(),
+        playNotes: vi.fn(),
+        playChord: vi.fn(),
+        stopAll: vi.fn(),
       });
 
       render(

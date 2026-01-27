@@ -15,7 +15,7 @@ import { chords, getChordsByDifficulty } from '@/data/chords';
 import { Play, Check, StopCircle, Lock, Calendar, TrendingUp } from 'lucide-react';
 import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
-import type { InstrumentType } from '@/services/AudioServiceWithSamples';
+import type { InstrumentType } from '@/services/UnifiedAudioService';
 import { RealtimeAudioFeedback } from '@/components/audio/RealtimeAudioFeedback';
 import { ChordPracticeTimer, EnhancedChordPractice } from '@/components/practice';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
@@ -31,9 +31,9 @@ export default function Chords() {
   const [activeTab, setActiveTab] = useState<'practice' | 'theory'>('theory');
   const [isPlaying, setIsPlaying] = useState(false);
   const [showEnhancedPractice, setShowEnhancedPractice] = useState(false);
-  
+
   const { instrument, setInstrument: setGlobalInstrument } = useAudioSettingsStore();
-  
+
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { progress, setCurrentChord, markAsPracticed, getChordProgress } = useChordStore();
   const { user } = useUserStore();
@@ -46,12 +46,12 @@ export default function Chords() {
     getUnlockedChordsForWeek,
   } = useChordProgressionStore();
   const { recordAttempt } = useAdaptiveDifficultyStore();
-  
+
   const userName = user?.name || "Usuário";
-  
+
   // Filtrar acordes por dificuldade E desbloqueio semanal (para iniciantes)
   let filteredChords = filter === 'all' ? chords : getChordsByDifficulty(filter);
-  
+
   // Se é iniciante, mostrar apenas acordes desbloqueados da semana atual
   const isBeginner = filter === 'beginner' || filter === 'all';
   if (isBeginner) {
@@ -62,36 +62,36 @@ export default function Chords() {
       return isChordUnlocked(chord.id);
     });
   }
-  
+
   // Obter progresso da semana atual
   const weekProgress = getWeekProgress(currentWeek);
-  
+
   const handleChordClick = (chord: typeof chords[0]) => {
     setSelectedChord(chord);
     setCurrentChord(chord.id);
   };
-  
+
   const handlePlayChord = async () => {
     try {
       setIsPlaying(true);
-      
+
       // CRÍTICO para tablets: Garantir inicialização primeiro
       // A inicialização precisa acontecer em resposta a um gesto do usuário
       await unifiedAudioService.ensureInitialized();
-      
+
       // Pequeno delay para garantir que o AudioContext está pronto
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       console.log('🎸 Tocando acorde:', selectedChord.name);
       await unifiedAudioService.playChord(selectedChord.name, 2.5);
-      
+
       setTimeout(() => setIsPlaying(false), 2500);
     } catch (error) {
       console.error('Erro ao tocar acorde:', error);
       setIsPlaying(false);
     }
   };
-  
+
   // Initialize audio service with saved instrument on mount
   useEffect(() => {
     let mounted = true;
@@ -111,7 +111,7 @@ export default function Chords() {
       mounted = false;
     };
   }, [instrument]);
-  
+
   const handleInstrumentChange = async (newInstrument: InstrumentType) => {
     setGlobalInstrument(newInstrument);
     try {
@@ -121,16 +121,16 @@ export default function Chords() {
       console.error('Failed to set instrument', e);
     }
   };
-  
+
   const handleStopChord = () => {
     unifiedAudioService.stopAll();
     setIsPlaying(false);
   };
-  
+
   const handlePractice = () => {
     setLocation(`/practice?chord=${selectedChord.id}`);
   };
-  
+
   const handleChordComplete = (chordId: string, accuracy: number) => {
     // Marcar como praticado no store de acordes
     markAsPracticed(chordId, accuracy);
@@ -140,7 +140,7 @@ export default function Chords() {
     const chord = chords.find(c => c.id === chordId);
     const difficulty = chord?.difficulty === 'advanced' ? 5 : chord?.difficulty === 'intermediate' ? 3 : 2;
     recordAttempt(chordId, 'chord', difficulty as any, accuracy);
-    
+
     // Verificar se acorde foi dominado e adicionar à revisão espaçada
     const chordProgress = getChordProgress(chordId);
     if (chordProgress && chordProgress.accuracy >= 85 && chordProgress.attempts >= 5) {
@@ -152,19 +152,19 @@ export default function Chords() {
       });
     }
   };
-  
+
   return (
     <>
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
-        <Sidebar 
+        <Sidebar
           userName={userName}
           userLevel={level}
           currentXP={xp}
           xpToNextLevel={xpToNextLevel}
           streak={currentStreak}
         />
-        
+
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto p-8 space-y-8">
             {/* Header */}
@@ -172,7 +172,7 @@ export default function Chords() {
               <h1 className="text-4xl font-bold text-white mb-2">Biblioteca de Acordes</h1>
               <p className="text-gray-400">Aprenda e pratique acordes de violão</p>
             </header>
-            
+
             {/* Instrument Selector */}
             <div className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-[#1a1a2e]/80 to-[#2a2a3e]/60 border border-white/20 shadow-lg">
               <div className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export default function Chords() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex gap-2">
                 {[
                   { value: 'nylon-guitar', label: 'Nylon', icon: '🎸', desc: 'Suave e quente' },
@@ -224,7 +224,7 @@ export default function Chords() {
                 ))}
               </div>
             </div>
-            
+
             {/* Tabs */}
             <div className="flex gap-3 mb-6">
               <Button
@@ -250,7 +250,7 @@ export default function Chords() {
                 🎸 Prática
               </Button>
             </div>
-            
+
             {activeTab === 'theory' ? (
               <ChordTheory />
             ) : (
@@ -277,7 +277,7 @@ export default function Chords() {
                     </Button>
                   ))}
                 </div>
-                
+
                 {/* Main Content */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* Chord List */}
@@ -287,7 +287,7 @@ export default function Chords() {
                       {filteredChords.map((chord) => {
                         const isCompleted = progress[chord.id]?.practiced;
                         const isSelected = selectedChord.id === chord.id;
-                        
+
                         return (
                           <button
                             key={chord.id}
@@ -316,7 +316,7 @@ export default function Chords() {
                       })}
                     </div>
                   </div>
-                  
+
                   {/* Chord Detail */}
                   <div className="lg:col-span-2">
                     <div className="rounded-3xl p-8 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10">
@@ -330,14 +330,14 @@ export default function Chords() {
                             size="lg"
                           />
                         </div>
-                        
+
                         {/* Info */}
                         <div className="flex-1 space-y-6">
                           <div>
                             <h2 className="text-3xl font-bold text-white mb-2">{selectedChord.fullName}</h2>
                             <p className="text-gray-300">{selectedChord.description}</p>
                           </div>
-                          
+
                           <div>
                             <h3 className="text-lg font-semibold text-white mb-3">Dicas</h3>
                             <ul className="space-y-2">
@@ -349,7 +349,7 @@ export default function Chords() {
                               ))}
                             </ul>
                           </div>
-                          
+
                           <div>
                             <h3 className="text-lg font-semibold text-white mb-3">Acordes Relacionados</h3>
                             <div className="flex flex-wrap gap-2">
@@ -367,18 +367,18 @@ export default function Chords() {
                               ))}
                             </div>
                           </div>
-                          
+
                           <div className="flex gap-3 pt-4">
                             {!isPlaying ? (
                               <>
-                                <Button 
+                                <Button
                                   onClick={handlePlayChord}
                                   className="flex-1 bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-white font-semibold"
                                 >
                                   <Play className="w-4 h-4 mr-2" />
                                   Ouvir
                                 </Button>
-                                <Button 
+                                <Button
                                   onClick={handlePractice}
                                   className="flex-1 bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] hover:from-[#c084fc] hover:to-[#a855f7] text-white font-semibold"
                                 >
@@ -386,7 +386,7 @@ export default function Chords() {
                                 </Button>
                               </>
                             ) : (
-                              <Button 
+                              <Button
                                 onClick={handleStopChord}
                                 className="flex-1 bg-gradient-to-r from-[#ef4444] to-[#dc2626] text-white font-semibold"
                               >
@@ -395,7 +395,7 @@ export default function Chords() {
                               </Button>
                             )}
                           </div>
-                          
+
                           {/* Prática Aprimorada ou Timer de Prática (se estiver na aba de prática) */}
                           {activeTab === 'practice' && (
                             <div className="mt-6">
@@ -437,7 +437,7 @@ export default function Chords() {
                               )}
                             </div>
                           )}
-                          
+
                           {/* Feedback de Áudio em Tempo Real */}
                           <div className="mt-6">
                             <RealtimeAudioFeedback
@@ -458,10 +458,10 @@ export default function Chords() {
           </div>
         </div>
       </div>
-      
+
       {/* MOBILE VERSION */}
       <div className="lg:hidden min-h-screen bg-[#0f0f1a] text-white">
-        <MobileSidebar 
+        <MobileSidebar
           isOpen={isMobileSidebarOpen}
           onClose={() => setIsMobileSidebarOpen(false)}
           userName={userName}
@@ -470,19 +470,19 @@ export default function Chords() {
           xpToNextLevel={xpToNextLevel}
           streak={currentStreak}
         />
-        
-        <MobileHeader 
+
+        <MobileHeader
           userName={userName}
           onMenuClick={() => setIsMobileSidebarOpen(true)}
         />
-        
+
         <main className="px-5 py-5 space-y-6 pb-24">
           <Breadcrumbs />
           <header>
             <h1 className="text-2xl font-bold text-white mb-1">Acordes</h1>
             <p className="text-sm text-gray-400">Biblioteca completa</p>
           </header>
-          
+
           {/* Filters */}
           <div className="flex gap-2 overflow-x-auto pb-2">
             {[
@@ -506,7 +506,7 @@ export default function Chords() {
               </Button>
             ))}
           </div>
-          
+
           {/* Selected Chord */}
           <div className="rounded-3xl p-6 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10">
             <div className="flex justify-center mb-6">
@@ -517,16 +517,16 @@ export default function Chords() {
                 size="md"
               />
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">{selectedChord.fullName}</h2>
                 <p className="text-sm text-gray-300">{selectedChord.description}</p>
               </div>
-              
+
               <div className="flex gap-2">
                 {!isPlaying ? (
-                  <Button 
+                  <Button
                     onClick={handlePlayChord}
                     className="flex-1 bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-white font-semibold"
                   >
@@ -534,7 +534,7 @@ export default function Chords() {
                     Ouvir
                   </Button>
                 ) : (
-                  <Button 
+                  <Button
                     onClick={handleStopChord}
                     className="flex-1 bg-gradient-to-r from-[#ef4444] to-[#dc2626] text-white font-semibold"
                   >
@@ -542,7 +542,7 @@ export default function Chords() {
                     Parar
                   </Button>
                 )}
-                <Button 
+                <Button
                   onClick={handlePractice}
                   className="flex-1 bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white font-semibold"
                 >
@@ -551,7 +551,7 @@ export default function Chords() {
               </div>
             </div>
           </div>
-          
+
           {/* Chord Grid - 2 colunas para melhor legibilidade mobile */}
           {/* Indicador de Progressão Semanal (apenas para iniciantes) */}
           {isBeginner && currentWeek <= 3 && (
@@ -599,7 +599,7 @@ export default function Chords() {
               const isSelected = selectedChord.id === chord.id;
               const isUnlocked = isChordUnlocked(chord.id);
               const isLocked = chord.difficulty === 'beginner' && !isUnlocked;
-              
+
               return (
                 <button
                   key={chord.id}
@@ -610,8 +610,8 @@ export default function Chords() {
                     ${isLocked
                       ? 'bg-gray-800/50 opacity-50 cursor-not-allowed'
                       : isSelected
-                      ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] ring-2 ring-purple-400'
-                      : 'bg-[#1a1a2e] hover:bg-[#232338]'
+                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] ring-2 ring-purple-400'
+                        : 'bg-[#1a1a2e] hover:bg-[#232338]'
                     }
                   `}
                 >
@@ -635,7 +635,7 @@ export default function Chords() {
             })}
           </div>
         </main>
-        
+
         <MobileBottomNav />
       </div>
     </>

@@ -46,7 +46,7 @@ export function ProgressionBuilder() {
     setIsPlaying(true);
     try {
       for (const chord of selectedChords) {
-        await playChord(chord, { duration: 1.5 });
+        await playChord(chord, 1.5);
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {

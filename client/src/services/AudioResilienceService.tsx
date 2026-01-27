@@ -32,6 +32,8 @@ export interface AudioFailure {
   type: AudioFailureType;
   error: Error;
   context: string;
+  message: string;
+  title: string;
   timestamp: number;
   recoverable: boolean;
   retryCount: number;
@@ -63,6 +65,8 @@ class AudioResilienceService {
       type: this.categorizeFailure(error),
       error,
       context,
+      message: handleAudioError(error).message,
+      title: this.getFailureTitle(this.categorizeFailure(error)),
       timestamp: Date.now(),
       recoverable: this.isRecoverable(error),
       retryCount: this.getRetryCount(this.categorizeFailure(error)),
@@ -150,17 +154,20 @@ class AudioResilienceService {
   /**
    * Retry manual acionado pelo usuário
    */
-  async manualRetry(context: string): Promise<void> {
+  async manualRetry(context: string): Promise<boolean> {
     console.log(`🔄 Retry manual para ${context}`);
 
     try {
       if (this.onInitializeRequest) {
         await this.onInitializeRequest();
         toast.success('Sistema de áudio reinicializado');
+        return true;
       }
+      return false;
     } catch (error) {
       console.error('❌ Retry manual falhou:', error);
       await this.handleFailure(error as Error, context, false);
+      return false;
     }
   }
 

@@ -5,6 +5,7 @@
  */
 
 import { RealtimeAIFeedbackService, RealtimeFeedback, PlayingError, PracticeContext } from './RealtimeAIFeedbackService';
+export type { PracticeContext };
 import { advancedAIService } from './AdvancedAIService';
 import { freeLLMService } from './FreeLLMService';
 import { aiAssistantService, UserProfile } from './AIAssistantService';
@@ -13,7 +14,7 @@ import { guitarSetAITrainingService, ChordFeatures } from './GuitarSetAITraining
 export interface AITutorFeedback {
   // Feedback técnico
   technicalFeedback: RealtimeFeedback;
-  
+
   // Análise pedagógica da IA
   pedagogicalAnalysis: {
     mainIssue: string;
@@ -23,14 +24,14 @@ export interface AITutorFeedback {
     practiceRecommendations: string[];
     encouragement: string;
   };
-  
+
   // Padrões identificados
   patterns: {
     recurringErrors: string[];
     improvementAreas: string[];
     strengths: string[];
   };
-  
+
   // Progresso
   progress: {
     qualityTrend: 'improving' | 'stable' | 'declining';
@@ -109,13 +110,13 @@ class AIAudioTutorService {
     this.realtimeService.startAnalysis(context, async (realtimeFeedback) => {
       // Enriquecer feedback com análise de IA
       const aiFeedback = await this.enrichWithAIAnalysis(realtimeFeedback, context);
-      
+
       // Atualizar estatísticas da sessão
       this.updateSessionStats(realtimeFeedback, aiFeedback);
-      
+
       // Chamar callback com feedback completo
       onFeedback(aiFeedback);
-      
+
       // Armazenar histórico
       this.feedbackHistory.push(aiFeedback);
     });
@@ -128,7 +129,7 @@ class AIAudioTutorService {
    */
   async stopPracticeSession(): Promise<SessionAnalysis | null> {
     this.realtimeService.stopAnalysis();
-    
+
     if (!this.currentSession) return null;
 
     this.currentSession.endTime = Date.now();
@@ -155,7 +156,7 @@ class AIAudioTutorService {
     context: PracticeContext
   ): Promise<AITutorFeedback> {
     const userProfile = await aiAssistantService.getUserProfile();
-    
+
     // Análise imediata dos erros
     const mainIssue = this.identifyMainIssue(technicalFeedback);
     const rootCause = await this.analyzeRootCause(technicalFeedback, userProfile, context);
@@ -251,7 +252,7 @@ class AIAudioTutorService {
 
     const errorSummary = feedback.errors.map(e => e.type).join(', ');
     const quality = feedback.quality;
-    
+
     const prompt = `Como tutor de música especializado, analise a causa raiz do problema:
 
 CONTEXTO:
@@ -289,7 +290,7 @@ Responda em 1-2 frases diretas:`;
    */
   private fallbackRootCauseAnalysis(feedback: RealtimeFeedback): string {
     const errorTypes = feedback.errors.map(e => e.type);
-    
+
     if (errorTypes.includes('wrong_note')) {
       return 'Posição dos dedos pode estar incorreta ou você está tocando a corda errada.';
     }
@@ -299,7 +300,7 @@ Responda em 1-2 frases diretas:`;
     if (errorTypes.includes('intonation')) {
       return 'Afinação do instrumento pode estar incorreta ou você precisa pressionar mais próximo dos trastes.';
     }
-    
+
     return 'Verifique a posição dos dedos e a pressão nas cordas.';
   }
 
@@ -380,19 +381,19 @@ Máximo 3-4 frases:`;
         const data = trainingData[0];
         // Combinar correções do treinamento com feedback técnico
         const corrections: string[] = [];
-        
+
         // Adicionar correções baseadas nos erros detectados
         feedback.errors.forEach(error => {
           if (error.correction) {
             corrections.push(error.correction);
           }
         });
-        
+
         // Adicionar dicas de prática do treinamento
         if (data.practice_tips.length > 0) {
           corrections.push(...data.practice_tips.slice(0, 2));
         }
-        
+
         if (corrections.length > 0) {
           return corrections.slice(0, 4);
         }
@@ -559,7 +560,7 @@ Um exercício por linha, direto e acionável:`;
     consistencyScore: number;
   } {
     this.qualityHistory.push(this.feedbackHistory[this.feedbackHistory.length - 1]?.technicalFeedback.quality || 0);
-    
+
     if (this.qualityHistory.length < 2) {
       return {
         qualityTrend: 'stable',
@@ -570,10 +571,10 @@ Um exercício por linha, direto e acionável:`;
 
     const recent = this.qualityHistory.slice(-5);
     const older = this.qualityHistory.slice(-10, -5);
-    
+
     const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
-    const olderAvg = older.length > 0 
-      ? older.reduce((a, b) => a + b, 0) / older.length 
+    const olderAvg = older.length > 0
+      ? older.reduce((a, b) => a + b, 0) / older.length
       : recentAvg;
 
     const improvement = recentAvg - olderAvg;
@@ -598,7 +599,7 @@ Um exercício por linha, direto e acionável:`;
 
     this.currentSession.totalErrors += feedback.errors.length;
     feedback.errors.forEach(error => {
-      this.currentSession!.errorBreakdown[error.type] = 
+      this.currentSession!.errorBreakdown[error.type] =
         (this.currentSession!.errorBreakdown[error.type] || 0) + 1;
     });
     this.currentSession.qualityProgression.push(feedback.quality);
@@ -650,8 +651,8 @@ ESTATÍSTICAS DA SESSÃO:
 
 DISTRIBUIÇÃO DE ERROS:
 ${Object.entries(this.currentSession.errorBreakdown)
-  .map(([type, count]) => `- ${type}: ${count} vezes`)
-  .join('\n')}
+        .map(([type, count]) => `- ${type}: ${count} vezes`)
+        .join('\n')}
 
 Dê 3-4 recomendações ESPECÍFICAS para a próxima sessão de prática.
 Uma por linha, diretas e acionáveis:`;
@@ -685,11 +686,11 @@ ESTATÍSTICAS:
 - Qualidade média: ${this.currentSession.averageQuality}%
 - Total de erros: ${this.currentSession.totalErrors}
 - Principais desafios: ${this.currentSession.mainChallenges.join(', ')}
-- Progresso: ${this.currentSession.qualityProgression.length > 1 
-  ? (this.currentSession.qualityProgression[this.currentSession.qualityProgression.length - 1] > this.currentSession.qualityProgression[0] 
-    ? 'Melhorou durante a sessão' 
-    : 'Manteve consistência')
-  : 'Primeira análise'}
+- Progresso: ${this.currentSession.qualityProgression.length > 1
+        ? (this.currentSession.qualityProgression[this.currentSession.qualityProgression.length - 1] > this.currentSession.qualityProgression[0]
+          ? 'Melhorou durante a sessão'
+          : 'Manteve consistência')
+        : 'Primeira análise'}
 
 Faça um resumo de 2-3 frases, motivador mas honesto, destacando pontos positivos e áreas de melhoria:`;
 

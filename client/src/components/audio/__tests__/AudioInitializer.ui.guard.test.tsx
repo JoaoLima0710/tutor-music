@@ -18,7 +18,7 @@ describe('AudioInitializer UI guard', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Configurar mock padrão: áudio não está pronto
     vi.mocked(useAudio).mockReturnValue({
       isReady: false,
@@ -26,6 +26,10 @@ describe('AudioInitializer UI guard', () => {
       error: null,
       initialize: mockInitialize,
       unlock: vi.fn().mockResolvedValue(true),
+      playNote: vi.fn(),
+      playNotes: vi.fn(),
+      playChord: vi.fn(),
+      stopAll: vi.fn(),
     });
   });
 
@@ -63,6 +67,10 @@ describe('AudioInitializer UI guard', () => {
       error: null,
       initialize: mockInitialize,
       unlock: vi.fn().mockResolvedValue(true),
+      playNote: vi.fn(),
+      playNotes: vi.fn(),
+      playChord: vi.fn(),
+      stopAll: vi.fn(),
     });
 
     render(
@@ -119,9 +127,17 @@ describe('AudioInitializer UI guard', () => {
           error: null,
           initialize: mockInitialize,
           unlock: vi.fn().mockResolvedValue(true),
+          playNote: vi.fn(),
+          playNotes: vi.fn(),
+          playChord: vi.fn(),
+          stopAll: vi.fn(),
         });
       },
       unlock: vi.fn().mockResolvedValue(true),
+      playNote: vi.fn(),
+      playNotes: vi.fn(),
+      playChord: vi.fn(),
+      stopAll: vi.fn(),
     });
 
     render(

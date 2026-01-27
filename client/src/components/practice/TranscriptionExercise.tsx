@@ -11,13 +11,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Play, 
-  Mic, 
+import {
+  Play,
+  Mic,
   MicOff,
-  CheckCircle2, 
-  XCircle, 
-  Music, 
+  CheckCircle2,
+  XCircle,
+  Music,
   Trophy,
   RotateCcw,
   Volume2,
@@ -60,27 +60,23 @@ const MELODIES: Record<'beginner' | 'intermediate' | 'advanced', Melody[]> = {
 const noteToFrequency = (note: string): number => {
   const A4 = 440;
   const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  
+
   const match = note.match(/^([A-G]#?)(\d+)$/);
   if (!match) return 0;
-  
+
   const [, noteName, octave] = match;
   const noteIndex = noteNames.indexOf(noteName);
   const octaveNum = parseInt(octave);
-  
+
   // Cálculo: f = 440 * 2^((n - 69) / 12)
   // Onde n é o número MIDI (A4 = 69)
   const midiNumber = (octaveNum + 1) * 12 + noteIndex;
   const frequency = A4 * Math.pow(2, (midiNumber - 69) / 12);
-  
+
   return frequency;
 };
 
-  // Verificar se resultado de detecção corresponde à nota esperada
-  const isNoteMatch = (detected: PitchDetectionResult, expectedNote: string): boolean => {
-    // Usar o método do serviço que já faz a comparação correta
-    return pitchService.isNoteMatch(detected, expectedNote, 50); // 50 cents de tolerância
-  };
+// Função movida para dentro do componente para acessar pitchService corretamente
 
 export function TranscriptionExercise() {
   const [difficulty, setDifficulty] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
@@ -96,6 +92,12 @@ export function TranscriptionExercise() {
   const [currentDetectedNote, setCurrentDetectedNote] = useState<string | null>(null);
   const [detectionTimeout, setDetectionTimeout] = useState<NodeJS.Timeout | null>(null);
   const { addXP } = useGamificationStore();
+
+  // Verificar se resultado de detecção corresponde à nota esperada
+  const isNoteMatch = (detected: PitchDetectionResult, expectedNote: string): boolean => {
+    // Usar o método do serviço que já faz a comparação correta
+    return pitchService.isNoteMatch(detected, expectedNote, 50); // 50 cents de tolerância
+  };
 
   // Inicializar serviço de detecção de pitch
   useEffect(() => {
@@ -138,14 +140,14 @@ export function TranscriptionExercise() {
   // Tocar melodia
   const playMelody = async () => {
     if (!currentMelody || isPlaying) return;
-    
+
     setIsPlaying(true);
-    
+
     try {
       for (let i = 0; i < currentMelody.notes.length; i++) {
         const note = currentMelody.notes[i];
-        await unifiedAudioService.playNote(note, 'guitar', 0.6);
-        
+        await unifiedAudioService.playNote(note, 0.6);
+
         // Pausa entre notas (exceto após a última)
         if (i < currentMelody.notes.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 500));
@@ -162,26 +164,26 @@ export function TranscriptionExercise() {
   // Iniciar detecção
   const startListening = () => {
     if (!currentMelody || !isInitialized || isListening) return;
-    
+
     setIsListening(true);
     setCurrentNoteIndex(0);
     setUserNotes([]);
     setShowResult(false);
-    
+
     // Iniciar detecção de pitch
     pitchService.start((result: PitchDetectionResult | null) => {
       if (result && result.frequency > 0 && result.clarity > 0.3) {
         // Formar nota completa (ex: "C4")
         const detectedNote = `${result.note}${result.octave}`;
         setCurrentDetectedNote(detectedNote);
-        
+
         // Verificar se corresponde à nota esperada
         const expectedNote = currentMelody.notes[currentNoteIndex];
         if (isNoteMatch(result, expectedNote)) {
           // Nota correta detectada
           const newUserNotes = [...userNotes, detectedNote];
           setUserNotes(newUserNotes);
-          
+
           // Avançar para próxima nota
           if (currentNoteIndex < currentMelody.notes.length - 1) {
             setCurrentNoteIndex(currentNoteIndex + 1);
@@ -202,7 +204,7 @@ export function TranscriptionExercise() {
     pitchService.stop();
     setIsListening(false);
     setCurrentDetectedNote(null);
-    
+
     if (detectionTimeout) {
       clearTimeout(detectionTimeout);
     }
@@ -211,9 +213,9 @@ export function TranscriptionExercise() {
   // Finalizar transcrição
   const finishTranscription = (notes: string[]) => {
     stopListening();
-    
+
     if (!currentMelody) return;
-    
+
     // Verificar acertos (comparar notas diretamente, já que foram validadas durante detecção)
     let correctCount = 0;
     currentMelody.notes.forEach((expectedNote, index) => {
@@ -227,10 +229,10 @@ export function TranscriptionExercise() {
         }
       }
     });
-    
+
     const accuracy = (correctCount / currentMelody.notes.length) * 100;
     const isSuccess = accuracy >= 80;
-    
+
     setShowResult(true);
     setScore(prev => ({
       correct: prev.correct + (isSuccess ? 1 : 0),
@@ -256,8 +258,8 @@ export function TranscriptionExercise() {
   }, [difficulty]);
 
   const accuracy = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
-  const progress = currentMelody && currentNoteIndex > 0 
-    ? (currentNoteIndex / currentMelody.notes.length) * 100 
+  const progress = currentMelody && currentNoteIndex > 0
+    ? (currentNoteIndex / currentMelody.notes.length) * 100
     : 0;
 
   return (
@@ -282,7 +284,7 @@ export function TranscriptionExercise() {
             </div>
             <p className="text-2xl font-bold text-white">{score.correct}/{score.total}</p>
           </div>
-          
+
           <div className="p-4 rounded-lg bg-white/5 border border-white/10">
             <div className="flex items-center gap-2 mb-1">
               <CheckCircle2 className="w-4 h-4 text-green-400" />
@@ -290,7 +292,7 @@ export function TranscriptionExercise() {
             </div>
             <p className="text-2xl font-bold text-white">{accuracy}%</p>
           </div>
-          
+
           <div className="p-4 rounded-lg bg-white/5 border border-white/10">
             <div className="flex items-center gap-2 mb-1">
               <Music className="w-4 h-4 text-blue-400" />
@@ -316,7 +318,7 @@ export function TranscriptionExercise() {
               }
             >
               {level === 'beginner' ? '4 Notas' :
-               level === 'intermediate' ? '8 Notas' : '16 Notas'}
+                level === 'intermediate' ? '8 Notas' : '16 Notas'}
             </Button>
           ))}
         </div>
@@ -330,15 +332,15 @@ export function TranscriptionExercise() {
                   <h4 className="font-bold text-white mb-1">{currentMelody.name}</h4>
                   <p className="text-sm text-gray-400">
                     {currentMelody.notes.length} notas • {difficulty === 'beginner' ? 'Iniciante' :
-                    difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                      difficulty === 'intermediate' ? 'Intermediário' : 'Avançado'}
                   </p>
                 </div>
                 <Badge
                   variant="outline"
                   className={
                     difficulty === 'beginner' ? 'border-green-500/30 text-green-400' :
-                    difficulty === 'intermediate' ? 'border-yellow-500/30 text-yellow-400' :
-                    'border-red-500/30 text-red-400'
+                      difficulty === 'intermediate' ? 'border-yellow-500/30 text-yellow-400' :
+                        'border-red-500/30 text-red-400'
                   }
                 >
                   {currentMelody.notes.length} notas
@@ -379,7 +381,7 @@ export function TranscriptionExercise() {
                   <Play className="w-5 h-5 mr-2" />
                   {isPlaying ? 'Tocando...' : 'Ouvir Melodia'}
                 </Button>
-                
+
                 {!isListening ? (
                   <Button
                     onClick={startListening}
@@ -418,13 +420,12 @@ export function TranscriptionExercise() {
                       const userNoteName = userNote ? userNote.replace(/[0-9]/g, '') : '';
                       const expectedNoteName = expectedNote.replace(/[0-9]/g, '');
                       const isCorrect = userNoteName === expectedNoteName;
-                      
+
                       return (
                         <div
                           key={index}
-                          className={`flex items-center justify-between p-2 rounded ${
-                            isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'
-                          }`}
+                          className={`flex items-center justify-between p-2 rounded ${isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'
+                            }`}
                         >
                           <span className="text-sm text-gray-300">
                             Nota {index + 1}:
@@ -436,9 +437,8 @@ export function TranscriptionExercise() {
                             {userNote && (
                               <>
                                 <span className="text-sm text-gray-400">→</span>
-                                <span className={`text-sm font-semibold ${
-                                  isCorrect ? 'text-green-400' : 'text-red-400'
-                                }`}>
+                                <span className={`text-sm font-semibold ${isCorrect ? 'text-green-400' : 'text-red-400'
+                                  }`}>
                                   Você: {userNote}
                                 </span>
                                 {isCorrect ? (
@@ -453,7 +453,7 @@ export function TranscriptionExercise() {
                       );
                     })}
                   </div>
-                  
+
                   <Button
                     onClick={selectRandomMelody}
                     className="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"

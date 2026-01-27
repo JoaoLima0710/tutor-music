@@ -89,7 +89,7 @@ export function AITutorAudioFeedback({
     const analysis = await aiAudioTutorService.stopPracticeSession();
     setIsListening(false);
     setFeedback(null);
-    
+
     if (analysis) {
       setSessionAnalysis(analysis);
       onSessionEnd?.(analysis);
@@ -210,8 +210,8 @@ export function AITutorAudioFeedback({
                   </span>
                 </div>
               </div>
-              <Progress 
-                value={feedback.technicalFeedback.quality} 
+              <Progress
+                value={feedback.technicalFeedback.quality}
                 className="h-2"
               />
               <div className="flex items-center justify-between text-xs text-gray-500">
@@ -307,7 +307,7 @@ export function AITutorAudioFeedback({
               <div className="p-2 bg-red-500/10 border border-red-500/30 rounded-lg">
                 <div className="text-xs text-red-400 mb-1">Erros Recorrentes</div>
                 <div className="text-xs text-white">
-                  {feedback.patterns.recurringErrors.length > 0 
+                  {feedback.patterns.recurringErrors.length > 0
                     ? feedback.patterns.recurringErrors.join(', ')
                     : 'Nenhum'}
                 </div>

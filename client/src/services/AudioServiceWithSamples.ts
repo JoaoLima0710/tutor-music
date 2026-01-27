@@ -1,4 +1,5 @@
 import Soundfont from 'soundfont-player';
+import { InstrumentType } from '@/stores/useAudioSettingsStore';
 
 // Array de notas
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -20,12 +21,14 @@ const CHORD_INTERVALS: Record<string, number[]> = {
   'add9': [0, 4, 7, 14],
 };
 
-export type InstrumentType = 'nylon-guitar' | 'steel-guitar' | 'piano';
+// export type InstrumentType = 'nylon-guitar' | 'steel-guitar' | 'piano';
 
-const SOUNDFONT_INSTRUMENTS: Record<InstrumentType, string> = {
+const SOUNDFONT_INSTRUMENTS: Record<string, string> = {
   'nylon-guitar': 'acoustic_guitar_nylon',
   'steel-guitar': 'acoustic_guitar_steel',
   'piano': 'acoustic_grand_piano',
+  'guitar': 'acoustic_guitar_nylon',
+  'violin': 'acoustic_grand_piano', // Fallback
 };
 
 class AudioServiceWithSamples {
@@ -38,12 +41,12 @@ class AudioServiceWithSamples {
   private preloadInProgress = false;
   private loadErrorCount = 0;
   private maxLoadErrors = 3;
-  
+
   // Volume normalization
   private noteGains: Map<string, number> = new Map(); // Normalized gain per note
   private targetRMS = 0.3; // Target RMS level for normalization (0-1)
   private normalizationEnabled = true;
-  
+
   // Effects chain
   private compressor: DynamicsCompressorNode | null = null;
   private limiter: DynamicsCompressorNode | null = null;
@@ -81,22 +84,22 @@ class AudioServiceWithSamples {
       console.error('❌ Error initializing AudioServiceWithSamples:', error);
       this.loadErrorCount++;
       const { audioResilienceService } = await import('./AudioResilienceService');
-      await audioResilienceService.handleFailure(error, 'initialize', true);
+      await audioResilienceService.handleFailure(error as Error, 'initialize', true);
       return false;
     }
   }
-  
+
   /**
    * Create effects chain: Compressor -> EQ -> Reverb -> Limiter -> Destination
    */
   private createEffectsChain() {
     if (!this.audioContext) return;
-    
+
     // Master gain
     this.masterGain = this.audioContext.createGain();
     this.masterGain.gain.value = 0.7;
     this.masterGain.connect(this.audioContext.destination);
-    
+
     // Limiter (last in chain, prevents clipping)
     this.limiter = this.audioContext.createDynamicsCompressor();
     this.limiter.threshold.value = -1; // -1 dB
@@ -105,30 +108,30 @@ class AudioServiceWithSamples {
     this.limiter.attack.value = 0.001; // 1ms
     this.limiter.release.value = 0.01; // 10ms
     this.limiter.connect(this.masterGain);
-    
+
     // Reverb (using simple delay-based reverb)
     this.reverbGain = this.audioContext.createGain();
     this.reverbGain.gain.value = 0.2; // Wet mix
     this.reverbGain.connect(this.limiter);
-    
+
     // Create simple reverb with delay nodes
     const delay1 = this.audioContext.createDelay(0.1);
     delay1.delayTime.value = 0.03; // 30ms
     const delay2 = this.audioContext.createDelay(0.1);
     delay2.delayTime.value = 0.05; // 50ms
-    
+
     const feedbackGain1 = this.audioContext.createGain();
     feedbackGain1.gain.value = 0.3;
     const feedbackGain2 = this.audioContext.createGain();
     feedbackGain2.gain.value = 0.2;
-    
+
     delay1.connect(feedbackGain1);
     feedbackGain1.connect(delay1);
     delay1.connect(delay2);
     delay2.connect(feedbackGain2);
     feedbackGain2.connect(delay2);
     delay2.connect(this.reverbGain);
-    
+
     // EQ - 5 band parametric
     // Low Shelf (80 Hz)
     const lowShelf = this.audioContext.createBiquadFilter();
@@ -136,44 +139,44 @@ class AudioServiceWithSamples {
     lowShelf.frequency.value = 80;
     lowShelf.gain.value = 0;
     lowShelf.Q.value = 0.7;
-    
+
     // Low Mid (250 Hz)
     const lowMid = this.audioContext.createBiquadFilter();
     lowMid.type = 'peaking';
     lowMid.frequency.value = 250;
     lowMid.gain.value = 0;
     lowMid.Q.value = 1;
-    
+
     // Mid (1000 Hz)
     const mid = this.audioContext.createBiquadFilter();
     mid.type = 'peaking';
     mid.frequency.value = 1000;
     mid.gain.value = 0;
     mid.Q.value = 1;
-    
+
     // High Mid (4000 Hz)
     const highMid = this.audioContext.createBiquadFilter();
     highMid.type = 'peaking';
     highMid.frequency.value = 4000;
     highMid.gain.value = 0;
     highMid.Q.value = 1;
-    
+
     // High Shelf (10000 Hz)
     const highShelf = this.audioContext.createBiquadFilter();
     highShelf.type = 'highshelf';
     highShelf.frequency.value = 10000;
     highShelf.gain.value = 0;
     highShelf.Q.value = 0.7;
-    
+
     this.eqNodes = [lowShelf, lowMid, mid, highMid, highShelf];
-    
+
     // Connect EQ chain
     lowShelf.connect(lowMid);
     lowMid.connect(mid);
     mid.connect(highMid);
     highMid.connect(highShelf);
     highShelf.connect(delay1); // Connect to reverb
-    
+
     // Compressor (first in chain)
     this.compressor = this.audioContext.createDynamicsCompressor();
     this.compressor.threshold.value = -20; // -20 dB
@@ -182,38 +185,38 @@ class AudioServiceWithSamples {
     this.compressor.attack.value = 0.005; // 5ms
     this.compressor.release.value = 0.1; // 100ms
     this.compressor.connect(lowShelf);
-    
+
     // Dry/Wet mix for reverb
     this.dryGain = this.audioContext.createGain();
     this.dryGain.gain.value = 0.8; // 80% dry
     this.dryGain.connect(this.limiter);
-    
+
     this.wetGain = this.audioContext.createGain();
     this.wetGain.gain.value = 0.2; // 20% wet
     this.wetGain.connect(delay1);
-    
+
     // Connect dry path
     this.compressor.connect(this.dryGain);
-    
+
     console.log('✅ Effects chain created');
   }
-  
+
   /**
    * Set EQ gains (5 bands)
    */
   setEQ(bassGain: number, midGain: number, trebleGain: number) {
     if (this.eqNodes.length < 5) return;
-    
+
     // Map 3-band EQ to 5-band
     this.eqNodes[0].gain.value = bassGain; // Low Shelf
     this.eqNodes[1].gain.value = bassGain * 0.5; // Low Mid
     this.eqNodes[2].gain.value = midGain; // Mid
     this.eqNodes[3].gain.value = trebleGain * 0.5; // High Mid
     this.eqNodes[4].gain.value = trebleGain; // High Shelf
-    
+
     console.log('🎚️ EQ updated:', { bass: bassGain, mid: midGain, treble: trebleGain });
   }
-  
+
   /**
    * Enable/disable volume normalization
    */
@@ -260,39 +263,39 @@ class AudioServiceWithSamples {
     if (this.reverbGain && this.dryGain && this.wetGain) {
       const wet = Math.max(0, Math.min(1, amount));
       const dry = 1 - wet;
-      
+
       this.reverbGain.gain.value = wet;
       this.dryGain.gain.value = dry;
       this.wetGain.gain.value = wet;
-      
+
       console.log('🏛️ Reverb amount:', amount);
     }
   }
-  
+
   /**
    * Preload common notes (C3-C5 for guitar) to reduce latency
    */
   private async preloadCommonNotes() {
     if (this.preloadInProgress || !this.instrument) return;
-    
+
     this.preloadInProgress = true;
     console.log('📦 Preloading common notes...');
-    
+
     try {
       const commonNotes: string[] = [];
-      
+
       // Preload C3 to C5 (common range for guitar)
       for (let octave = 3; octave <= 5; octave++) {
         for (const note of NOTES) {
           commonNotes.push(note + octave);
         }
       }
-      
+
       // Preload in batches to avoid overwhelming
       const batchSize = 10;
       for (let i = 0; i < commonNotes.length; i += batchSize) {
         const batch = commonNotes.slice(i, i + batchSize);
-        
+
         // Trigger play with very short duration to cache samples
         const currentTime = this.audioContext!.currentTime;
         batch.forEach(note => {
@@ -304,11 +307,11 @@ class AudioServiceWithSamples {
             // Ignore individual note errors
           }
         });
-        
+
         // Small delay between batches
         await new Promise(resolve => setTimeout(resolve, 50));
       }
-      
+
       console.log(`✅ Preloaded ${this.preloadedNotes.size} common notes`);
     } catch (error) {
       console.warn('⚠️ Error during preload:', error);
@@ -330,7 +333,7 @@ class AudioServiceWithSamples {
         throw new Error('AudioContext not initialized');
       }
 
-      const soundfontName = SOUNDFONT_INSTRUMENTS[instrumentType];
+      const soundfontName = SOUNDFONT_INSTRUMENTS[instrumentType] || 'acoustic_guitar_nylon';
       console.log('🎸 Loading instrument:', soundfontName);
 
       // Dispose old instrument
@@ -350,14 +353,14 @@ class AudioServiceWithSamples {
         // Try to use custom destination if supported
         ...(this.compressor && { destination: this.compressor }),
       });
-      
+
       // Add timeout (10 seconds)
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Load timeout')), 10000);
       });
-      
+
       this.instrument = await Promise.race([loadPromise, timeoutPromise]) as Soundfont.Player;
-      
+
       // If custom destination didn't work, we'll need to patch the play method
       // to route through effects chain (future enhancement)
 
@@ -376,7 +379,7 @@ class AudioServiceWithSamples {
   async setInstrument(instrumentType: InstrumentType) {
     console.log('🎸 Changing instrument to:', instrumentType);
     this.currentInstrument = instrumentType;
-    
+
     if (this.isInitialized) {
       await this.loadInstrument(instrumentType);
     }
@@ -389,10 +392,10 @@ class AudioServiceWithSamples {
   private getNoteFromInterval(root: string, interval: number): string {
     const rootIndex = NOTES.indexOf(root);
     if (rootIndex === -1) return 'C4';
-    
+
     const noteIndex = (rootIndex + interval) % 12;
     const octave = 4 + Math.floor((rootIndex + interval) / 12);
-    
+
     return NOTES[noteIndex] + octave;
   }
 
@@ -426,14 +429,14 @@ class AudioServiceWithSamples {
       const captureGain = this.audioContext.createGain();
       captureGain.gain.value = 0.1; // Play at low volume for analysis
       captureGain.connect(analyser);
-      
+
       // Connect analyser to destination (we need to hear it to analyze)
       analyser.connect(this.audioContext.destination);
 
       // Play note at low volume and capture RMS
       const currentTime = this.audioContext.currentTime;
       if (this.instrument) {
-        this.instrument.play(note, currentTime, { 
+        this.instrument.play(note, currentTime, {
           duration: 0.3, // Longer duration for better analysis
           gain: 0.1 // Low volume for analysis
         });
@@ -457,7 +460,7 @@ class AudioServiceWithSamples {
           sampleCount++;
         }
       }
-      
+
       const rms = sampleCount > 0 ? Math.sqrt(sum / sampleCount) : 0;
 
       // Calculate normalization gain
@@ -467,7 +470,7 @@ class AudioServiceWithSamples {
         // Since we played at 0.1 gain, adjust calculation
         const actualRMS = rms / 0.1; // Estimate actual RMS
         normalizedGain = this.targetRMS / actualRMS;
-        
+
         // Clamp to reasonable range (0.2 to 2.5)
         // This prevents extreme gain values that could cause distortion
         normalizedGain = Math.max(0.2, Math.min(2.5, normalizedGain));
@@ -481,7 +484,7 @@ class AudioServiceWithSamples {
       captureGain.disconnect();
 
       console.log(`📊 Normalized ${note}: RMS=${rms.toFixed(3)}, Gain=${normalizedGain.toFixed(2)}`);
-      
+
       return normalizedGain;
     } catch (error) {
       console.warn(`⚠️ Could not normalize ${note}, using default gain:`, error);
@@ -521,7 +524,7 @@ class AudioServiceWithSamples {
       // Then normalize other octaves in background
       for (let octave = 3; octave <= 5; octave++) {
         if (octave === 4) continue; // Already done
-        
+
         for (const note of NOTES) {
           const noteWithOctave = note + octave;
           if (!this.noteGains.has(noteWithOctave)) {
@@ -532,7 +535,7 @@ class AudioServiceWithSamples {
       }
 
       console.log(`✅ Normalized ${this.noteGains.size} notes`);
-      
+
       // Log statistics
       const stats = this.getNormalizationStats();
       console.log('📊 Normalization stats:', stats);
@@ -567,9 +570,9 @@ class AudioServiceWithSamples {
       console.log('🎵 Playing note:', noteWithOctave, `(gain: ${gain.toFixed(2)})`);
 
       const currentTime = this.audioContext!.currentTime;
-      
+
       // Apply normalized gain when playing
-      this.instrument.play(noteWithOctave, currentTime, { 
+      this.instrument.play(noteWithOctave, currentTime, {
         duration,
         gain: gain // Apply normalized gain
       });
@@ -608,7 +611,7 @@ class AudioServiceWithSamples {
 
       // Play notes in sequence with normalized gains
       let currentTime = this.audioContext!.currentTime;
-      
+
       for (const note of scaleNotes) {
         // Get normalized gain for each note
         let gain = 1.0;
@@ -617,10 +620,10 @@ class AudioServiceWithSamples {
         } else if (this.normalizationEnabled) {
           gain = await this.analyzeAndNormalizeNote(note);
         }
-        
-        this.instrument!.play(note, currentTime, { 
+
+        this.instrument!.play(note, currentTime, {
           duration,
-          gain 
+          gain
         });
         currentTime += duration;
       }
@@ -633,7 +636,7 @@ class AudioServiceWithSamples {
 
   async playChord(chordName: string, duration: number = 2): Promise<void> {
     console.log('🎸 playChord called:', chordName);
-    
+
     const initialized = await this.initialize();
     if (!initialized || !this.instrument) {
       console.error('❌ Instrument not available');
@@ -650,7 +653,7 @@ class AudioServiceWithSamples {
 
       const root = match[1];
       let chordType = match[2] || 'major';
-      
+
       // Map common chord suffixes
       if (chordType === 'm') chordType = 'minor';
       if (chordType === '') chordType = 'major';
@@ -663,7 +666,7 @@ class AudioServiceWithSamples {
       // Play chord as arpeggio with normalized gains
       const currentTime = this.audioContext!.currentTime;
       const noteDelay = 0.08; // 80ms between notes for arpeggio
-      
+
       notes.forEach(async (note, index) => {
         // Get normalized gain for each note
         let gain = 1.0;
@@ -672,10 +675,10 @@ class AudioServiceWithSamples {
         } else if (this.normalizationEnabled) {
           gain = await this.analyzeAndNormalizeNote(note);
         }
-        
-        this.instrument!.play(note, currentTime + index * noteDelay, { 
+
+        this.instrument!.play(note, currentTime + index * noteDelay, {
           duration,
-          gain 
+          gain
         });
       });
 
@@ -705,7 +708,7 @@ class AudioServiceWithSamples {
 
       // Play all notes together (strummed) with normalized gains
       const currentTime = this.audioContext!.currentTime;
-      
+
       // Get gains for all notes
       const noteGains = await Promise.all(
         notes.map(async (note) => {
@@ -717,9 +720,9 @@ class AudioServiceWithSamples {
           return 1.0;
         })
       );
-      
+
       notes.forEach((note, index) => {
-        this.instrument!.play(note, currentTime, { 
+        this.instrument!.play(note, currentTime, {
           duration,
           gain: noteGains[index]
         });

@@ -3,8 +3,8 @@ import { audioServiceWithSamples } from './AudioServiceWithSamples';
 import { guitarSetAudioService } from './GuitarSetAudioService';
 import { philharmoniaAudioService } from './PhilharmoniaAudioService';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
-// import type { InstrumentType } from './AudioServiceWithSamples';
 import type { AudioEngineType, InstrumentType } from '@/stores/useAudioSettingsStore';
+export type { AudioEngineType, InstrumentType };
 import {
   AudioError,
   AudioContextError,
@@ -45,15 +45,17 @@ class AudioManager {
     }
 
     // Configurar o AudioResilienceService para usar este manager
-    audioResilienceService.setInitializationHandler(() => this.initialize());
+    audioResilienceService.setInitializationHandler(async () => {
+      await this.initialize();
+    });
 
     // Listen to store changes to auto-switch engines
     useAudioSettingsStore.subscribe((state) => {
-      if (state.audioEngine !== this.currentEngine) {
-        console.log('🎵 Audio engine changed from', this.currentEngine, 'to', state.audioEngine);
-        this.switchEngine(state.audioEngine as any).catch(e => console.error('Error auto-switching engine:', e));
+      const newState = state as any;
+      if (newState.audioEngine !== this.currentEngine) {
+        console.log('🎵 Audio engine changed from', this.currentEngine, 'to', newState.audioEngine);
+        this.switchEngine(newState.audioEngine).catch(e => console.error('Error auto-switching engine:', e));
       }
-      return;
     });
 
     // Mobile-specific listeners

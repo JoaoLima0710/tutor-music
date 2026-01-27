@@ -5,7 +5,7 @@
  * Oferece som autêntico de instrumentos clássicos de alta qualidade.
  */
 
-import type { InstrumentType } from './AudioServiceWithSamples';
+import { InstrumentType } from '@/stores/useAudioSettingsStore';
 
 interface NoteManifest {
   [noteName: string]: {
@@ -21,25 +21,25 @@ interface InstrumentManifest {
   };
 }
 
-type PhilharmoniaInstrument = 
-  | 'violin' 
-  | 'viola' 
-  | 'cello' 
+type PhilharmoniaInstrument =
+  | 'violin'
+  | 'viola'
+  | 'cello'
   | 'double_bass'
-  | 'flute' 
-  | 'oboe' 
-  | 'clarinet' 
-  | 'bass_clarinet' 
-  | 'saxophone' 
-  | 'bassoon' 
-  | 'contrabassoon' 
+  | 'flute'
+  | 'oboe'
+  | 'clarinet'
+  | 'bass_clarinet'
+  | 'saxophone'
+  | 'bassoon'
+  | 'contrabassoon'
   | 'cor_anglais'
-  | 'trumpet' 
-  | 'french_horn' 
-  | 'trombone' 
+  | 'trumpet'
+  | 'french_horn'
+  | 'trombone'
   | 'tuba'
-  | 'guitar' 
-  | 'mandolin' 
+  | 'guitar'
+  | 'mandolin'
   | 'banjo'
   | 'percussion';
 
@@ -68,7 +68,7 @@ class PhilharmoniaAudioService {
     try {
       // Create AudioContext
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
+
       // Create gain node for volume control
       this.gainNode = this.audioContext.createGain();
       this.gainNode.connect(this.audioContext.destination);
@@ -117,7 +117,7 @@ class PhilharmoniaAudioService {
 
   async loadNoteSample(noteName: string): Promise<AudioBuffer | null> {
     const cacheKey = `${this.currentInstrument}_${noteName}`;
-    
+
     if (this.noteBuffers.has(cacheKey)) {
       return this.noteBuffers.get(cacheKey)!;
     }
@@ -131,7 +131,7 @@ class PhilharmoniaAudioService {
       // Tentar carregar do diretório do instrumento
       const filePath = `/samples/philharmonia/${this.currentInstrument}/${noteName}.wav`;
       const response = await fetch(filePath);
-      
+
       if (!response.ok) {
         // Tentar variações do nome da nota
         const variations = this.getNoteVariations(noteName);
@@ -146,17 +146,17 @@ class PhilharmoniaAudioService {
             return audioBuffer;
           }
         }
-        
+
         console.warn(`⚠️ Note sample not found: ${this.currentInstrument}/${noteName}`);
         return null;
       }
 
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      
+
       this.noteBuffers.set(cacheKey, audioBuffer);
       console.log(`✅ Loaded note sample: ${this.currentInstrument}/${noteName}`);
-      
+
       return audioBuffer;
     } catch (error) {
       console.error(`❌ Error loading note sample ${noteName}:`, error);
@@ -167,16 +167,16 @@ class PhilharmoniaAudioService {
   private getNoteVariations(noteName: string): string[] {
     // Gerar variações do nome da nota para tentar encontrar o arquivo
     const variations: string[] = [noteName];
-    
+
     // Tentar com diferentes formatos
     if (noteName.includes('#')) {
       variations.push(noteName.replace('#', 's')); // C#4 -> Cs4
     }
-    
+
     // Tentar uppercase/lowercase
     variations.push(noteName.toUpperCase());
     variations.push(noteName.toLowerCase());
-    
+
     return variations;
   }
 
@@ -222,7 +222,7 @@ class PhilharmoniaAudioService {
 
     // Try to load note sample
     let buffer = await this.loadNoteSample(note);
-    
+
     if (!buffer) {
       // Fallback: try without octave
       const noteWithoutOctave = note.replace(/\d+$/, '');
@@ -250,7 +250,7 @@ class PhilharmoniaAudioService {
     // Convert intervals to note names
     const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const rootIndex = NOTES.indexOf(root.toUpperCase());
-    
+
     if (rootIndex === -1) {
       console.error('❌ Invalid root note:', root);
       return;
@@ -269,9 +269,9 @@ class PhilharmoniaAudioService {
     for (let i = 0; i < scaleNotes.length; i++) {
       const noteName = scaleNotes[i];
       const noteWithOctave = noteName + '4'; // Use octave 4 for consistency
-      
+
       await this.playNote(noteWithOctave, duration);
-      
+
       // Delay between notes
       if (i < scaleNotes.length - 1) {
         await new Promise(resolve => setTimeout(resolve, duration * 1000 + 100));
@@ -283,7 +283,7 @@ class PhilharmoniaAudioService {
 
   stopAll(): void {
     console.log('🛑 Stopping all Philharmonia audio...');
-    
+
     // Stop all active sources
     this.activeSources.forEach(source => {
       try {
@@ -292,7 +292,7 @@ class PhilharmoniaAudioService {
         // Source may have already ended
       }
     });
-    
+
     this.activeSources.clear();
     console.log('✅ All audio stopped');
   }
@@ -304,9 +304,9 @@ class PhilharmoniaAudioService {
 
   async dispose(): Promise<void> {
     console.log('🗑️ Disposing PhilharmoniaAudioService...');
-    
+
     this.stopAll();
-    
+
     if (this.gainNode) {
       this.gainNode.disconnect();
       this.gainNode = null;
@@ -319,7 +319,7 @@ class PhilharmoniaAudioService {
 
     this.noteBuffers.clear();
     this.isInitialized = false;
-    
+
     console.log('✅ PhilharmoniaAudioService disposed');
   }
 }
