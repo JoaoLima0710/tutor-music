@@ -15,3 +15,7 @@
     - [x] Reproduce error locally
     - [x] Fix missing methods in `AudioResilienceService`
     - [x] Verify fix on localhost
+
+- [x] Bug Fix: Duplicate Import
+    - [x] Remove duplicate `Card` import in `MajorMinorChordTraining.tsx`
+    - [x] Verify build

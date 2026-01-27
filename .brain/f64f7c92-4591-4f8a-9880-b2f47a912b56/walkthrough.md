@@ -41,3 +41,13 @@ I fixed a critical runtime error that was preventing the application from loadin
 ### Verification
 - The application now loads successfully.
 - No console errors are reported.
+
+## Bug Fix: Duplicate Import Error
+
+I fixed a build error caused by a duplicate import in `MajorMinorChordTraining.tsx`.
+
+### Fix Details
+- Removed the second `import { Card } from '@/components/ui/card';` at line 15.
+- The component now compiles correctly.
+
+![App Running Successfully](/Users/joao/.gemini/antigravity/brain/f64f7c92-4591-4f8a-9880-b2f47a912b56/.system_generated/click_feedback/click_feedback_1769533432768.png)

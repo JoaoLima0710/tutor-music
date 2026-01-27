@@ -12,7 +12,6 @@ import { unifiedAudioService } from '@/services/UnifiedAudioService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Card } from '@/components/ui/card';
 import { chords } from '@/data/chords';
 
 // Níveis de progressão
@@ -52,7 +51,7 @@ export function MajorMinorChordTraining() {
   const [recentResults, setRecentResults] = useState<boolean[]>([]);
   const [justLeveledUp, setJustLeveledUp] = useState(false);
   const [showGuitarPractice, setShowGuitarPractice] = useState(false); // Mostrar etapa de prática no violão
-  
+
   // Rastreamento de tipos de erro para métricas
   const [errorTypes, setErrorTypes] = useState<{
     confusedOrder: number; // Confundiu qual acorde é mais alegre
@@ -63,7 +62,7 @@ export function MajorMinorChordTraining() {
     confusedWithSame: 0,
     other: 0,
   });
-  
+
   // Histórico de sessão (últimos 10 exercícios para mostrar evolução)
   const [sessionHistory, setSessionHistory] = useState<boolean[]>([]);
 
@@ -72,17 +71,17 @@ export function MajorMinorChordTraining() {
     const levelConfig = LEVEL_CONFIG[progressionLevel];
     // Usar ratio do nível atual
     const shouldHaveContrast = Math.random() > levelConfig.sameTypeRatio;
-    
+
     let firstChord: string;
     let secondChord: string;
     let firstType: 'major' | 'minor';
     let secondType: 'major' | 'minor';
-    
+
     if (shouldHaveContrast) {
       // Um maior e um menor (contraste claro)
       const majorChord = BASIC_CHORDS.major[Math.floor(Math.random() * BASIC_CHORDS.major.length)];
       const minorChord = BASIC_CHORDS.minor[Math.floor(Math.random() * BASIC_CHORDS.minor.length)];
-      
+
       // Aleatorizar ordem
       if (Math.random() > 0.5) {
         firstChord = majorChord;
@@ -99,7 +98,7 @@ export function MajorMinorChordTraining() {
       // Ambos do mesmo tipo (teste de igualdade)
       const sameType = Math.random() > 0.5 ? 'major' : 'minor';
       const chordList = sameType === 'major' ? BASIC_CHORDS.major : BASIC_CHORDS.minor;
-      
+
       // Escolher dois acordes diferentes do mesmo tipo
       const shuffled = [...chordList].sort(() => Math.random() - 0.5);
       firstChord = shuffled[0];
@@ -107,14 +106,14 @@ export function MajorMinorChordTraining() {
       firstType = sameType;
       secondType = sameType;
     }
-    
+
     // Determinar resposta correta
     let correctAnswer: 'first-happier' | 'second-happier' | 'same';
     let description: string;
-    
+
     if (firstType === secondType) {
       correctAnswer = 'same';
-      description = firstType === 'major' 
+      description = firstType === 'major'
         ? 'Ambos são acordes maiores (alegres)'
         : 'Ambos são acordes menores (tristes)';
     } else if (firstType === 'major' && secondType === 'minor') {
@@ -124,7 +123,7 @@ export function MajorMinorChordTraining() {
       correctAnswer = 'second-happier';
       description = 'O primeiro acorde é menor (mais triste), o segundo é maior (mais alegre)';
     }
-    
+
     return {
       firstChord,
       secondChord,
@@ -139,26 +138,26 @@ export function MajorMinorChordTraining() {
   const playExercise = async (exercise?: Exercise) => {
     const exerciseToPlay = exercise || currentExercise;
     if (!exerciseToPlay || isPlaying) return;
-    
+
     setIsPlaying(true);
-    
+
     try {
       await unifiedAudioService.ensureInitialized();
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // Duração otimizada para comparação harmônica
       const chordDuration = 1.5;
       const delayBetweenChords = 800; // Delay suficiente para processar cada acorde
-      
+
       console.log('🎵 [Acordes Maior/Menor] Tocando:', exerciseToPlay.firstChord, '→', exerciseToPlay.secondChord);
-      
+
       // Tocar primeiro acorde
       await unifiedAudioService.playChord(exerciseToPlay.firstChord, chordDuration);
       await new Promise(resolve => setTimeout(resolve, delayBetweenChords));
-      
+
       // Tocar segundo acorde
       await unifiedAudioService.playChord(exerciseToPlay.secondChord, chordDuration);
-      
+
       console.log('✅ [Acordes Maior/Menor] Exercício tocado');
     } catch (error) {
       console.error('❌ Erro ao tocar exercício:', error);
@@ -170,41 +169,41 @@ export function MajorMinorChordTraining() {
   // Verificar resposta
   const checkAnswer = (answer: 'first-happier' | 'second-happier' | 'same') => {
     if (!currentExercise || showResult) return;
-    
+
     setUserAnswer(answer);
-    
+
     const isCorrect = answer === currentExercise.correctAnswer;
-    
+
     // Delay antes de mostrar feedback (não instantâneo)
     setTimeout(() => {
       setShowResult(true);
-      
+
       // Atualizar score
       setScore(prev => ({
         correct: prev.correct + (isCorrect ? 1 : 0),
         total: prev.total + 1,
       }));
-      
+
       // Adicionar resultado recente
       setRecentResults(prev => {
         const updated = [...prev, isCorrect];
         return updated.slice(-CONSISTENCY_WINDOW);
       });
-      
+
       // Adicionar ao histórico de sessão (últimos 10)
       setSessionHistory(prev => {
         const updated = [...prev, isCorrect];
         return updated.slice(-10);
       });
-      
+
       // Rastrear tipo de erro (apenas quando errado)
       if (!isCorrect && currentExercise && userAnswer) {
         const correct = currentExercise.correctAnswer;
         const user = userAnswer;
-        
+
         // Confundiu ordem (qual é mais alegre)
-        if ((correct === 'first-happier' && user === 'second-happier') || 
-            (correct === 'second-happier' && user === 'first-happier')) {
+        if ((correct === 'first-happier' && user === 'second-happier') ||
+          (correct === 'second-happier' && user === 'first-happier')) {
           setErrorTypes(prev => ({ ...prev, confusedOrder: prev.confusedOrder + 1 }));
         }
         // Confundiu com mesmo clima
@@ -216,10 +215,10 @@ export function MajorMinorChordTraining() {
           setErrorTypes(prev => ({ ...prev, other: prev.other + 1 }));
         }
       }
-      
+
       // Verificar se pode avançar de nível
       checkProgression();
-      
+
       // Mostrar etapa de prática no violão após um pequeno delay
       setTimeout(() => {
         setShowGuitarPractice(true);
@@ -231,7 +230,7 @@ export function MajorMinorChordTraining() {
   const getChordPosition = (chordName: string) => {
     const chord = chords.find(c => c.name === chordName || c.id === chordName);
     if (!chord) return null;
-    
+
     return {
       name: chord.name,
       frets: chord.frets,
@@ -243,46 +242,46 @@ export function MajorMinorChordTraining() {
   // Obter mensagem explicativa específica
   const getExplanationMessage = (): string => {
     if (!currentExercise || !userAnswer) return '';
-    
+
     const isCorrect = userAnswer === currentExercise.correctAnswer;
     if (isCorrect) return '';
-    
+
     // Mensagens específicas baseadas no erro
     if (currentExercise.correctAnswer === 'same' && userAnswer !== 'same') {
       return 'Ambos os acordes tinham o mesmo clima (ambos maiores ou ambos menores). Acordes do mesmo tipo soam com a mesma "energia".';
     }
-    
+
     if (currentExercise.correctAnswer === 'first-happier' && userAnswer === 'second-happier') {
       return `O primeiro acorde (${currentExercise.firstChord}) era maior (mais alegre) e o segundo (${currentExercise.secondChord}) era menor (mais triste). Acordes maiores soam mais brilhantes e abertos.`;
     }
-    
+
     if (currentExercise.correctAnswer === 'second-happier' && userAnswer === 'first-happier') {
       return `O segundo acorde (${currentExercise.secondChord}) era maior (mais alegre) e o primeiro (${currentExercise.firstChord}) era menor (mais triste). Acordes maiores soam mais brilhantes e abertos.`;
     }
-    
+
     if (currentExercise.correctAnswer === 'first-happier' && userAnswer === 'same') {
       return `O primeiro acorde era maior (alegre) e o segundo menor (triste) - há diferença de clima. Acordes maiores soam mais brilhantes, menores mais melancólicos.`;
     }
-    
+
     if (currentExercise.correctAnswer === 'second-happier' && userAnswer === 'same') {
       return `O segundo acorde era maior (alegre) e o primeiro menor (triste) - há diferença de clima. Acordes maiores soam mais brilhantes, menores mais melancólicos.`;
     }
-    
+
     return 'Compare o sentimento: acordes maiores soam mais alegres e brilhantes, menores mais tristes e melancólicos.';
   };
 
   // Tocar resposta correta para comparação
   const playCorrectAnswer = async () => {
     if (!currentExercise) return;
-    
+
     setIsPlaying(true);
     try {
       await unifiedAudioService.ensureInitialized();
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const chordDuration = 1.5;
       const delayBetweenChords = 800;
-      
+
       // Tocar novamente os acordes na ordem correta
       await unifiedAudioService.playChord(currentExercise.firstChord, chordDuration);
       await new Promise(resolve => setTimeout(resolve, delayBetweenChords));
@@ -297,20 +296,20 @@ export function MajorMinorChordTraining() {
   // Verificar se pode avançar de nível
   const checkProgression = () => {
     if (recentResults.length < CONSISTENCY_WINDOW - 1) return;
-    
+
     const lastFive = [...recentResults, true].slice(-CONSISTENCY_WINDOW);
     const correctCount = lastFive.filter(r => r).length;
     const consistency = correctCount / CONSISTENCY_WINDOW;
-    
+
     if (consistency >= CONSISTENCY_REQUIREMENT && progressionLevel !== 'intermediario') {
-      const nextLevel: ProgressionLevel = progressionLevel === 'iniciante' 
-        ? 'iniciante-avancado' 
+      const nextLevel: ProgressionLevel = progressionLevel === 'iniciante'
+        ? 'iniciante-avancado'
         : 'intermediario';
-      
+
       setProgressionLevel(nextLevel);
       setJustLeveledUp(true);
       setRecentResults([]);
-      
+
       setTimeout(() => setJustLeveledUp(false), 3000);
     }
   };
@@ -340,7 +339,7 @@ export function MajorMinorChordTraining() {
 
   const accuracy = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
   const currentLevelConfig = LEVEL_CONFIG[progressionLevel];
-  
+
   // Calcular progresso para próximo nível
   const recentAccuracy = recentResults.length > 0
     ? Math.round((recentResults.filter(r => r).length / recentResults.length) * 100)
@@ -349,17 +348,17 @@ export function MajorMinorChordTraining() {
     ? Math.min((recentAccuracy / (CONSISTENCY_REQUIREMENT * 100)) * 100, 100)
     : (recentResults.length / CONSISTENCY_WINDOW) * 100;
   const canAdvance = progressionLevel !== 'intermediario' && recentAccuracy >= CONSISTENCY_REQUIREMENT * 100 && recentResults.length >= CONSISTENCY_WINDOW;
-  
+
   // Calcular métricas de evolução
   const totalErrors = errorTypes.confusedOrder + errorTypes.confusedWithSame + errorTypes.other;
   const mostCommonError = totalErrors > 0
     ? errorTypes.confusedOrder >= errorTypes.confusedWithSame && errorTypes.confusedOrder >= errorTypes.other
       ? 'confusedOrder'
       : errorTypes.confusedWithSame >= errorTypes.other
-      ? 'confusedWithSame'
-      : 'other'
+        ? 'confusedWithSame'
+        : 'other'
     : null;
-  
+
   // Evolução recente (últimos 5 vs anteriores 5)
   const recent5 = sessionHistory.slice(-5);
   const previous5 = sessionHistory.slice(-10, -5);
@@ -380,7 +379,7 @@ export function MajorMinorChordTraining() {
             Desenvolva seu reconhecimento harmônico - identifique o clima dos acordes
           </p>
         </div>
-        
+
         {/* Estatísticas */}
         {score.total > 0 && (
           <div className="text-right">
@@ -397,7 +396,7 @@ export function MajorMinorChordTraining() {
             <BarChart3 className="w-5 h-5 text-yellow-400" />
             <h4 className="text-lg font-bold text-white">Sua Evolução</h4>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4 mb-4">
             {/* % de Acertos */}
             <div className="p-3 rounded-lg bg-white/5 border border-white/10">
@@ -407,7 +406,7 @@ export function MajorMinorChordTraining() {
                 {score.correct} de {score.total} exercícios
               </p>
             </div>
-            
+
             {/* Evolução Recente */}
             {sessionHistory.length >= 5 && (
               <div className="p-3 rounded-lg bg-white/5 border border-white/10">
@@ -436,7 +435,7 @@ export function MajorMinorChordTraining() {
               </div>
             )}
           </div>
-          
+
           {/* Tipo de Erro Mais Comum */}
           {totalErrors > 0 && mostCommonError && (
             <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
@@ -447,8 +446,8 @@ export function MajorMinorChordTraining() {
                 {mostCommonError === 'confusedOrder'
                   ? 'Você às vezes confunde qual acorde é mais alegre. Acordes maiores soam mais brilhantes e abertos, menores mais melancólicos e fechados.'
                   : mostCommonError === 'confusedWithSame'
-                  ? 'Você às vezes não percebe quando os acordes têm o mesmo clima. Preste atenção: acordes do mesmo tipo (ambos maiores ou ambos menores) soam com a mesma "energia".'
-                  : 'Continue praticando para identificar melhor o clima dos acordes.'}
+                    ? 'Você às vezes não percebe quando os acordes têm o mesmo clima. Preste atenção: acordes do mesmo tipo (ambos maiores ou ambos menores) soam com a mesma "energia".'
+                    : 'Continue praticando para identificar melhor o clima dos acordes.'}
               </p>
             </div>
           )}
@@ -459,14 +458,14 @@ export function MajorMinorChordTraining() {
       <Card className="p-4 bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border-white/10">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={
                 progressionLevel === 'iniciante'
                   ? 'border-green-500/50 text-green-400 bg-green-500/10'
                   : progressionLevel === 'iniciante-avancado'
-                  ? 'border-blue-500/50 text-blue-400 bg-blue-500/10'
-                  : 'border-purple-500/50 text-purple-400 bg-purple-500/10'
+                    ? 'border-blue-500/50 text-blue-400 bg-blue-500/10'
+                    : 'border-purple-500/50 text-purple-400 bg-purple-500/10'
               }
             >
               {currentLevelConfig.name}
@@ -493,13 +492,13 @@ export function MajorMinorChordTraining() {
             </div>
           )}
         </div>
-        
+
         {progressionLevel !== 'intermediario' && (
           <div className="space-y-2">
             <Progress value={progressToNextLevel} className="h-2" />
             <div className="flex justify-between text-xs text-gray-400">
               <span>
-                Consistência recente: {recentAccuracy}% 
+                Consistência recente: {recentAccuracy}%
                 {recentResults.length < CONSISTENCY_WINDOW && ` (${recentResults.length}/${CONSISTENCY_WINDOW})`}
               </span>
               <span>
@@ -530,8 +529,8 @@ export function MajorMinorChordTraining() {
               Ouça os dois acordes e compare o clima:
             </h4>
             <p className="text-gray-300 text-sm">
-              Qual acorde soa <strong className="text-yellow-400">mais alegre</strong> ou 
-              <strong className="text-blue-400"> mais triste</strong>? Ou são 
+              Qual acorde soa <strong className="text-yellow-400">mais alegre</strong> ou
+              <strong className="text-blue-400"> mais triste</strong>? Ou são
               <strong className="text-white"> iguais</strong>?
             </p>
           </div>
@@ -561,7 +560,7 @@ export function MajorMinorChordTraining() {
                 <div className="text-sm font-semibold">1º Mais Alegre</div>
                 <div className="text-xs opacity-80">(Primeiro)</div>
               </Button>
-              
+
               <Button
                 onClick={() => checkAnswer('same')}
                 disabled={isPlaying}
@@ -571,7 +570,7 @@ export function MajorMinorChordTraining() {
                 <div className="text-sm font-semibold">Mesmo Clima</div>
                 <div className="text-xs opacity-80">(Iguais)</div>
               </Button>
-              
+
               <Button
                 onClick={() => checkAnswer('second-happier')}
                 disabled={isPlaying}
@@ -591,11 +590,10 @@ export function MajorMinorChordTraining() {
                 className="space-y-4"
               >
                 {/* Feedback */}
-                <div className={`p-4 rounded-lg border-2 ${
-                  userAnswer === currentExercise.correctAnswer
+                <div className={`p-4 rounded-lg border-2 ${userAnswer === currentExercise.correctAnswer
                     ? 'bg-green-500/20 border-green-500/50'
                     : 'bg-red-500/20 border-red-500/50'
-                }`}>
+                  }`}>
                   <div className="flex items-center justify-center gap-2 mb-2">
                     {userAnswer === currentExercise.correctAnswer ? (
                       <>
@@ -609,25 +607,25 @@ export function MajorMinorChordTraining() {
                       </>
                     )}
                   </div>
-                  
+
                   <div className="text-center text-gray-300 text-sm space-y-2">
                     <div>
                       <p className="mb-1">
                         <strong className="text-white">Sua resposta:</strong>{' '}
                         <span className={userAnswer === currentExercise.correctAnswer ? 'text-green-400' : 'text-red-400'}>
-                          {userAnswer === 'first-happier' ? '1º Mais Alegre' : 
-                           userAnswer === 'second-happier' ? '2º Mais Alegre' : 'Mesmo Clima'}
+                          {userAnswer === 'first-happier' ? '1º Mais Alegre' :
+                            userAnswer === 'second-happier' ? '2º Mais Alegre' : 'Mesmo Clima'}
                         </span>
                       </p>
                       <p>
                         <strong className="text-white">Resposta correta:</strong>{' '}
                         <span className="text-green-400">
-                          {currentExercise.correctAnswer === 'first-happier' ? '1º Mais Alegre' : 
-                           currentExercise.correctAnswer === 'second-happier' ? '2º Mais Alegre' : 'Mesmo Clima'}
+                          {currentExercise.correctAnswer === 'first-happier' ? '1º Mais Alegre' :
+                            currentExercise.correctAnswer === 'second-happier' ? '2º Mais Alegre' : 'Mesmo Clima'}
                         </span>
                       </p>
                     </div>
-                    
+
                     {/* Mensagem explicativa quando errado */}
                     {userAnswer !== currentExercise.correctAnswer && (
                       <div className="mt-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
@@ -671,13 +669,13 @@ export function MajorMinorChordTraining() {
                   <div className="text-center text-gray-300 text-sm space-y-1">
                     <p>
                       <strong className="text-white">1º Acorde ({currentExercise.firstChord}):</strong>{' '}
-                      {currentExercise.firstType === 'major' 
+                      {currentExercise.firstType === 'major'
                         ? <span className="text-yellow-400">Maior (alegre)</span>
                         : <span className="text-blue-400">Menor (triste)</span>}
                     </p>
                     <p>
                       <strong className="text-white">2º Acorde ({currentExercise.secondChord}):</strong>{' '}
-                      {currentExercise.secondType === 'major' 
+                      {currentExercise.secondType === 'major'
                         ? <span className="text-yellow-400">Maior (alegre)</span>
                         : <span className="text-blue-400">Menor (triste)</span>}
                     </p>
@@ -698,11 +696,11 @@ export function MajorMinorChordTraining() {
                       <Guitar className="w-5 h-5 text-amber-400" />
                       <h5 className="text-lg font-bold text-white">Agora toque no violão</h5>
                     </div>
-                    
+
                     <p className="text-sm text-gray-300 mb-4">
                       Você ouviu dois acordes. Agora toque-os no violão para sentir a diferença de clima:
                     </p>
-                    
+
                     <div className="space-y-3 mb-4">
                       {/* Primeiro Acorde */}
                       {(() => {
@@ -713,7 +711,7 @@ export function MajorMinorChordTraining() {
                               1. Primeiro acorde: <span className="text-yellow-400">{currentExercise.firstChord}</span>
                             </p>
                             <p className="text-xs text-gray-300 mb-2">
-                              {currentExercise.firstType === 'major' 
+                              {currentExercise.firstType === 'major'
                                 ? 'Acorde maior (alegre)'
                                 : 'Acorde menor (triste)'}
                             </p>
@@ -737,7 +735,7 @@ export function MajorMinorChordTraining() {
                           </div>
                         );
                       })()}
-                      
+
                       {/* Segundo Acorde */}
                       {(() => {
                         const secondChordPos = getChordPosition(currentExercise.secondChord);
@@ -747,7 +745,7 @@ export function MajorMinorChordTraining() {
                               2. Segundo acorde: <span className="text-blue-400">{currentExercise.secondChord}</span>
                             </p>
                             <p className="text-xs text-gray-300 mb-2">
-                              {currentExercise.secondType === 'major' 
+                              {currentExercise.secondType === 'major'
                                 ? 'Acorde maior (alegre)'
                                 : 'Acorde menor (triste)'}
                             </p>
@@ -772,10 +770,10 @@ export function MajorMinorChordTraining() {
                         );
                       })()}
                     </div>
-                    
+
                     <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
                       <p className="text-xs text-blue-300">
-                        💡 <strong>Dica:</strong> Toque os dois acordes e compare o sentimento. 
+                        💡 <strong>Dica:</strong> Toque os dois acordes e compare o sentimento.
                         Você sente a diferença que ouviu? Isso ajuda a conectar o que você ouve com o que você toca.
                       </p>
                     </div>
