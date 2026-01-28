@@ -78,6 +78,10 @@ export class MIDIChordPlayer {
                 release: 1.5,
             },
         }).toDestination();
+
+        // Aumentar volume para garantir que seja audível
+        this.synth.volume.value = 0; // 0 dB (padrão é frequentemente menor)
+        console.log('🎹 [MIDIChordPlayer] Synth criado');
     }
 
     /**
@@ -147,7 +151,9 @@ export class MIDIChordPlayer {
 
             // Tocar todas as notas do MIDI
             midi.tracks.forEach(track => {
+                console.log(`🎹 [MIDIChordPlayer] Track "${track.name}" tem ${track.notes.length} notas`);
                 track.notes.forEach(note => {
+                    console.log(`   └─ Nota: ${note.name}, Tempo: ${note.time.toFixed(2)}s, Duração: ${note.duration.toFixed(2)}s`);
                     this.synth.triggerAttackRelease(
                         note.name,
                         Math.min(note.duration, duration), // Limitar duração
