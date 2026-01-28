@@ -66,9 +66,17 @@ export default function Chords() {
   // Obter progresso da semana atual
   const weekProgress = getWeekProgress(currentWeek);
 
-  const handleChordClick = (chord: typeof chords[0]) => {
+  const handleChordClick = async (chord: typeof chords[0]) => {
     setSelectedChord(chord);
     setCurrentChord(chord.id);
+
+    // Tocar acorde automaticamente ao clicar (sem precisar de botão separado)
+    try {
+      await unifiedAudioService.ensureInitialized();
+      await unifiedAudioService.playChord(chord.name, 2.5);
+    } catch (error) {
+      console.error('❌ Erro ao tocar acorde automaticamente:', error);
+    }
   };
 
   const handlePlayChord = async () => {
@@ -82,9 +90,7 @@ export default function Chords() {
       console.log('🔍 [DEBUG] Chamando ensureInitialized...');
       await unifiedAudioService.ensureInitialized();
 
-      // Pequeno delay para garantir que o AudioContext está pronto
-      await new Promise(resolve => setTimeout(resolve, 50));
-
+      // Removido delay de 50ms para melhorar tempo de resposta
       console.log('🎸 Tocando acorde:', selectedChord.name);
       await unifiedAudioService.playChord(selectedChord.name, 2.5);
 
