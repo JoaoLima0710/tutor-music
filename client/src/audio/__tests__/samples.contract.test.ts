@@ -71,7 +71,7 @@ describe('Contrato de Samples - Acordes Essenciais', () => {
     try {
       // Listar todos os arquivos no diretório de samples
       const files = await readdir(samplesDir);
-      availableFiles = files.filter(file => 
+      availableFiles = files.filter(file =>
         file.endsWith('.wav') || file.endsWith('.mp3')
       );
     } catch (error) {
@@ -99,10 +99,10 @@ describe('Contrato de Samples - Acordes Essenciais', () => {
       it(`deve ter sample para acorde ${chord}`, () => {
         const wavFile = chordToFilename(chord, '.wav');
         const mp3File = chordToFilename(chord, '.mp3');
-        
+
         const hasWav = availableFiles.includes(wavFile);
         const hasMp3 = availableFiles.includes(mp3File);
-        
+
         expect(hasWav || hasMp3).toBe(true);
       });
     });
@@ -115,46 +115,28 @@ describe('Contrato de Samples - Acordes Essenciais', () => {
       it(`deve ter sample para acorde ${chord}`, () => {
         const wavFile = chordToFilename(chord, '.wav');
         const mp3File = chordToFilename(chord, '.mp3');
-        
+
         const hasWav = availableFiles.includes(wavFile);
         const hasMp3 = availableFiles.includes(mp3File);
-        
+
         expect(hasWav || hasMp3).toBe(true);
       });
     });
   });
 
   describe('Acordes com Sétima', () => {
-    // Acordes com sétima disponíveis (exclui B7, E7, G7 que não têm samples)
-    const availableSeventhChords = ['A7', 'C7', 'D7'];
-    // Acordes com sétima bloqueados (samples não disponíveis)
-    const blockedSeventhChords = ['B7', 'E7', 'G7'];
+    // Todos os acordes com sétima agora devem ter samples
+    const seventhChords = ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7'];
 
-    availableSeventhChords.forEach(chord => {
+    seventhChords.forEach(chord => {
       it(`deve ter sample para acorde ${chord}`, () => {
         const wavFile = chordToFilename(chord, '.wav');
         const mp3File = chordToFilename(chord, '.mp3');
-        
-        const hasWav = availableFiles.includes(wavFile);
-        const hasMp3 = availableFiles.includes(mp3File);
-        
-        expect(hasWav || hasMp3).toBe(true);
-      });
-    });
 
-    blockedSeventhChords.forEach(chord => {
-      it(`deve documentar que acorde ${chord} está bloqueado (sample não disponível)`, () => {
-        const wavFile = chordToFilename(chord, '.wav');
-        const mp3File = chordToFilename(chord, '.mp3');
-        
         const hasWav = availableFiles.includes(wavFile);
         const hasMp3 = availableFiles.includes(mp3File);
-        
-        // Estes acordes não têm samples - ChordPlayer bloqueia reprodução
-        expect(hasWav || hasMp3).toBe(false);
-        
-        // Documentar que está bloqueado
-        console.log(`[samples.contract.test] Acorde ${chord} bloqueado: sample não disponível. ChordPlayer retorna false.`);
+
+        expect(hasWav || hasMp3).toBe(true);
       });
     });
   });
@@ -162,7 +144,7 @@ describe('Contrato de Samples - Acordes Essenciais', () => {
   it('deve ter manifest.json com metadados (opcional mas recomendado)', async () => {
     const manifestPath = join(samplesDir, 'manifest.json');
     const manifestExists = await fileExists(manifestPath);
-    
+
     // Manifest não é obrigatório, mas recomendado
     // Não falha o teste, apenas avisa
     if (!manifestExists) {
@@ -174,7 +156,7 @@ describe('Contrato de Samples - Acordes Essenciais', () => {
     // Este teste garante que conseguimos listar os arquivos
     // e serve como documentação do que está disponível
     expect(availableFiles.length).toBeGreaterThan(0);
-    
+
     if (availableFiles.length > 0) {
       console.log(`[samples.contract.test] Samples encontrados: ${availableFiles.length}`);
       console.log(`[samples.contract.test] Primeiros 10: ${availableFiles.slice(0, 10).join(', ')}`);
@@ -188,7 +170,7 @@ describe('Contrato de Samples - Validação de Formato', () => {
   beforeAll(async () => {
     try {
       const files = await readdir(samplesDir);
-      availableFiles = files.filter(file => 
+      availableFiles = files.filter(file =>
         file.endsWith('.wav') || file.endsWith('.mp3')
       );
     } catch (error) {
@@ -197,10 +179,10 @@ describe('Contrato de Samples - Validação de Formato', () => {
   });
 
   it('deve ter samples apenas em formatos suportados (.wav ou .mp3)', () => {
-    const invalidFiles = availableFiles.filter(file => 
+    const invalidFiles = availableFiles.filter(file =>
       !file.endsWith('.wav') && !file.endsWith('.mp3')
     );
-    
+
     // Apenas avisar sobre arquivos inválidos, não falhar
     if (invalidFiles.length > 0) {
       console.warn(`[samples.contract.test] Arquivos com formato não suportado: ${invalidFiles.join(', ')}`);

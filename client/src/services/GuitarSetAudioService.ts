@@ -153,9 +153,14 @@ class GuitarSetAudioService {
 
     console.log('📦 Preloading essential chord samples...');
 
-    // Preload common chords (C, D, E, G, A, Am, Em)
-    // Expanded list for better tablet performance
-    const essentialChords = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'Am', 'Dm', 'Em', 'Gm', 'C7', 'D7', 'G7', 'A7'];
+    // Preload common chords and some variations for smoothness
+    const essentialChords = [
+      'C', 'D', 'E', 'F', 'G', 'A', 'B',
+      'Am', 'Dm', 'Em', 'Gm',
+      'C7', 'D7', 'G7', 'A7', 'B7', 'E7',
+      'C#', 'F#', 'G#',
+      'C#m', 'F#m', 'G#m'
+    ];
 
     // Load chords sequentially for tablets to prevent buffer issues
     // This ensures each chord is fully loaded before starting the next
@@ -709,25 +714,37 @@ class GuitarSetAudioService {
   }
 
   private normalizeChordName(chordName: string): string {
-    // Parse chord name (e.g., "C", "Am", "G7", "C#m")
-    const match = chordName.match(/^([A-G][#b]?)(.*)/);
-    if (!match) {
-      return chordName;
+    // Basic cleaning: trim and handle 'min' -> 'm'
+    let name = chordName.trim();
+    if (name.endsWith('min') && name.length > 3) {
+      name = name.slice(0, -3) + 'm';
+    } else if (name === 'Amin') name = 'Am';
+    else if (name === 'Bmin') name = 'Bm';
+    else if (name === 'Cmin') name = 'Cm';
+    else if (name === 'Dmin') name = 'Dm';
+    else if (name === 'Emin') name = 'Em';
+    else if (name === 'Fmin') name = 'Fm';
+    else if (name === 'Gmin') name = 'Gm';
+
+    // Se estiver no manifest exatamente como está, retornar
+    if (this.chordManifest && this.chordManifest[name]) {
+      return name;
     }
+
+    // De fallback: tentar separar root e sufixo para normalização legada
+    const match = name.match(/^([A-G][#b]?)(.*)/);
+    if (!match) return name;
 
     const root = match[1];
     let suffix = match[2] || '';
 
-    // Normalize suffix
-    if (suffix === 'm' || suffix === 'min') {
-      suffix = 'm';
-    } else if (suffix === '7') {
-      suffix = '7';
-    } else if (suffix === '' || suffix === 'maj' || suffix === 'major') {
-      suffix = ''; // Major chord has no suffix in our naming
-    }
+    // Normalize basic suffix variations
+    if (suffix === 'm' || suffix === 'min') suffix = 'm';
+    else if (suffix === '7') suffix = '7';
+    else if (suffix === '' || suffix === 'maj' || suffix === 'major') suffix = '';
 
-    return root + suffix;
+    const normalized = root + suffix;
+    return normalized;
   }
 
   async setInstrument(instrument: InstrumentType): Promise<void> {

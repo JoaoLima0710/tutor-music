@@ -1,157 +1,492 @@
 {
-  "A#": {
-    "file": "Asharp.wav",
-    "duration": 2.0,
-    "gain": 1.0
-  },
-  "A#7": {
-    "file": "Asharp7.wav",
-    "duration": 2.0,
-    "gain": 1.0
-  },
-  "A#m": {
-    "file": "Asharpm.wav",
-    "duration": 2.0,
-    "gain": 1.0
-  },
   "A": {
     "file": "A.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "A6": {
+    "file": "A6.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "A7": {
     "file": "A7.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "A7sus": {
+    "file": "A7sus.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "A9": {
+    "file": "A9.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Aaug": {
+    "file": "Aaug.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Adim": {
+    "file": "Adim.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "Am": {
     "file": "Am.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Amin6": {
+    "file": "Am6.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Amin7": {
+    "file": "Am7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "A7+": {
+    "file": "Amaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "AmMaj7": {
+    "file": "AminMaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "A#": {
+    "file": "Asharp.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "A#7": {
+    "file": "Asharp7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "A#m": {
+    "file": "Asharpm.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "B": {
     "file": "B.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "B6": {
+    "file": "B6.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "B7": {
+    "file": "B7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "B7sus": {
+    "file": "B7sus.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "B9": {
+    "file": "B9.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Baug": {
+    "file": "Baug.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Bdim": {
+    "file": "Bdim.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "Bm": {
     "file": "Bm.wav",
-    "duration": 2.0,
+    "duration": 4.0,
     "gain": 1.0
   },
-  "C#": {
-    "file": "Csharp.wav",
-    "duration": 2.0,
+  "Bm6": {
+    "file": "Bm6.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
-  "C#7": {
-    "file": "Csharp7.wav",
-    "duration": 2.0,
+  "Bmin7": {
+    "file": "Bm7.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
-  "C#m": {
-    "file": "Csharpm.wav",
-    "duration": 2.0,
+  "B7+": {
+    "file": "Bmaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "BmMaj7": {
+    "file": "BminMaj7.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "C": {
     "file": "C.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "C6": {
+    "file": "C6.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "C7": {
     "file": "C7.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "C7sus": {
+    "file": "C7sus.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "C9": {
+    "file": "C9.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Caug": {
+    "file": "Caug.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Cdim": {
+    "file": "Cdim.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "Cm": {
     "file": "Cm.wav",
-    "duration": 2.0,
+    "duration": 4.0,
     "gain": 1.0
   },
-  "D#": {
-    "file": "Dsharp.wav",
-    "duration": 2.0,
+  "Cmin6": {
+    "file": "Cm6.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
-  "D#7": {
-    "file": "Dsharp7.wav",
-    "duration": 2.0,
+  "Cmin7": {
+    "file": "Cm7.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
-  "D#m": {
-    "file": "Dsharpm.wav",
-    "duration": 2.0,
+  "C7+": {
+    "file": "Cmaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "CmMaj7": {
+    "file": "CminMaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "C#": {
+    "file": "Csharp.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "C#7": {
+    "file": "Csharp7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "C#m": {
+    "file": "Csharpm.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "D": {
     "file": "D.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "D6": {
+    "file": "D6.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "D7": {
     "file": "D7.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "D7sus": {
+    "file": "D7sus.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "D9": {
+    "file": "D9.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Daug": {
+    "file": "Daug.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Ddim": {
+    "file": "Ddim.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "Dm": {
     "file": "Dm.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Dmin6": {
+    "file": "Dm6.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Dmin7": {
+    "file": "Dm7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "D7+": {
+    "file": "Dmaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "DmMaj7": {
+    "file": "DminMaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "D#": {
+    "file": "Dsharp.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "D#7": {
+    "file": "Dsharp7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "D#m": {
+    "file": "Dsharpm.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "E": {
     "file": "E.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "E6": {
+    "file": "E6.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "E7": {
+    "file": "E7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "E7sus": {
+    "file": "E7sus.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "E9": {
+    "file": "E9.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Eaug": {
+    "file": "Eaug.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Edim": {
+    "file": "Edim.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "Em": {
     "file": "Em.wav",
-    "duration": 2.0,
+    "duration": 4.0,
     "gain": 1.0
   },
-  "F#": {
-    "file": "Fsharp.wav",
-    "duration": 2.0,
+  "Emin6": {
+    "file": "Em6.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
-  "F#7": {
-    "file": "Fsharp7.wav",
-    "duration": 2.0,
+  "Emin7": {
+    "file": "Em7.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
-  "F#m": {
-    "file": "Fsharpm.wav",
-    "duration": 2.0,
+  "E7+": {
+    "file": "Emaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "EmMaj7": {
+    "file": "EminMaj7.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "F": {
     "file": "F.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "F6": {
+    "file": "F6.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "F7": {
+    "file": "F7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "F7sus": {
+    "file": "F7sus.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "F9": {
+    "file": "F9.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Faug": {
+    "file": "Faug.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Fdim": {
+    "file": "Fdim.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "Fm": {
     "file": "Fm.wav",
-    "duration": 2.0,
+    "duration": 4.0,
     "gain": 1.0
   },
-  "G#": {
-    "file": "Gsharp.wav",
-    "duration": 2.0,
+  "Fmin6": {
+    "file": "Fm6.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
-  "G#m": {
-    "file": "Gsharpm.wav",
-    "duration": 2.0,
+  "Fmin7": {
+    "file": "Fm7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "F7+": {
+    "file": "Fmaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "FmMaj7": {
+    "file": "FminMaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "F#": {
+    "file": "Fsharp.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "F#7": {
+    "file": "Fsharp7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "F#m": {
+    "file": "Fsharpm.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "G": {
     "file": "G.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "G6": {
+    "file": "G6.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "G7": {
+    "file": "G7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "G7sus": {
+    "file": "G7sus.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "G9": {
+    "file": "G9.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Gaug": {
+    "file": "Gaug.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Gdim": {
+    "file": "Gdim.wav",
+    "duration": 4.0,
     "gain": 1.0
   },
   "Gm": {
     "file": "Gm.wav",
-    "duration": 2.0,
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Gmin6": {
+    "file": "Gm6.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "Gmin7": {
+    "file": "Gm7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "G7+": {
+    "file": "Gmaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "GmMaj7": {
+    "file": "GminMaj7.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "G#": {
+    "file": "Gsharp.wav",
+    "duration": 4.0,
+    "gain": 1.0
+  },
+  "G#m": {
+    "file": "Gsharpm.wav",
+    "duration": 4.0,
     "gain": 1.0
   }
 }
