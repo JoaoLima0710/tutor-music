@@ -141,6 +141,11 @@ export const useAudioSettingsStore = create<AudioSettingsState>()(
         set({ lowLatencyMode: enabled });
       },
 
+      setUseMIDI: (enabled) => {
+        console.log('🎹 MIDI mode for chords:', enabled);
+        set({ useMIDI: enabled });
+      },
+
       setMeasuredLatency: (latency) => {
         set({ measuredLatency: latency });
       },
