@@ -12,9 +12,11 @@ import {
     QuizResult,
     ExerciseAttempt,
     XP_REWARDS,
+    Badge,
     calculateXPForLevel,
     getLevelFromXP
 } from '@/types/pedagogy';
+import { analyticsService } from '@/services/AnalyticsService';
 
 interface UserProgressStore {
     progress: UserProgress;
@@ -45,8 +47,10 @@ interface UserProgressStore {
     updateStreak: () => void;
 
     // Badge Actions
-    earnBadge: (badgeId: string) => void;
+    earnBadge: (badge: Badge) => void;
     hasBadge: (badgeId: string) => boolean;
+    justEarnedBadge: Badge | null;
+    clearJustEarnedBadge: () => void;
 
     // Skill Actions
     masterSkill: (skillId: string) => void;
@@ -94,7 +98,20 @@ export const useUserProgressStore = create<UserProgressStore>()(
                 set((state) => {
                     const newTotalXP = state.progress.totalXP + amount;
                     const newLevel = getLevelFromXP(newTotalXP);
+                    const oldLevel = state.progress.currentLevel;
                     const xpForNextLevel = calculateXPForLevel(newLevel);
+
+                    // Track XP gain
+                    // analyticsService.track('xp_gained', { amount, source, total: newTotalXP }); // Maybe too noisy?
+
+                    // Track Level Up
+                    if (newLevel > oldLevel) {
+                        analyticsService.track('level_up', {
+                            newLevel,
+                            oldLevel,
+                            totalXP: newTotalXP
+                        });
+                    }
 
                     // Calculate XP within current level
                     let xpInCurrentLevel = newTotalXP;
@@ -160,6 +177,20 @@ export const useUserProgressStore = create<UserProgressStore>()(
 
                 // Award XP for module completion
                 get().addXP(XP_REWARDS.moduleComplete, 'module-complete');
+
+                // Check for Module Badge defined in data
+                // We need to fetch this dynamically to avoid circular dependencies in some setups,
+                // but since the store is central, we can try importing relevant modules or passing them.
+                // However, for simplicity and robustness, we'll try to find the module from the ID if possible,
+                // OR relying on the caller to handle badge awards.
+                // BETTER APPROACH: The component completing the module (QuizPlayer?) usually has the module data.
+                // But `completeModule` is often called by `Learn.tsx` or similar.
+
+                // Let's assume modulesById is available via dynamic import or we assume the caller handles it?
+                // Actually, let's make earnBadge robust and let the logic live there.
+
+                // For now, we will NOT auto-award inside completeModule to avoid circular dependency hell 
+                // if modules import store. Instead, we call earnBadge from the UI where we have the data.
             },
 
             // =======================================================================
@@ -180,6 +211,7 @@ export const useUserProgressStore = create<UserProgressStore>()(
                 }));
 
                 get().addXP(XP_REWARDS.lesson, 'lesson-complete');
+                analyticsService.track('lesson_completed', { lessonId });
                 console.log(`📖 Lesson completed: ${lessonId}`);
             },
 
@@ -286,6 +318,12 @@ export const useUserProgressStore = create<UserProgressStore>()(
                 }
 
                 console.log(`📝 Quiz submitted: ${quizId} | Score: ${score}% | Passed: ${passed}`);
+                analyticsService.track('exercise_completed', {
+                    type: 'quiz',
+                    id: quizId,
+                    score,
+                    passed
+                });
 
                 return result;
             },
@@ -364,20 +402,26 @@ export const useUserProgressStore = create<UserProgressStore>()(
             // BADGE ACTIONS
             // =======================================================================
 
-            earnBadge: (badgeId: string) => {
+            justEarnedBadge: null,
+
+            clearJustEarnedBadge: () => set({ justEarnedBadge: null }),
+
+            earnBadge: (badge: Badge) => {
                 const { progress } = get();
-                if (progress.earnedBadges.includes(badgeId)) {
+                if (progress.earnedBadges.includes(badge.id)) {
                     return;
                 }
 
                 set((state) => ({
+                    justEarnedBadge: badge,
                     progress: {
                         ...state.progress,
-                        earnedBadges: [...state.progress.earnedBadges, badgeId],
+                        earnedBadges: [...state.progress.earnedBadges, badge.id],
                     },
                 }));
 
-                console.log(`🏆 Badge earned: ${badgeId}`);
+                console.log(`🏆 Badge earned: ${badge.name}`);
+                analyticsService.track('badge_unlocked', { badgeId: badge.id, badgeName: badge.name });
             },
 
             hasBadge: (badgeId: string) => {

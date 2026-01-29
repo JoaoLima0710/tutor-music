@@ -86,7 +86,7 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
       </div>
 
       {/* Navigation - Organizada por Categorias */}
-      <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
         {/* APRENDER */}
         <div>
           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 px-4">APRENDER</h3>
@@ -104,16 +104,19 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
               return (
                 <Link key={item.path} href={item.path}>
                   <div
+                    role="button"
+                    aria-label={item.label}
+                    tabIndex={0}
                     className={`
-                      flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
+                      flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-purple-500
                       ${isActive
                         ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }
                     `}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
+                    <Icon className="w-4 h-4" aria-hidden="true" />
+                    <span className="font-medium text-sm">{item.label}</span>
                   </div>
                 </Link>
               );
@@ -128,7 +131,7 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
             {[
               { path: '/songs', label: 'Músicas', icon: Music },
               { path: '/tuner', label: 'Afinador', icon: Music2 },
-              { path: '/practice', label: 'Prática', icon: Clock },
+              { path: '/practice', label: 'Prática Livre', icon: Clock },
               { path: '/ear-training', label: 'Treino Auditivo', icon: Music2 },
               { path: '/deliberate-practice', label: 'Prática Deliberada', icon: Target },
             ].map((item) => {
@@ -138,15 +141,15 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
                 <Link key={item.path} href={item.path}>
                   <div
                     className={`
-                      flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
+                      flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all cursor-pointer
                       ${isActive
                         ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }
                     `}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
+                    <Icon className="w-4 h-4" />
+                    <span className="font-medium text-sm">{item.label}</span>
                   </div>
                 </Link>
               );
@@ -168,15 +171,15 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
                 <Link key={item.path} href={item.path}>
                   <div
                     className={`
-                      flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
+                      flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all cursor-pointer
                       ${isActive
                         ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }
                     `}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
+                    <Icon className="w-4 h-4" />
+                    <span className="font-medium text-sm">{item.label}</span>
                   </div>
                 </Link>
               );
@@ -184,12 +187,12 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
           </div>
         </div>
 
-        {/* PERFIL E CONFIGURAÇÕES */}
+        {/* CONTA */}
         <div className="pt-2 border-t border-white/10">
           <div className="space-y-1">
             {[
-              { path: '/', label: 'Início', icon: Home },
-              { path: '/profile', label: 'Perfil', icon: User },
+              { path: '/', label: 'Visão Geral (Home)', icon: Home },
+              { path: '/profile', label: 'Meu Perfil', icon: User },
               { path: '/settings', label: 'Configurações', icon: Settings },
             ].map((item) => {
               const Icon = item.icon;
@@ -198,15 +201,15 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
                 <Link key={item.path} href={item.path}>
                   <div
                     className={`
-                      flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
+                      flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all cursor-pointer
                       ${isActive
                         ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }
                     `}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
+                    <Icon className="w-4 h-4" />
+                    <span className="font-medium text-sm">{item.label}</span>
                   </div>
                 </Link>
               );

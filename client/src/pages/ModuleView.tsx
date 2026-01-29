@@ -20,16 +20,9 @@ import {
 } from 'lucide-react';
 import { LessonCard } from '@/components/pedagogy/LessonCard';
 import { useUserProgressStore } from '@/stores/useUserProgressStore';
-import { module1_1 } from '@/data/modules/module-1-1';
-import { module1_2 } from '@/data/modules/module-1-2';
+import { modulesById as modulesMap } from '@/data/modules';
 import { Module } from '@/types/pedagogy';
 import { cn } from '@/lib/utils';
-
-// All modules (will expand)
-const modulesMap: Record<string, Module> = {
-    'module-1-1': module1_1,
-    'module-1-2': module1_2,
-};
 
 type TabType = 'lessons' | 'exercises' | 'quiz';
 

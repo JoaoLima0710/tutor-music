@@ -12,6 +12,12 @@ export interface User {
   lastLogin: number;
   preferences: UserPreferences;
   stats: UserStats;
+  plan: 'free' | 'pro' | 'lifetime';
+  subscriptionStatus: 'active' | 'past_due' | 'canceled' | 'none';
+  proFeatures?: {
+    unlimitedHearts: boolean;
+    advancedStats: boolean;
+  };
 }
 
 export interface UserPreferences {
@@ -114,6 +120,12 @@ class AuthService {
         completedExercises: 0,
         currentLevel: 1,
       },
+      plan: 'free',
+      subscriptionStatus: 'none',
+      proFeatures: {
+        unlimitedHearts: false,
+        advancedStats: false,
+      }
     };
 
     // Salvar usuário (com senha hasheada)
@@ -160,6 +172,9 @@ class AuthService {
       lastLogin: userData.lastLogin,
       preferences: userData.preferences,
       stats: userData.stats,
+      plan: userData.plan || 'free',
+      subscriptionStatus: userData.subscriptionStatus || 'none',
+      proFeatures: userData.proFeatures || { unlimitedHearts: false, advancedStats: false },
     };
 
     this.currentUser = user;
@@ -309,6 +324,9 @@ class AuthService {
         lastLogin: userData.lastLogin,
         preferences: userData.preferences,
         stats: userData.stats,
+        plan: userData.plan || 'free',
+        subscriptionStatus: userData.subscriptionStatus || 'none',
+        proFeatures: userData.proFeatures || { unlimitedHearts: false, advancedStats: false },
       };
     } else {
       // Sessão inválida

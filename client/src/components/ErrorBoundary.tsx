@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { analyticsService } from "@/services/AnalyticsService";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { Component, ReactNode } from "react";
 
@@ -19,6 +20,15 @@ class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    analyticsService.track('error_occurred', {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack
+    });
+    console.error("Uncaught error:", error, errorInfo);
   }
 
   render() {

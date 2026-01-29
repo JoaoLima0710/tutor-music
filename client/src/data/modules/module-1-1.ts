@@ -641,6 +641,37 @@ const exercise5: Exercise = {
     streakBonus: 5,
 };
 
+const exercise6: Exercise = {
+    id: 'exercise-1-1-tuning-e',
+    moduleId: 'module-1-1',
+    lessonId: 'lesson-1-1-3', // Afinação lesson
+    type: 'audio-validation',
+    title: 'Afinação: Corda E Grave',
+    instructions: 'Use o afinador do app ou microfone para verificar se a 6ª corda (E grave) está afinada. Toque a corda e aguarde a validação.',
+    goal: 'Afinar a corda E grave dentro de ±15 cents',
+    difficulty: 1,
+    estimatedTime: 3,
+    data: {
+        type: 'audio-validation',
+        targetNote: 'E2',
+        tolerance: 15,
+    },
+    successCriteria: {
+        type: 'audio-detection',
+        description: 'A nota E2 foi detectada afinada',
+    },
+    hints: [
+        'A 6ª corda é a mais grossa e mais grave',
+        'Toque a corda solta (sem pressionar nenhuma casa)',
+        'Ajuste a tarracha até o indicador ficar verde',
+    ],
+    commonMistakes: [
+        'Tocar a corda errada',
+        'Não aguardar a detecção estabilizar',
+    ],
+    xpReward: 10,
+};
+
 // =============================================================================
 // QUIZ
 // =============================================================================
@@ -803,7 +834,7 @@ export const module1_1: Module = {
     description: 'Fundamentos essenciais: postura, anatomia do violão, afinação, cifras e seus primeiros acordes (C, G, D).',
     estimatedDuration: '2-3 semanas',
     lessons: [lesson1, lesson2, lesson3, lesson4, lesson5],
-    exercises: [exercise1, exercise2, exercise3, exercise4, exercise5],
+    exercises: [exercise1, exercise2, exercise3, exercise4, exercise5, exercise6],
     quiz,
     prerequisites: [],
     requiredXP: 0,

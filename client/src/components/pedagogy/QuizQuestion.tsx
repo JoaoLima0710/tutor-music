@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { QuizQuestion as QuizQuestionType, QuizOption } from '@/types/pedagogy';
 import { cn } from '@/lib/utils';
-import ChordDiagram from '@/components/chords/ChordDiagram';
+import { ChordDiagram } from '@/components/chords/ChordDiagram';
 
 interface QuizQuestionProps {
     question: QuizQuestionType;

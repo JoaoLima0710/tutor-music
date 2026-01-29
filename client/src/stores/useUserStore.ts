@@ -6,12 +6,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authService, User, UserPreferences, UserStats } from '@/services/AuthService';
+import { analyticsService } from '@/services/AnalyticsService';
 
 interface UserStore {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  
+
   // Ações
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
@@ -34,6 +35,8 @@ export const useUserStore = create<UserStore>()(
           set({ isLoading: true });
           const user = await authService.login({ email, password });
           set({ user, isAuthenticated: true, isLoading: false });
+          analyticsService.identify(user.id, { name: user.name, email: user.email });
+          analyticsService.track('login', { method: 'email' });
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -45,6 +48,8 @@ export const useUserStore = create<UserStore>()(
           set({ isLoading: true });
           const user = await authService.register({ email, password, name });
           set({ user, isAuthenticated: true, isLoading: false });
+          analyticsService.identify(user.id, { name: user.name, email: user.email });
+          analyticsService.track('signup', { method: 'email' });
         } catch (error) {
           set({ isLoading: false });
           throw error;

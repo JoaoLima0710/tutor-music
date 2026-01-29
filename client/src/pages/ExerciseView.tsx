@@ -20,18 +20,19 @@ import {
     AlertCircle,
     Music
 } from 'lucide-react';
+import { BackingTrackPlayer } from '@/components/audio/BackingTrackPlayer';
 import { useUserProgressStore } from '@/stores/useUserProgressStore';
-import { module1_1 } from '@/data/modules/module-1-1';
-import { module1_2 } from '@/data/modules/module-1-2';
+import { allModules } from '@/data/modules';
 import { Exercise } from '@/types/pedagogy';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { NoteValidator } from '@/components/pedagogy/validation/NoteValidator';
 
 // All exercises from all modules
 const allExercises: Record<string, Exercise> = {};
 const exerciseToModule: Record<string, string> = {};
 
-[module1_1, module1_2].forEach(module => {
+allModules.forEach(module => {
     module.exercises.forEach(ex => {
         allExercises[ex.id] = ex;
         exerciseToModule[ex.id] = module.id;
@@ -212,7 +213,7 @@ export function ExerciseView() {
                     <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 mb-6">
                         <h4 className="text-lg font-semibold text-white mb-4">Checklist:</h4>
                         <div className="space-y-3">
-                            {theoryData.questions?.map((question, i) => (
+                            {theoryData?.questions?.map((question, i) => (
                                 <label key={i} className="flex items-center gap-3 p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700/50 transition-colors">
                                     <input
                                         type="checkbox"
@@ -222,6 +223,25 @@ export function ExerciseView() {
                                 </label>
                             ))}
                         </div>
+                    </div>
+                );
+
+            case 'improvisation':
+                return (
+                    <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 mb-6">
+                        <BackingTrackPlayer />
+                    </div>
+                );
+
+            case 'audio-validation':
+                const audioData = exercise.data as { targetNote: string; tolerance?: number };
+                return (
+                    <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 mb-6">
+                        <NoteValidator
+                            targetNote={audioData.targetNote}
+                            tolerance={audioData.tolerance}
+                            onSuccess={() => handleComplete(true)}
+                        />
                     </div>
                 );
 

@@ -19,12 +19,8 @@ import {
 import { ModuleCard } from '@/components/pedagogy/ModuleCard';
 import { useUserProgressStore } from '@/stores/useUserProgressStore';
 import { getLevelTitle, Module } from '@/types/pedagogy';
-import { module1_1 } from '@/data/modules/module-1-1';
-import { module1_2 } from '@/data/modules/module-1-2';
+import { allModules } from '@/data/modules';
 import { cn } from '@/lib/utils';
-
-// All curriculum modules (will expand over time)
-const allModules: Module[] = [module1_1, module1_2];
 
 export function Learn() {
     const [, setLocation] = useLocation();
@@ -273,7 +269,6 @@ export function Learn() {
 
                         {/* Coming Soon Placeholders */}
                         {[
-                            { id: 'module-1-3', title: 'Mais Acordes', level: 1, order: 3, icon: '✋' },
                             { id: 'module-2-1', title: 'Pestanas', level: 2, order: 1, icon: '🎼' },
                         ].map((placeholder, index) => (
                             <motion.div

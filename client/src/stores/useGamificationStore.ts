@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { calculateXPForLevel } from '@/types/pedagogy';
 
 interface Mission {
   id: string;
@@ -26,62 +27,47 @@ interface GamificationStore {
   xp: number;
   level: number;
   xpToNextLevel: number;
-  
+
   // Streak
   currentStreak: number;
   maxStreak: number;
   lastActivityDate: string;
-  streakFreezes: number; // Freezes disponíveis para iniciantes
+  streakFreezes: number; // Freezes disponíveis
   frozenStreak: boolean; // Se o streak está congelado
-  
+
   // Missões
   dailyMissions: Mission[];
-  
+
   // Conquistas
   achievements: Achievement[];
-  
+
   // Ações
   addXP: (amount: number) => void;
   updateMissionProgress: (missionId: string, progress: number) => void;
   unlockAchievement: (achievementId: string) => void;
   updateStreak: () => void;
-  freezeStreak: () => void; // Congelar streak (para iniciantes)
+  freezeStreak: () => void;
+  repairStreak: () => void; // Reparar streak usando XP
+  buyFreeze: () => void; // Comprar freeze usando XP
   resetDailyMissions: () => void;
 }
 
-const calculateXPForLevel = (level: number): number => {
-  return Math.floor(100 * Math.pow(1.5, level - 1));
-};
-
-const initialMissions: Mission[] = [
-  {
-    id: 'daily-chord-practice',
-    title: 'Praticar 5 Acordes',
-    description: 'Complete 5 acordes diferentes hoje',
-    target: 5,
-    current: 0,
-    xpReward: 50,
-    completed: false,
-  },
-  {
-    id: 'daily-scale-practice',
-    title: 'Praticar 3 Escalas',
-    description: 'Complete 3 escalas diferentes hoje',
-    target: 3,
-    current: 0,
-    xpReward: 50,
-    completed: false,
-  },
-  {
-    id: 'practice-time',
-    title: '30 Minutos de Prática',
-    description: 'Pratique por pelo menos 30 minutos',
-    target: 1800,
-    current: 0,
-    xpReward: 100,
-    completed: false,
-  },
+const MISSION_POOL: Mission[] = [
+  { id: 'chords-5', title: 'Praticar 5 Acordes', description: 'Toque 5 acordes diferentes', target: 5, current: 0, xpReward: 50, completed: false },
+  { id: 'scales-3', title: 'Praticar 3 Escalas', description: 'Toque 3 escalas diferentes', target: 3, current: 0, xpReward: 50, completed: false },
+  { id: 'time-15', title: '15 Minutos de Foco', description: 'Pratique por 15 minutos', target: 900, current: 0, xpReward: 100, completed: false },
+  { id: 'perfect-quiz', title: 'Gênio do Quiz', description: 'Acerte 100% em um quiz', target: 1, current: 0, xpReward: 75, completed: false },
+  { id: 'tune-guitar', title: 'Afinação Perfeita', description: 'Afine seu instrumento', target: 1, current: 0, xpReward: 25, completed: false },
+  { id: 'lesson-1', title: 'Estudioso', description: 'Complete 1 lição', target: 1, current: 0, xpReward: 50, completed: false },
+  { id: 'strumming-1', title: 'Mestre do Ritmo', description: 'Pratique ritmo por 5 minutos', target: 300, current: 0, xpReward: 50, completed: false },
+  { id: 'ear-training-10', title: 'Ouvido Atento', description: 'Acerte 10 exercícios de ouvido', target: 10, current: 0, xpReward: 60, completed: false },
 ];
+
+const getRandomMissions = (count: number): Mission[] => {
+  // Simple shuffle
+  const shuffled = [...MISSION_POOL].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count).map(m => ({ ...m, current: 0, completed: false }));
+};
 
 const initialAchievements: Achievement[] = [
   // TÉCNICA - Iniciante
@@ -125,7 +111,7 @@ const initialAchievements: Achievement[] = [
     xpReward: 150,
     unlocked: false,
   },
-  
+
   // TEORIA
   {
     id: 'theory-basics',
@@ -143,7 +129,7 @@ const initialAchievements: Achievement[] = [
     xpReward: 200,
     unlocked: false,
   },
-  
+
   // PERCEPÇÃO AUDITIVA
   {
     id: 'ear-major-minor',
@@ -161,7 +147,7 @@ const initialAchievements: Achievement[] = [
     xpReward: 250,
     unlocked: false,
   },
-  
+
   // REPERTÓRIO
   {
     id: 'first-song',
@@ -187,7 +173,7 @@ const initialAchievements: Achievement[] = [
     xpReward: 500,
     unlocked: false,
   },
-  
+
   // ESCALAS
   {
     id: 'first-scale',
@@ -205,7 +191,7 @@ const initialAchievements: Achievement[] = [
     xpReward: 200,
     unlocked: false,
   },
-  
+
   // CONSISTÊNCIA
   {
     id: 'week-streak',
@@ -231,6 +217,7 @@ const initialAchievements: Achievement[] = [
     xpReward: 1000,
     unlocked: false,
   },
+  // NOVOS ACHIEVEMENTS SOCIAIS QUE FALTAVAM
   {
     id: 'early-bird',
     title: 'Madrugador',
@@ -247,8 +234,14 @@ const initialAchievements: Achievement[] = [
     xpReward: 100,
     unlocked: false,
   },
-  
-  // PROGRESSÃO DE NÍVEL
+  {
+    id: 'first-recording',
+    title: 'Primeira Gravação',
+    description: 'Grave sua primeira performance',
+    icon: '🎙️',
+    xpReward: 100,
+    unlocked: false,
+  },
   {
     id: 'level-intermediate',
     title: 'Intermediário',
@@ -265,16 +258,6 @@ const initialAchievements: Achievement[] = [
     xpReward: 1000,
     unlocked: false,
   },
-  
-  // SOCIAL
-  {
-    id: 'first-recording',
-    title: 'Primeira Gravação',
-    description: 'Grave sua primeira performance',
-    icon: '🎙️',
-    xpReward: 100,
-    unlocked: false,
-  },
 ];
 
 export const useGamificationStore = create<GamificationStore>()(
@@ -286,95 +269,79 @@ export const useGamificationStore = create<GamificationStore>()(
       currentStreak: 0,
       maxStreak: 0,
       lastActivityDate: '',
-      streakFreezes: 3, // Iniciantes começam com 3 freezes
+      streakFreezes: 3, // Iniciantes começam com 3
       frozenStreak: false,
-      dailyMissions: initialMissions,
+      dailyMissions: getRandomMissions(3),
       achievements: initialAchievements,
-      
+
       addXP: (amount) => {
         const state = get();
         let newXP = state.xp + amount;
         let newLevel = state.level;
         let xpForNext = state.xpToNextLevel;
         let leveledUp = false;
-        
-        // Check level up
+
+        // Verifica level up com a nova fórmula importada
+        // ATENÇÃO: Se calculateXPForLevel mudou, precisamos recalcular
+        // Se o usuário tinha 100 XP e era L1 (Next=150), agora com fórmula linear (Next=200).
+        // A transição é suave.
+
         while (newXP >= xpForNext) {
           newXP -= xpForNext;
           newLevel++;
           xpForNext = calculateXPForLevel(newLevel);
           leveledUp = true;
         }
-        
+
         set({
           xp: newXP,
           level: newLevel,
           xpToNextLevel: xpForNext,
         });
 
-        // Feedback tátil e sonoro ao subir de nível
+        // Feedback
         if (leveledUp) {
           import('@/services/HapticFeedbackService').then(({ hapticFeedbackService }) => {
             hapticFeedbackService.levelUp();
           });
-          // Som de level up (com rate limiting)
           import('@/services/GamificationSoundService').then(({ gamificationSoundService }) => {
             gamificationSoundService.playSound('level_up', 0.15);
           });
-        } else if (amount >= 50) {
-          // Som de XP grande para ganhos significativos
-          import('@/services/GamificationSoundService').then(({ gamificationSoundService }) => {
-            gamificationSoundService.playSound('xp_bonus', 0.12);
-          });
-        } else if (amount > 0) {
-          // Som de XP pequeno para ganhos normais
-          import('@/services/GamificationSoundService').then(({ gamificationSoundService }) => {
-            gamificationSoundService.playSound('xp_gain', 0.1);
-          });
         }
       },
-      
+
       updateMissionProgress: (missionId, progress) => {
         set((state) => ({
           dailyMissions: state.dailyMissions.map((mission) => {
             if (mission.id === missionId && !mission.completed) {
               const newCurrent = Math.min(mission.current + progress, mission.target);
               const completed = newCurrent >= mission.target;
-              
+
               if (completed && !mission.completed) {
-                // Award XP
                 get().addXP(mission.xpReward);
-                
-                // Som de missão completada
                 import('@/services/GamificationSoundService').then(({ gamificationSoundService }) => {
                   gamificationSoundService.playSound('mission_complete', 0.12);
                 });
               }
-              
-              return {
-                ...mission,
-                current: newCurrent,
-                completed,
-              };
+
+              return { ...mission, current: newCurrent, completed };
             }
             return mission;
           }),
         }));
       },
-      
+
       unlockAchievement: (achievementId) => {
         set((state) => {
           const achievement = state.achievements.find((a) => a.id === achievementId);
           if (!achievement || achievement.unlocked) return state;
-          
-          // Award XP
+
           get().addXP(achievement.xpReward);
-          
-          // Som de achievement desbloqueado
+
           import('@/services/GamificationSoundService').then(({ gamificationSoundService }) => {
             gamificationSoundService.playSound('achievement', 0.15);
           });
-          
+
           return {
             achievements: state.achievements.map((a) =>
               a.id === achievementId
@@ -384,90 +351,119 @@ export const useGamificationStore = create<GamificationStore>()(
           };
         });
       },
-      
+
       updateStreak: () => {
         const state = get();
         const today = new Date().toDateString();
         const lastActivity = state.lastActivityDate;
-        
-        if (lastActivity === today) {
-          return;
-        }
-        
+
+        if (lastActivity === today) return;
+
         const yesterday = new Date(Date.now() - 86400000).toDateString();
         const daysSinceLastActivity = Math.floor(
           (Date.now() - new Date(lastActivity || yesterday).getTime()) / (1000 * 60 * 60 * 24)
         );
-        
-        // Se estava congelado, descongelar
+
         if (state.frozenStreak) {
           set({ frozenStreak: false });
         }
-        
-        if (lastActivity === yesterday) {
-          // Streak continua normalmente
+
+        if (lastActivity === yesterday || !lastActivity) {
+          // Streak continua
           const newStreak = state.currentStreak + 1;
           set({
             currentStreak: newStreak,
             maxStreak: Math.max(state.maxStreak, newStreak),
             lastActivityDate: today,
           });
-          
-          // Check streak achievements
-          if (newStreak === 7) {
-            get().unlockAchievement('week-streak');
-          }
-          
-          // Som de milestone de streak (a cada 5 dias)
-          if (newStreak > 0 && newStreak % 5 === 0) {
-            import('@/services/GamificationSoundService').then(({ gamificationSoundService }) => {
-              gamificationSoundService.playSound('streak_milestone', 0.1);
-            });
-          }
-        } else if (daysSinceLastActivity <= 2 && state.level <= 3) {
-          // Para iniciantes (nível 1-3), permite 1 dia de folga sem perder streak
-          // Mas reduz o streak em 1 como "decadência"
+
+          if (newStreak === 7) get().unlockAchievement('week-streak');
+
+        } else if (daysSinceLastActivity <= 2) {
+          // "Decadência" para TODOS (Perdoa 1 dia de falta ao custo de -1 streak)
+          // Isso é mais amigável que resetar tudo
           const newStreak = Math.max(0, state.currentStreak - 1);
           set({
             currentStreak: newStreak,
             lastActivityDate: today,
           });
-        } else if (daysSinceLastActivity > 2 && state.level <= 3 && state.streakFreezes > 0) {
-          // Se passou mais de 2 dias e tem freezes, pode usar um freeze
-          // O streak não é perdido, mas não aumenta
+        } else if (state.streakFreezes > 0) {
+          // Usa Freeze automaticamente se tiver
           set({
             streakFreezes: state.streakFreezes - 1,
-            frozenStreak: true,
+            frozenStreak: true, // Marca que usou freeze (visual feedback?)
+            // Não atualiza data para hoje ainda, ou atualiza?
+            // Se usou freeze, o streak é salvo do RESET. 
+            // Mas o usuário entrou HOJE. Então o streak deve ser mantido ou incrementado?
+            // Geralmente freeze impede reset. Se ele entrou hoje, ele MANTÉM o streak.
             lastActivityDate: today,
+            // Não incrementa, mas não reseta?
+            // Se ele entrou, ele praticou. Então ele deveria MANTER.
+            // O freeze serve para cobrir os dias que faltaram?
+            // Simplificação: Se tem freeze, gasta 1 e mantém o streak atual.
           });
         } else {
-          // Perde o streak normalmente
+          // Reset
           set({
             currentStreak: 1,
             lastActivityDate: today,
           });
         }
       },
-      
+
       freezeStreak: () => {
         const state = get();
-        if (state.streakFreezes > 0 && state.level <= 3) {
+        if (state.streakFreezes > 0) {
           set({
             streakFreezes: state.streakFreezes - 1,
             frozenStreak: true,
           });
         }
       },
-      
+
+      buyFreeze: () => {
+        const state = get();
+        const COST = 300;
+        if (state.xp >= COST) {
+          set({
+            xp: state.xp - COST,
+            streakFreezes: state.streakFreezes + 1
+          });
+        }
+      },
+
+      repairStreak: () => {
+        const state = get();
+        // Custo alto para reparar um streak perdido
+        const COST = 500;
+
+        // Só permite reparar se tiver XP suficiente
+        if (state.xp >= COST) {
+          // Lógica: Restaura o maxStreak como current? 
+          // Ou restaura o streak anterior?
+          // Como não guardamos o "streak antes de perder" no estado persistido (apenas maxStreak),
+          // podemos restaurar o maxStreak se for razoável, ou apenas dar um boost.
+          // Vamos assumir que ele quer recuperar o que tinha.
+          // Para simplificar: Current = Max.
+          set({
+            xp: state.xp - COST,
+            currentStreak: state.maxStreak,
+            lastActivityDate: new Date().toDateString()
+          });
+        }
+      },
+
       resetDailyMissions: () => {
         set({
-          dailyMissions: initialMissions.map((m) => ({ ...m, current: 0, completed: false })),
+          dailyMissions: getRandomMissions(3)
         });
       },
     }),
     {
       name: 'gamification-store',
-      version: 1,
+      version: 2, // Bump version to force potential migration if needed, strictly creates new state structure usually
+      // Zustand persist defaults to simple storage. Version migration needs 'migrate' function if drastic.
+      // Since we just added fields/methods, it should be fine.
     }
   )
 );

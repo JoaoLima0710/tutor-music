@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { TheoryExplanation } from '@/components/pedagogy/TheoryExplanation';
 import { useUserProgressStore } from '@/stores/useUserProgressStore';
-import { module1_1 } from '@/data/modules/module-1-1';
+import { allModules } from '@/data/modules';
 import { Lesson } from '@/types/pedagogy';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -26,10 +26,12 @@ import { toast } from 'sonner';
 const allLessons: Record<string, Lesson> = {};
 const lessonToModule: Record<string, string> = {};
 
-// Populate from module 1.1
-module1_1.lessons.forEach(lesson => {
-    allLessons[lesson.id] = lesson;
-    lessonToModule[lesson.id] = module1_1.id;
+// Populate from all modules
+allModules.forEach(module => {
+    module.lessons.forEach(lesson => {
+        allLessons[lesson.id] = lesson;
+        lessonToModule[lesson.id] = module.id;
+    });
 });
 
 export function LessonView() {
@@ -104,7 +106,7 @@ export function LessonView() {
     };
 
     // Calculate lesson position
-    const moduleData = moduleId === 'module-1-1' ? module1_1 : null;
+    const moduleData = allModules.find(m => m.id === moduleId);
     const lessonIndex = moduleData?.lessons.findIndex(l => l.id === lessonId) ?? -1;
     const totalLessons = moduleData?.lessons.length ?? 0;
 

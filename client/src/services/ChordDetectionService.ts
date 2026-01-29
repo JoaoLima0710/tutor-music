@@ -193,6 +193,106 @@ export class ChordDetectionService {
   }
 
   /**
+   * Calcula Chroma Features (distribuição de energia per nota)
+   */
+  private calculateChroma(frequencyData: Float32Array): number[] {
+    const chroma = new Array(12).fill(0);
+    const nyquist = this.sampleRate / 2;
+    const binSize = nyquist / frequencyData.length;
+
+    // Iterar sobre bins relevantes (C2 a C6 aprox)
+    // 65Hz a 1000Hz
+    const minBin = Math.floor(65 / binSize);
+    const maxBin = Math.floor(1000 / binSize);
+
+    for (let i = minBin; i < maxBin; i++) {
+      const energy = frequencyData[i]; // dB?
+      // Converter dB para linear se necessário, ou assumir linear se getFloatFrequencyData for linear?
+      // getFloatFrequencyData returns dBFS (-100 to 0).
+      // Convert to linear magnitude approx: 10^(dB/20).
+      // Mas se o sinal é fraco (-100), magnitude ~ 0.
+      // Vamos usar threshold.
+      if (energy < -70) continue; // Noise floor
+
+      const amplitude = Math.pow(10, energy / 20);
+      const frequency = i * binSize;
+
+      // Map freq to pitch class
+      // A4 = 440.
+      const semitones = 12 * Math.log2(frequency / 440) + 69; // MIDI note
+      const pitchClass = Math.round(semitones) % 12; // 0=C, 1=C#, etc... (MIDI 60=C4)
+      // Wait, MIDI 69 is A4. 
+      // 0=C ? 
+      // 60 is C4. 60%12 = 0. So 0 is C.
+      // A4(69) % 12 = 9. So 9 is A. Correct using standard mapping if 0=C.
+
+      // Add energy to pitch class
+      chroma[(pitchClass + 12) % 12] += amplitude;
+    }
+
+    // Normalize chroma
+    const maxVal = Math.max(...chroma);
+    if (maxVal > 0) {
+      for (let i = 0; i < 12; i++) chroma[i] /= maxVal;
+    }
+
+    return chroma;
+  }
+
+  /**
+   * Identifica acordes baseados no Chroma
+   */
+  private identifyChordFromChroma(chroma: number[]): { name: string; confidence: number } | null {
+    // Templates básicos (Major, Minor)
+    // C, C#, D...
+    const chordNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const templates: Record<string, number[]> = {};
+
+    // Major: Root(0), Major Third(4), Perfect Fifth(7)
+    // Minor: Root(0), Minor Third(3), Perfect Fifth(7)
+
+    for (let i = 0; i < 12; i++) {
+      // Major template for root i
+      const major = new Array(12).fill(0);
+      major[i] = 1;
+      major[(i + 4) % 12] = 1;
+      major[(i + 7) % 12] = 1;
+      templates[`${chordNames[i]}`] = major;
+
+      // Minor template
+      const minor = new Array(12).fill(0);
+      minor[i] = 1;
+      minor[(i + 3) % 12] = 1;
+      minor[(i + 7) % 12] = 1;
+      templates[`${chordNames[i]}m`] = minor;
+    }
+
+    let bestChord = null;
+    let maxScore = 0;
+
+    for (const [name, template] of Object.entries(templates)) {
+      // Dot product
+      let score = 0;
+      for (let i = 0; i < 12; i++) {
+        score += chroma[i] * template[i];
+      }
+      // Normalize by chord complexity (3 notes)
+      score /= 3;
+
+      if (score > maxScore) {
+        maxScore = score;
+        bestChord = name;
+      }
+    }
+
+    if (bestChord && maxScore > 0.5) { // Threshold de confiança
+      return { name: bestChord, confidence: maxScore };
+    }
+
+    return null;
+  }
+
+  /**
    * Análise principal do áudio atual
    */
   private analyzeCurrentAudio(expectedChord: string | null): ChordDetectionResult {
@@ -209,28 +309,53 @@ export class ChordDetectionService {
     // Análise de cordas individuais
     const stringAnalysis = this.analyzeIndividualStrings(frequencyData, timeData);
 
-    // Detecção do acorde
-    const chordResult = this.detectChord(stringAnalysis, expectedChord);
+    // Detecção do acorde (agora híbrida: strings + chroma)
+    const chroma = this.calculateChroma(frequencyData);
+    const blindChordDetection = this.identifyChordFromChroma(chroma);
+
+    // Detecção do acorde original (validação de cordas)
+    const validationResult = this.detectChord(stringAnalysis, expectedChord);
+
+    // Mesclar resultados
+    // Se temos um expectedChord, priorizamos a validação dele
+    // Mas se a validação for ruim e o Chroma achar outro acorde forte, sugerimos
+    let detectedChord = validationResult.chord;
+    let confidence = validationResult.confidence;
+
+    if (!detectedChord && blindChordDetection && blindChordDetection.confidence > 0.6) {
+      detectedChord = blindChordDetection.name;
+      confidence = blindChordDetection.confidence; // Confidence do chroma geralmente é menor que string validation
+    }
 
     // Análise de problemas
-    const problems = this.identifyProblems(stringAnalysis, expectedChord);
+    const problems = this.identifyProblems(stringAnalysis, expectedChord); // Ainda usa expected para problemas
+
+    // Se detectou um acorde diferente do esperado com alta confiança
+    if (expectedChord && detectedChord && detectedChord !== expectedChord && confidence > 0.7) {
+      problems.push({
+        type: 'wrong_fingering',
+        severity: 'high',
+        description: `Você parece estar tocando ${detectedChord}`,
+        affectedStrings: [],
+        suggestion: `Verifique se está fazendo a forma de ${expectedChord}`
+      });
+    }
 
     // Sugestões de melhoria
-    const suggestions = this.generateSuggestions(problems, stringAnalysis, chordResult);
-
-    const endTime = performance.now();
-    const latency = endTime - startTime;
+    const suggestions = this.generateSuggestions(problems, stringAnalysis, { quality: validationResult.quality });
 
     return {
-      detectedChord: chordResult.chord,
-      confidence: chordResult.confidence,
+      detectedChord,
+      confidence,
       timing: Date.now(),
-      quality: chordResult.quality,
+      quality: validationResult.quality, // Mantemos qualidade da validação de cordas (limpeza)
       individualStrings: stringAnalysis,
       problems,
       suggestions
     };
   }
+
+  // ... (rest of the class)
 
   /**
    * Análise de cada corda individual
@@ -249,6 +374,7 @@ export class ChordDetectionService {
 
     return strings;
   }
+
 
   /**
    * Análise detalhada de uma corda específica
@@ -324,8 +450,8 @@ export class ChordDetectionService {
     let detectedBin = expectedBin;
 
     for (let i = Math.max(0, expectedBin - searchRange);
-         i < Math.min(frequencyData.length, expectedBin + searchRange);
-         i++) {
+      i < Math.min(frequencyData.length, expectedBin + searchRange);
+      i++) {
       if (frequencyData[i] > maxAmplitude) {
         maxAmplitude = frequencyData[i];
         detectedBin = i;
@@ -362,8 +488,8 @@ export class ChordDetectionService {
     let totalEnergy = 0;
     const range = 5; // bins ao redor
     for (let i = Math.max(0, fundamentalBin - range);
-         i < Math.min(frequencyData.length, fundamentalBin + range);
-         i++) {
+      i < Math.min(frequencyData.length, fundamentalBin + range);
+      i++) {
       totalEnergy += Math.abs(frequencyData[i]);
     }
 

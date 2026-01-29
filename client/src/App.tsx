@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { AudioInitButton } from "./components/audio/AudioInitButton";
+import { AudioInitializer } from "./components/audio/AudioInitButton";
 import { VolumeControl } from "./components/audio/VolumeControl";
 import { AudioErrorDisplay } from "./components/audio/AudioErrorDisplay";
 import { Toaster } from "@/components/ui/sonner";
@@ -12,8 +12,10 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useUserStore } from "./stores/useUserStore";
 import { useEffect } from "react";
+import { analyticsService } from "./services/AnalyticsService";
 import { FloatingActionButton } from "./components/layout/FloatingActionButton";
 import { useAudioNavigationGuard } from './hooks/useAudioNavigationGuard';
+import { BadgeAwardModal } from './components/pedagogy/BadgeAwardModal';
 
 // Detectar gestos do usuário para desbloquear áudio
 if (typeof document !== 'undefined') {
@@ -58,6 +60,7 @@ const LessonView = lazy(() => import("./pages/LessonView"));
 const ExerciseView = lazy(() => import("./pages/ExerciseView"));
 const QuizPlayer = lazy(() => import("./pages/QuizPlayer"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Pricing = lazy(() => import("./pages/Pricing"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading component
@@ -87,6 +90,7 @@ function Router() {
     <Suspense fallback={<PageLoader />}>
       <Switch>
         <Route path="/auth" component={Auth} />
+        <Route path="/pricing" component={Pricing} />
         <Route path="/" component={Home} />
         <Route path="/chords" component={Chords} />
         <Route path="/scales" component={Scales} />
@@ -120,26 +124,32 @@ function Router() {
 function App() {
   const { isInstalled } = usePWA();
 
+  useEffect(() => {
+    analyticsService.init();
+  }, []);
+
   return (
     <ErrorBoundary>
       <ThemeProvider>
         <TooltipProvider>
-          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-            <UpdateBanner />
-            {/* Botão para inicializar o contexto de áudio global */}
-            <div className="fixed top-4 left-4 z-50">
-              <AudioInitButton />
+          <AudioInitializer>
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+              <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-[100] bg-white text-purple-900 px-4 py-2 rounded-md font-bold shadow-lg">
+                Pular para o conteúdo principal
+              </a>
+              <UpdateBanner />
+              {/* Controle de volume global do sistema de áudio */}
+              <div className="fixed top-4 right-4 z-50">
+                <VolumeControl />
+              </div>
+              <Router />
+              <FloatingActionButton />
+              <InstallPWA />
+              <BadgeAwardModal />
+              <AudioErrorDisplay compact={true} />
+              <Toaster />
             </div>
-            {/* Controle de volume global do sistema de áudio */}
-            <div className="fixed top-4 right-4 z-50">
-              <VolumeControl />
-            </div>
-            <Router />
-            <FloatingActionButton />
-            <InstallPWA />
-            <AudioErrorDisplay compact={true} />
-            <Toaster />
-          </div>
+          </AudioInitializer>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

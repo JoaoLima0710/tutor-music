@@ -19,8 +19,7 @@ import {
 } from 'lucide-react';
 import { QuizQuestionComponent } from '@/components/pedagogy/QuizQuestion';
 import { useUserProgressStore } from '@/stores/useUserProgressStore';
-import { module1_1 } from '@/data/modules/module-1-1';
-import { module1_2 } from '@/data/modules/module-1-2';
+import { allModules } from '@/data/modules';
 import { Quiz, QuizAnswer, QuizResult, Module } from '@/types/pedagogy';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -31,7 +30,7 @@ const allQuizzes: Record<string, Quiz> = {};
 const quizToModule: Record<string, string> = {};
 const allModulesMap: Record<string, Module> = {};
 
-[module1_1, module1_2].forEach(module => {
+allModules.forEach(module => {
     allQuizzes[module.quiz.id] = module.quiz;
     quizToModule[module.quiz.id] = module.id;
     allModulesMap[module.id] = module;
@@ -153,7 +152,7 @@ export function QuizPlayer() {
                     if (allLessonsComplete && allExercisesComplete) {
                         completeModule(moduleId);
                         if (module.badgeReward) {
-                            earnBadge(module.badgeReward.id);
+                            earnBadge(module.badgeReward);
                         }
                         toast.success('🎉 Módulo concluído!', {
                             description: `Você completou "${module.title}" e ganhou ${module.xpReward} XP!`,

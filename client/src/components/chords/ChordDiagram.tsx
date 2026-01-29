@@ -8,75 +8,112 @@ interface ChordDiagramProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagramProps) {
-  const sizeConfig = useMemo(() => ({
-    sm: {
-      width: 140,
-      height: 180,
-      fretHeight: 30,
-      stringSpacing: 22,
-      dotSize: 16,
-      fontSize: 'text-xs',
-      titleSize: 'text-lg',
-    },
-    md: {
-      width: 200,
-      height: 260,
-      fretHeight: 45,
-      stringSpacing: 32,
-      dotSize: 24,
-      fontSize: 'text-sm',
-      titleSize: 'text-2xl',
-    },
-    lg: {
-      width: 260,
-      height: 340,
-      fretHeight: 60,
-      stringSpacing: 42,
-      dotSize: 32,
-      fontSize: 'text-base',
-      titleSize: 'text-3xl',
-    },
-  }), []);
-  
-  const config = sizeConfig[size];
+// Move static config outside to avoid recreation
+const SIZE_CONFIG = {
+  sm: {
+    width: 140,
+    height: 180,
+    fretHeight: 30,
+    stringSpacing: 22,
+    dotSize: 16,
+    fontSize: 'text-xs',
+    titleSize: 'text-lg',
+  },
+  md: {
+    width: 200,
+    height: 260,
+    fretHeight: 45,
+    stringSpacing: 32,
+    dotSize: 24,
+    fontSize: 'text-sm',
+    titleSize: 'text-2xl',
+  },
+  lg: {
+    width: 260,
+    height: 340,
+    fretHeight: 60,
+    stringSpacing: 42,
+    dotSize: 32,
+    fontSize: 'text-base',
+    titleSize: 'text-3xl',
+  },
+};
+
+interface ChordDiagramProps {
+  frets: (number | 'x')[];
+  fingers: (number | 0)[];
+  name: string;
+  size?: 'sm' | 'md' | 'lg';
+  animated?: boolean;
+}
+
+function ChordDiagramComponent({ frets, fingers, name, size = 'md', animated = true }: ChordDiagramProps) {
+  const config = SIZE_CONFIG[size];
   const numStrings = 6;
   const numFrets = 4;
   const startX = 30;
   const startY = 50;
-  
+
   // Calcular a altura total do braço
   const fretboardHeight = numFrets * config.fretHeight;
   const fretboardWidth = (numStrings - 1) * config.stringSpacing;
-  
+
+  // Utilize a sanitized ID for the gradient to prevent collisions but allow reuse
+  const gradientId = `grad-${name.replace(/[^a-zA-Z0-9]/g, '-')}-${size}`;
+
+  // Conditionally use motion or standard div
+  const Wrapper = animated ? motion.div : 'div';
+  const Svg = animated ? motion.svg : 'svg';
+  const Title = animated ? motion.h3 : 'h3';
+
+  // Animation props
+  const wrapperProps = animated ? {
+    initial: { opacity: 0, scale: 0.9 },
+    animate: { opacity: 1, scale: 1 },
+    transition: { duration: 0.3, ease: 'easeOut' as const }
+  } : {};
+
+  const titleProps = animated ? {
+    initial: { y: -10, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    transition: { delay: 0.1, duration: 0.3 }
+  } : {};
+
+  const svgProps = animated ? {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: { delay: 0.2, duration: 0.4 }
+  } : {};
+
   return (
-    <motion.div 
+    <Wrapper
       className="flex flex-col items-center gap-3"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+      {...wrapperProps}
       key={name}
     >
       {/* Nome do Acorde */}
-      <motion.h3 
+      <Title
         className={`${config.titleSize} font-bold text-white`}
-        initial={{ y: -10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.3 }}
+        {...titleProps}
       >
         {name}
-      </motion.h3>
-      
+      </Title>
+
       {/* SVG do Diagrama */}
-      <motion.svg
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.4 }}
+      <Svg
         width={config.width}
         height={config.height}
         viewBox={`0 0 ${config.width} ${config.height}`}
         className="select-none"
+        {...svgProps}
       >
+        <defs>
+          <radialGradient id={gradientId}>
+            <stop offset="0%" stopColor="#22d3ee" />
+            <stop offset="100%" stopColor="#06b6d4" />
+          </radialGradient>
+        </defs>
+
         {/* Fundo */}
         <rect
           x={startX - 10}
@@ -88,7 +125,7 @@ function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagr
           stroke="rgba(255,255,255,0.1)"
           strokeWidth="1"
         />
-        
+
         {/* Cordas (linhas verticais) */}
         {Array.from({ length: numStrings }).map((_, i) => (
           <line
@@ -101,7 +138,7 @@ function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagr
             strokeWidth="2"
           />
         ))}
-        
+
         {/* Trastes (linhas horizontais) */}
         {Array.from({ length: numFrets + 1 }).map((_, i) => (
           <line
@@ -114,12 +151,12 @@ function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagr
             strokeWidth={i === 0 ? '4' : '2'}
           />
         ))}
-        
+
         {/* Marcadores de cordas (X ou O no topo) */}
         {frets.map((fret, stringIndex) => {
           const x = startX + stringIndex * config.stringSpacing;
           const y = startY - 15;
-          
+
           if (fret === 'x') {
             // X vermelho para corda não tocada
             return (
@@ -145,7 +182,7 @@ function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagr
               </g>
             );
           }
-          
+
           if (fret === 0) {
             // O verde para corda solta
             return (
@@ -160,18 +197,18 @@ function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagr
               />
             );
           }
-          
+
           return null;
         })}
-        
+
         {/* Posições dos dedos (bolinhas) */}
         {frets.map((fret, stringIndex) => {
           if (typeof fret !== 'number' || fret === 0) return null;
-          
+
           const x = startX + stringIndex * config.stringSpacing;
           const y = startY + (fret - 0.5) * config.fretHeight;
           const fingerNumber = fingers[stringIndex];
-          
+
           return (
             <g key={`finger-${stringIndex}`}>
               {/* Sombra */}
@@ -182,17 +219,11 @@ function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagr
                 fill="rgba(0,0,0,0.3)"
               />
               {/* Bolinha com gradiente */}
-              <defs>
-                <radialGradient id={`grad-${stringIndex}`}>
-                  <stop offset="0%" stopColor="#22d3ee" />
-                  <stop offset="100%" stopColor="#06b6d4" />
-                </radialGradient>
-              </defs>
               <circle
                 cx={x}
                 cy={y}
                 r={config.dotSize / 2}
-                fill={`url(#grad-${stringIndex})`}
+                fill={`url(#${gradientId})`}
                 stroke="#ffffff"
                 strokeWidth="2"
               />
@@ -214,7 +245,7 @@ function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagr
             </g>
           );
         })}
-        
+
         {/* Números das cordas (E A D G B e) */}
         {['E', 'A', 'D', 'G', 'B', 'e'].map((note, i) => (
           <text
@@ -230,8 +261,8 @@ function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagr
             {note}
           </text>
         ))}
-      </motion.svg>
-      
+      </Svg>
+
       {/* Legenda dos dedos */}
       <div className={`${config.fontSize} text-gray-400 text-center space-y-1`}>
         <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -263,7 +294,7 @@ function ChordDiagramComponent({ frets, fingers, name, size = 'md' }: ChordDiagr
           </span>
         </div>
       </div>
-    </motion.div>
+    </Wrapper>
   );
 }
 

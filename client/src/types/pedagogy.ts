@@ -77,6 +77,7 @@ export type LessonContentType =
     | 'quote'
     | 'tip'
     | 'warning'
+    | 'alert'
     | 'example';
 
 export interface LessonContent {
@@ -111,7 +112,9 @@ export type ExerciseType =
     | 'rhythm'
     | 'fingering'
     | 'reading'
-    | 'theory';
+    | 'theory'
+    | 'improvisation'
+    | 'audio-validation';
 
 export interface Exercise {
     id: string;                    // "exercise-chord-change-c-g"
@@ -149,7 +152,14 @@ export type ExerciseData =
     | RhythmData
     | FingeringData
     | ReadingData
-    | TheoryData;
+    | TheoryData
+    | AudioValidationData;
+
+export interface AudioValidationData {
+    type: 'audio-validation';
+    targetNote: string; // "E2", "A2"
+    tolerance?: number; // Cents
+}
 
 export interface ChordChangeData {
     type: 'chord-change';
@@ -187,7 +197,7 @@ export interface TheoryData {
 }
 
 export interface SuccessCriteria {
-    type: 'time' | 'accuracy' | 'self-report';
+    type: 'time' | 'accuracy' | 'self-report' | 'audio-detection';
     target?: number;               // Valor alvo (tempo ou porcentagem)
     description: string;           // Descrição legível
 }
@@ -347,7 +357,7 @@ export interface BadgeCriteria {
 export interface Skill {
     id: string;
     name: string;                  // "Troca de Acordes"
-    category: 'technique' | 'theory' | 'reading' | 'rhythm' | 'ear_training';
+    category: 'technique' | 'theory' | 'reading' | 'rhythm' | 'ear_training' | 'improvisation';
 
     // Progresso
     level: 1 | 2 | 3 | 4 | 5;      // Iniciante → Mestre
@@ -459,7 +469,9 @@ export const LEVEL_TITLES: Record<string, string> = {
  * Uses exponential growth: 100 * 1.5^(level-1)
  */
 export function calculateXPForLevel(level: number): number {
-    return Math.floor(100 * Math.pow(1.5, level - 1));
+    // Linear growth: 100, 200, 300, 400...
+    // Much friendlier than exponential 1.5x
+    return 100 * level;
 }
 
 /**

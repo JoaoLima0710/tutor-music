@@ -11,10 +11,22 @@ type Platform = 'android' | 'ios' | 'windows' | 'mac' | 'linux' | 'unknown';
 
 export function InstallPWA() {
   const { isInstallable, isInstalled, installApp } = usePWA();
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(true); // Default to true to prevent flash
   const [deviceType, setDeviceType] = useState<DeviceType>('desktop');
   const [platform, setPlatform] = useState<Platform>('unknown');
   const [showInstructions, setShowInstructions] = useState(false);
+
+  // Load dismissed state
+  useEffect(() => {
+    const savedDismissed = localStorage.getItem('pwa_install_dismissed');
+    // Só mostrar se não foi dispensado antes
+    setDismissed(savedDismissed === 'true');
+  }, []);
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    localStorage.setItem('pwa_install_dismissed', 'true');
+  };
 
   // Detect device and platform
   useEffect(() => {
@@ -104,7 +116,7 @@ export function InstallPWA() {
               // Banner de instalação principal
               <div className="p-4 relative">
                 <button
-                  onClick={() => setDismissed(true)}
+                  onClick={handleDismiss}
                   className="absolute top-2 right-2 text-slate-400 hover:text-white transition-colors"
                   aria-label="Fechar"
                 >
@@ -146,7 +158,7 @@ export function InstallPWA() {
                       )}
 
                       <Button
-                        onClick={() => setDismissed(true)}
+                        onClick={handleDismiss}
                         size="sm"
                         variant="ghost"
                         className="text-slate-400 hover:text-white"

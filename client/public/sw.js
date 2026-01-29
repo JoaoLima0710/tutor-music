@@ -17,7 +17,7 @@ const STATIC_CACHE_URLS = [
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing Service Worker...', CACHE_VERSION);
-  
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[SW] Caching static assets');
@@ -32,7 +32,7 @@ self.addEventListener('install', (event) => {
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating Service Worker...', CACHE_VERSION);
-  
+
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -97,7 +97,10 @@ self.addEventListener('fetch', (event) => {
       request.url.includes('.css') ||
       request.url.includes('.png') ||
       request.url.includes('.jpg') ||
-      request.url.includes('.woff')
+      request.url.includes('.woff') ||
+      request.url.includes('.mp3') ||
+      request.url.includes('.wav') ||
+      request.url.includes('/samples/')
     ) {
       event.respondWith(
         caches.match(request).then((cachedResponse) => {
@@ -169,7 +172,7 @@ self.addEventListener('message', (event) => {
 // Background sync (for future offline functionality)
 self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync:', event.tag);
-  
+
   if (event.tag === 'sync-practice-data') {
     event.waitUntil(syncPracticeData());
   }
@@ -184,7 +187,7 @@ async function syncPracticeData() {
 // Push notifications (for future feature)
 self.addEventListener('push', (event) => {
   console.log('[SW] Push notification received');
-  
+
   const options = {
     body: event.data ? event.data.text() : 'Nova atualização disponível!',
     icon: '/icons/icon-192x192.png',
@@ -213,7 +216,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked:', event.action);
-  
+
   event.notification.close();
 
   if (event.action === 'explore') {
