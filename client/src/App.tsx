@@ -55,6 +55,8 @@ const DeliberatePractice = lazy(() => import("./pages/DeliberatePractice"));
 const Learn = lazy(() => import("./pages/Learn"));
 const ModuleView = lazy(() => import("./pages/ModuleView"));
 const LessonView = lazy(() => import("./pages/LessonView"));
+const ExerciseView = lazy(() => import("./pages/ExerciseView"));
+const QuizPlayer = lazy(() => import("./pages/QuizPlayer"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -107,6 +109,8 @@ function Router() {
         <Route path="/learn" component={Learn} />
         <Route path="/learn/module/:moduleId" component={ModuleView} />
         <Route path="/learn/lesson/:lessonId" component={LessonView} />
+        <Route path="/learn/exercise/:exerciseId" component={ExerciseView} />
+        <Route path="/learn/quiz/:quizId" component={QuizPlayer} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

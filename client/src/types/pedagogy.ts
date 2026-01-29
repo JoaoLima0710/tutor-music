@@ -10,7 +10,7 @@
 
 export type EducationalLevel = 'beginner' | 'intermediate' | 'advanced';
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type BadgeRarity = 'common' | 'rare' | 'epic' | 'legendary';
+export type BadgeRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 // =============================================================================
 // MODULE
@@ -31,16 +31,18 @@ export interface Module {
 
     // Requisitos
     prerequisites: string[];       // IDs de módulos anteriores
-    requiredXP: number;            // XP mínimo para desbloquear
+    requiredXP?: number;           // XP mínimo para desbloquear (optional)
 
     // Recompensas
     xpReward: number;              // XP ao completar
     badgeReward?: Badge;           // Badge especial (opcional)
 
     // Metadados
-    tags: string[];                // ["postura", "acordes-básicos"]
-    difficulty: Difficulty;
+    tags?: string[];               // ["postura", "acordes-básicos"] (optional)
+    difficulty?: Difficulty;       // (optional)
     icon: string;                  // Emoji ou ícone
+    status?: 'locked' | 'available' | 'in-progress' | 'completed';
+    skills?: string[];             // Skill IDs taught
 }
 
 // =============================================================================
@@ -52,14 +54,16 @@ export interface Lesson {
     moduleId: string;              // ID do módulo pai
     order: number;                 // Ordem dentro do módulo
     title: string;                 // "Postura Correta ao Tocar"
+    description?: string;          // Short description (optional)
 
     // Conteúdo
     content: LessonContent[];      // Blocos de conteúdo
     estimatedTime: number;         // Tempo em minutos
+    xpReward?: number;             // XP reward (optional)
 
     // Recursos visuais
-    images: LessonImage[];         // Imagens explicativas
-    diagrams: DiagramReference[];  // Referências a diagramas
+    images?: LessonImage[];        // Imagens explicativas (optional)
+    diagrams?: DiagramReference[]; // Referências a diagramas (optional)
 
     // Navegação
     nextLessonId?: string;
@@ -123,15 +127,15 @@ export interface Exercise {
     goal: string;                  // "Trocar em menos de 2 segundos"
 
     // Configuração
-    difficulty: 1 | 2 | 3 | 4 | 5;
+    difficulty?: 1 | 2 | 3 | 4 | 5;
     estimatedTime: number;         // Minutos
     repetitions?: number;          // Repetições recomendadas
 
     // Dados específicos por tipo
-    data: ExerciseData;
+    data?: ExerciseData | Record<string, unknown>;
 
     // Feedback
-    successCriteria: SuccessCriteria;
+    successCriteria: SuccessCriteria | string[];
     hints: string[];               // Dicas progressivas
     commonMistakes: string[];      // Erros comuns a evitar
 
@@ -204,7 +208,7 @@ export interface Quiz {
     // Configuração
     passingScore: number;          // Porcentagem mínima (70)
     timeLimit?: number;            // Segundos (opcional)
-    allowRetry: boolean;
+    allowRetry?: boolean;
     maxAttempts?: number;
 
     // Recompensas
@@ -215,7 +219,7 @@ export interface Quiz {
 export interface QuizQuestion {
     id: string;
     question: string;
-    type: 'multiple-choice' | 'true-false' | 'image-choice';
+    type?: 'multiple-choice' | 'true-false' | 'image-choice';
 
     // Opções
     options: QuizOption[];
@@ -224,6 +228,7 @@ export interface QuizQuestion {
     // Feedback
     explanation: string;           // Explicação da resposta correta
     hint?: string;                 // Dica (mostrada após erro)
+    difficulty?: 'easy' | 'medium' | 'hard';
 
     // Recursos visuais
     image?: string;
@@ -320,9 +325,11 @@ export interface Badge {
     description: string;
     icon: string;                  // Emoji ou URL
     rarity: BadgeRarity;
+    category?: string;             // Category (optional)
+    unlockedAt?: Date;             // When unlocked (optional)
 
     // Critérios
-    criteria: BadgeCriteria;
+    criteria?: BadgeCriteria;
 
     // Recompensa
     xpBonus: number;
