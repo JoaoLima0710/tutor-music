@@ -8,8 +8,7 @@ import { ChordSheetWithPlayer } from '@/components/songs/ChordSheetWithPlayer';
 import { AdvancedSongPlayer } from '@/components/songs/AdvancedSongPlayer';
 import { PerformanceMode } from '@/components/songs/PerformanceMode';
 import { SheetMusicMode } from '@/components/songs/SheetMusicMode';
-import { Metronome, PracticeMode } from '@/components/practice';
-import { AudioRecorder } from '@/components/practice/AudioRecorder';
+import { Metronome, PracticeMode, AudioRecorder } from '@/components/practice';
 import { Button } from '@/components/ui/button';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useSongStore } from '@/stores/useSongStore';
@@ -52,33 +51,33 @@ export default function SongDetail() {
   const [transposition, setTransposition] = useState(0); // Semitons: -12 to +12
   const [capo, setCapo] = useState(0); // Capo position: 0 to 12
   const [simplified, setSimplified] = useState(false);
-  
+
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { isFavorite, toggleFavorite, markAsPracticed } = useSongStore();
   const { isSongUnlocked, getUnlockRequirements } = useSongUnlockStore();
   const { user } = useUserStore();
-  
+
   const userName = user?.name || "Usuário";
   const songId = params?.id || '';
   const song = getSongById(songId);
-  
+
   useEffect(() => {
     if (!song) {
       setLocation('/songs');
     }
   }, [song, setLocation]);
-  
+
   if (!song) {
     return null;
   }
-  
+
   const favorite = isFavorite(song.id);
   const isUnlocked = isSongUnlocked(song.id);
   const unlockRequirements = getUnlockRequirements(song.id);
   const complexity = songAnalysisService.analyzeComplexity(song);
   const skillTree = songAnalysisService.createSkillTree(song);
   const readiness = songAnalysisService.isUserReadyForSong(song);
-  
+
   // Transpose chords
   const transposeChord = (chord: string, semitones: number): string => {
     // Simplified transposition - would need full chord library for accurate transposition
@@ -86,18 +85,18 @@ export default function SongDetail() {
     const baseNote = chord.match(/^[A-G]#?b?/)?.[0] || 'C';
     const noteIndex = notes.indexOf(baseNote);
     if (noteIndex === -1) return chord;
-    
+
     const newIndex = (noteIndex + semitones + 12) % 12;
     const newNote = notes[newIndex];
     return chord.replace(baseNote, newNote);
   };
-  
+
   const getTransposedChords = () => {
     if (transposition === 0 && capo === 0) return song.chords;
     const totalSemitones = transposition + capo;
     return song.chords.map(chord => transposeChord(chord, totalSemitones));
   };
-  
+
   const handlePractice = () => {
     if (!isUnlocked) {
       toast.error('Esta música ainda está bloqueada. Complete os requisitos para desbloqueá-la!');
@@ -106,7 +105,7 @@ export default function SongDetail() {
     markAsPracticed(song.id);
     setShowPerformanceMode(true);
   };
-  
+
   const handleExportPdf = async () => {
     try {
       toast.loading('Gerando PDF...');
@@ -117,19 +116,19 @@ export default function SongDetail() {
       toast.error('Erro ao gerar PDF');
     }
   };
-  
+
   return (
     <>
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
-        <Sidebar 
+        <Sidebar
           userName={userName}
           userLevel={level}
           currentXP={xp}
           xpToNextLevel={xpToNextLevel}
           streak={currentStreak}
         />
-        
+
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto p-8 space-y-8">
             {/* Back Button */}
@@ -141,7 +140,7 @@ export default function SongDetail() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar para Músicas
             </Button>
-            
+
             {/* Header Card */}
             <motion.div
               className="relative overflow-hidden rounded-3xl p-8 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10"
@@ -150,7 +149,7 @@ export default function SongDetail() {
               transition={{ duration: 0.4 }}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${genreColors[song.genre]} opacity-10`}></div>
-              
+
               <div className="relative z-10">
                 <div className="flex items-start justify-between mb-6">
                   <div>
@@ -162,11 +161,11 @@ export default function SongDetail() {
                         {difficultyLabels[song.difficulty]}
                       </div>
                     </div>
-                    
+
                     <h1 className="text-4xl font-bold text-white mb-2">{song.title}</h1>
                     <p className="text-xl text-gray-300">{song.artist}</p>
                   </div>
-                  
+
                   <button
                     onClick={() => toggleFavorite(song.id)}
                     className="p-3 rounded-full hover:bg-white/10 transition-colors"
@@ -176,9 +175,9 @@ export default function SongDetail() {
                     />
                   </button>
                 </div>
-                
+
                 <p className="text-gray-300 mb-6">{song.description}</p>
-                
+
                 {/* Info Grid */}
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5">
@@ -188,7 +187,7 @@ export default function SongDetail() {
                       <p className="text-lg font-bold text-white">{song.key}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5">
                     <Clock className="w-5 h-5 text-[#f97316]" />
                     <div>
@@ -196,7 +195,7 @@ export default function SongDetail() {
                       <p className="text-lg font-bold text-white">{song.bpm}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5">
                     <TrendingUp className="w-5 h-5 text-[#10b981]" />
                     <div>
@@ -205,7 +204,7 @@ export default function SongDetail() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Lock Status */}
                 {!isUnlocked && (
                   <div className="mb-6 p-4 rounded-xl bg-yellow-500/20 border border-yellow-500/30">
@@ -228,7 +227,7 @@ export default function SongDetail() {
                     </ul>
                   </div>
                 )}
-                
+
                 {/* Transposition & Capo Controls */}
                 <div className="mb-6 p-4 rounded-xl bg-[#1a1a2e]/60 border border-white/10">
                   <h3 className="text-sm font-semibold text-gray-400 mb-3">Ajustar Tom</h3>
@@ -258,7 +257,7 @@ export default function SongDetail() {
                         </Button>
                       </div>
                     </div>
-                    
+
                     {/* Capo */}
                     <div>
                       <label className="text-xs text-gray-400 mb-2 block">Capotraste</label>
@@ -284,7 +283,7 @@ export default function SongDetail() {
                         </Button>
                       </div>
                     </div>
-                    
+
                     {/* Simplify */}
                     <div>
                       <label className="text-xs text-gray-400 mb-2 block">Simplificar</label>
@@ -298,7 +297,7 @@ export default function SongDetail() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   {(transposition !== 0 || capo !== 0) && (
                     <div className="mt-3 pt-3 border-t border-white/10">
                       <p className="text-xs text-gray-400 mb-2">Acordes Transpostos:</p>
@@ -315,7 +314,7 @@ export default function SongDetail() {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Chords */}
                 <div className="mb-6">
                   <h3 className="text-sm font-semibold text-gray-400 mb-3">Acordes Usados</h3>
@@ -330,7 +329,7 @@ export default function SongDetail() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Action Buttons */}
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
@@ -343,7 +342,7 @@ export default function SongDetail() {
                       {isUnlocked ? 'Modo Performance' : 'Bloqueada'}
                     </Button>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       onClick={() => setShowSheetMusic(true)}
@@ -360,7 +359,7 @@ export default function SongDetail() {
                       🎭 Performance
                     </Button>
                   </div>
-                  
+
                   <Button
                     onClick={() => cifraClubService.openCifraClub(song.artist, song.title)}
                     variant="outline"
@@ -380,10 +379,10 @@ export default function SongDetail() {
                 </div>
               </div>
             </motion.div>
-            
+
             {/* Song Skill Tree */}
             <div className="rounded-2xl p-6 bg-gradient-to-br from-[#8b5cf6]/20 to-[#a855f7]/10 border border-[#8b5cf6]/30">
-              <SongSkillTreeComponent 
+              <SongSkillTreeComponent
                 skillTree={skillTree}
                 onChallengeStart={(challengeId) => {
                   // TODO: Implementar navegação para desafio específico
@@ -391,7 +390,7 @@ export default function SongDetail() {
                 }}
               />
             </div>
-            
+
             {/* Practice Mode Toggle */}
             <div className="flex gap-3">
               <Button
@@ -411,7 +410,7 @@ export default function SongDetail() {
                 {showMetronome ? 'Ocultar Metrônomo' : 'Mostrar Metrônomo'}
               </Button>
             </div>
-            
+
             {/* Practice Mode */}
             {showPracticeMode && (
               <div>
@@ -426,7 +425,7 @@ export default function SongDetail() {
                 />
               </div>
             )}
-            
+
             {/* Audio Recorder */}
             <div>
               <Button
@@ -438,7 +437,7 @@ export default function SongDetail() {
                 {showRecorder ? 'Ocultar Gravador' : 'Gravar Sessão'}
               </Button>
             </div>
-            
+
             {showRecorder && (
               <div>
                 <h2 className="text-2xl font-bold text-white mb-4">Gravação de Áudio</h2>
@@ -448,7 +447,7 @@ export default function SongDetail() {
                 />
               </div>
             )}
-            
+
             {/* Metronome */}
             {showMetronome && (
               <div>
@@ -471,18 +470,18 @@ export default function SongDetail() {
                 </div>
               </div>
             )}
-            
+
             {/* Chord Sheet */}
             <div>
               <h2 className="text-2xl font-bold text-white mb-4">Cifra Completa</h2>
-              <AdvancedSongPlayer 
-                chordSheet={song.chordSheet} 
+              <AdvancedSongPlayer
+                chordSheet={song.chordSheet}
                 bpm={song.bpm}
                 title={song.title}
                 artist={song.artist}
               />
             </div>
-            
+
             {/* Tips */}
             <motion.div
               className="rounded-2xl p-6 bg-[#1a1a2e]/60 backdrop-blur-xl border border-white/10"
@@ -494,7 +493,7 @@ export default function SongDetail() {
                 <Lightbulb className="w-6 h-6 text-[#fbbf24]" />
                 <h2 className="text-2xl font-bold text-white">Dicas de Execução</h2>
               </div>
-              
+
               <ul className="space-y-3">
                 {song.tips.map((tip, index) => (
                   <li key={index} className="flex items-start gap-3">
@@ -509,10 +508,10 @@ export default function SongDetail() {
           </div>
         </div>
       </div>
-      
+
       {/* MOBILE VERSION */}
       <div className="lg:hidden min-h-screen bg-[#0f0f1a] text-white">
-        <MobileSidebar 
+        <MobileSidebar
           isOpen={isMobileSidebarOpen}
           onClose={() => setIsMobileSidebarOpen(false)}
           userName={userName}
@@ -521,12 +520,12 @@ export default function SongDetail() {
           xpToNextLevel={xpToNextLevel}
           streak={currentStreak}
         />
-        
-        <MobileHeader 
+
+        <MobileHeader
           userName={userName}
           onMenuClick={() => setIsMobileSidebarOpen(true)}
         />
-        
+
         <main className="px-5 py-5 space-y-6 pb-24">
           {/* Back Button */}
           <Button
@@ -538,11 +537,11 @@ export default function SongDetail() {
             <ArrowLeft className="w-4 h-4 mr-1" />
             Voltar
           </Button>
-          
+
           {/* Header */}
           <div className="relative overflow-hidden rounded-2xl p-6 backdrop-blur-xl bg-[#1a1a2e]/60 border border-white/10">
             <div className={`absolute inset-0 bg-gradient-to-br ${genreColors[song.genre]} opacity-10`}></div>
-            
+
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -551,11 +550,11 @@ export default function SongDetail() {
                       {song.genre}
                     </div>
                   </div>
-                  
+
                   <h1 className="text-2xl font-bold text-white mb-1">{song.title}</h1>
                   <p className="text-base text-gray-300">{song.artist}</p>
                 </div>
-                
+
                 <button
                   onClick={() => toggleFavorite(song.id)}
                   className="p-2 rounded-full hover:bg-white/10"
@@ -565,9 +564,9 @@ export default function SongDetail() {
                   />
                 </button>
               </div>
-              
+
               <p className="text-sm text-gray-300 mb-4">{song.description}</p>
-              
+
               <div className="grid grid-cols-3 gap-2 mb-4">
                 <div className="px-3 py-2 rounded-lg bg-white/5 text-center">
                   <p className="text-xs text-gray-400">Tom</p>
@@ -582,7 +581,7 @@ export default function SongDetail() {
                   <p className="text-base font-bold text-white">{song.chords.length}</p>
                 </div>
               </div>
-              
+
               <Button
                 onClick={handlePractice}
                 className={`w-full bg-gradient-to-r ${genreColors[song.genre]} text-white font-semibold`}
@@ -592,7 +591,7 @@ export default function SongDetail() {
               </Button>
             </div>
           </div>
-          
+
           {/* Chords */}
           <div>
             <h3 className="text-sm font-semibold text-gray-400 mb-2">Acordes</h3>
@@ -607,7 +606,7 @@ export default function SongDetail() {
               ))}
             </div>
           </div>
-          
+
           {/* Metronome Toggle */}
           <div>
             <Button
@@ -620,7 +619,7 @@ export default function SongDetail() {
               {showMetronome ? 'Ocultar Metrônomo' : 'Mostrar Metrônomo'}
             </Button>
           </div>
-          
+
           {/* Metronome */}
           {showMetronome && (
             <div>
@@ -628,25 +627,25 @@ export default function SongDetail() {
               <Metronome defaultBpm={song.bpm} />
             </div>
           )}
-          
+
           {/* Chord Sheet */}
           <div>
             <h3 className="text-lg font-bold text-white mb-3">Cifra</h3>
-            <AdvancedSongPlayer 
-              chordSheet={song.chordSheet} 
+            <AdvancedSongPlayer
+              chordSheet={song.chordSheet}
               bpm={song.bpm}
               title={song.title}
               artist={song.artist}
             />
           </div>
-          
+
           {/* Tips */}
           <div className="rounded-2xl p-5 bg-[#1a1a2e]/60 backdrop-blur-xl border border-white/10">
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="w-5 h-5 text-[#fbbf24]" />
               <h3 className="text-lg font-bold text-white">Dicas</h3>
             </div>
-            
+
             <ul className="space-y-2">
               {song.tips.map((tip, index) => (
                 <li key={index} className="flex items-start gap-2 text-sm">
@@ -659,10 +658,10 @@ export default function SongDetail() {
             </ul>
           </div>
         </main>
-        
+
         <MobileBottomNav />
       </div>
-      
+
       {/* Performance Mode */}
       {showPerformanceMode && (
         <div className="fixed inset-0 z-50 bg-[#0f0f1a]">
@@ -675,7 +674,7 @@ export default function SongDetail() {
           />
         </div>
       )}
-      
+
       {/* Sheet Music Mode */}
       {showSheetMusic && (
         <div className="fixed inset-0 z-50">

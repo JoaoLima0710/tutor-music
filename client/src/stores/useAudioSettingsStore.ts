@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type AudioEngineType = 'synthesis' | 'samples' | 'guitarset' | 'philharmonia';
+export type AudioEngineType = 'synthesis' | 'samples' | 'guitarset';
 export type InstrumentType =
   | 'nylon-guitar'
   | 'steel-guitar'

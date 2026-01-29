@@ -8,16 +8,17 @@ import {
   EarTraining,
   EssentialIntervalTraining,
   MajorMinorChordTraining,
-  ActiveRhythmTraining,
+  RhythmListeningPractice,
   ShortTermMemoryTraining,
   ActiveAuditoryPerception,
+
   PhysicalPreparation,
   ContextualEarTraining,
   TranscriptionExercise,
   ChordProgressionPractice,
-  RhythmTraining,
   MotorCoordinationExercises,
   GuidedTrainingSession,
+  RhythmTimingPractice,
 } from '@/components/practice';
 import { RealtimeChordDetector } from '@/components/chord-detection/RealtimeChordDetector';
 import { AdaptiveDifficultyRecommendations } from '@/components/adaptive/AdaptiveDifficultyRecommendations';
@@ -341,7 +342,7 @@ export default function Practice() {
                 <div className="flex items-center gap-2 mb-4">
                   <h2 className="text-xl lg:text-2xl font-bold text-white">🥁 Treino Rítmico</h2>
                 </div>
-                <RhythmTraining onComplete={() => { }} />
+                <RhythmTimingPractice onComplete={() => { }} />
               </div>
 
               {/* Motor Coordination */}
@@ -349,7 +350,9 @@ export default function Practice() {
                 <div className="flex items-center gap-2 mb-4">
                   <h2 className="text-xl lg:text-2xl font-bold text-white">🏃 Coordenação Motora</h2>
                 </div>
+                <RhythmTimingPractice onComplete={() => { }} />
                 <MotorCoordinationExercises onComplete={() => { }} />
+                <RhythmListeningPractice />
               </div>
 
               {/* Active Auditory (Rhythm) */}
@@ -357,7 +360,7 @@ export default function Practice() {
                 <div className="flex items-center gap-2 mb-4">
                   <h2 className="text-xl lg:text-2xl font-bold text-white">👏 Ritmo Auditivo Ativo</h2>
                 </div>
-                <ActiveRhythmTraining />
+                <RhythmListeningPractice />
               </div>
             </div>
           </div>

@@ -18,6 +18,9 @@ class AudioBus {
   private audioEngine: AudioEngine;
   private audioMixer: AudioMixer;
   private sampleLoader: SampleLoader;
+  private isInitialized = false;
+
+  // Propriedades que estavam faltando - corrigido para evitar TypeError
   private activeSources: Set<AudioBufferSourceNode | OscillatorNode> = new Set();
   private lastPlayedSound: string | null = null;
   private lastPlayedBuffer: { buffer: AudioBuffer; soundId: string } | null = null;
@@ -26,6 +29,13 @@ class AudioBus {
     this.audioEngine = AudioEngine.getInstance();
     this.audioMixer = new AudioMixer();
     this.sampleLoader = SampleLoader.getInstance();
+  }
+
+  private async ensureInitialized(): Promise<void> {
+    if (!this.isInitialized) {
+      await this.audioMixer.initialize();
+      this.isInitialized = true;
+    }
   }
 
   /**
@@ -75,6 +85,9 @@ class AudioBus {
     offset?: number;
     duration?: number;
   }): Promise<boolean> {
+    // Garantir inicialização do Mixer
+    await this.ensureInitialized();
+
     // Validação 1: Buffer deve existir (parâmetros)
     if (!buffer) {
       console.error('[AudioBus] playBuffer falhou: buffer é null ou undefined');
@@ -111,17 +124,17 @@ class AudioBus {
       // Normalização e envelope ADSR para acordes (se canal for 'chords')
       let normalizationGainNode: GainNode | null = null;
       let envelopeGain: GainNode | null = null;
-      
+
       if (channel === 'chords') {
         // Analisar e normalizar volume do buffer usando RMS/LUFS
         // Isso garante que todos os acordes tenham loudness consistente
         const { chordNormalizer } = await import('../services/ChordNormalizer');
         const normalizationGain = chordNormalizer.analyzeAndNormalize(buffer);
-        
+
         // Criar gain para normalização (aplicado antes do envelope)
         normalizationGainNode = audioContext.createGain();
         normalizationGainNode.gain.value = normalizationGain;
-        
+
         // Criar envelope ADSR padrão para consistência
         envelopeGain = audioContext.createGain();
         const bufferDuration = duration ?? buffer.duration;
@@ -194,6 +207,9 @@ class AudioBus {
     when?: number;
     useClearEnvelope?: boolean;
   }): Promise<boolean> {
+    // Garantir inicialização do Mixer
+    await this.ensureInitialized();
+
     // Validação 1: Frequência deve ser válida (parâmetros)
     if (frequency <= 0 || !isFinite(frequency)) {
       console.error(`[AudioBus] playOscillator falhou: frequência inválida ${frequency}`);
@@ -237,7 +253,7 @@ class AudioBus {
 
       // Criar envelope de amplitude
       const envelopeGain = audioContext.createGain();
-      
+
       if (useClearEnvelope) {
         // Usar envelope claro para percepção auditiva (ataque mais definido)
         applyClearEnvelope(envelopeGain, audioContext, startTime, duration);
@@ -389,7 +405,7 @@ class AudioBus {
     try {
       // Carregar sample internamente (AudioBus é responsável pelo carregamento)
       const sample = await this.sampleLoader.loadSample(sampleUrl);
-      
+
       // Reproduzir usando playSample
       return this.playSample({
         sample,
@@ -466,7 +482,7 @@ class AudioBus {
         if (channelGain) {
           // Salvar volume atual
           const currentVolume = channelGain.gain.value;
-          
+
           // Aplicar fade-out
           channelGain.gain.setValueAtTime(currentVolume, currentTime);
           channelGain.gain.linearRampToValueAtTime(0, fadeOutEndTime);

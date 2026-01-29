@@ -32,10 +32,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { PhysicalPreparation } from './PhysicalPreparation';
-import { MotorCoordinationExercises } from './MotorCoordinationExercises';
-import { RhythmTraining } from './RhythmTraining';
-import { ChordProgressionPractice } from './ChordProgressionPractice';
+import { PhysicalPreparation } from './technique/PhysicalPreparation';
+import { MotorCoordinationExercises } from './technique/MotorCoordinationExercises';
+import { RhythmTimingPractice } from './rhythm/RhythmTimingPractice';
+import { ChordProgressionPractice } from './chords/ChordProgressionPractice';
 
 type SessionPhase = 'welcome' | 'warmup' | 'coordination' | 'rhythm' | 'chords' | 'completion';
 
@@ -89,7 +89,7 @@ const SESSION_STRUCTURE: SessionStep[] = [
     title: 'Treino Rítmico',
     description: 'Desenvolva seu pulso interno',
     duration: 5,
-    component: RhythmTraining,
+    component: RhythmTimingPractice,
     tips: [
       'Ouça o metrônomo antes de bater',
       'Tente sentir o pulso internamente',
@@ -139,7 +139,7 @@ export function GuidedTrainingSession({
   // Avançar para próxima fase
   const nextPhase = () => {
     setCompletedPhases(prev => new Set(prev).add(currentPhase));
-    
+
     if (currentIndex < SESSION_STRUCTURE.length - 1) {
       setCurrentPhase(SESSION_STRUCTURE[currentIndex + 1].id as SessionPhase);
       setPhaseStartTime(Date.now());
@@ -173,7 +173,7 @@ export function GuidedTrainingSession({
     if (!currentStep.component) return null;
 
     const Component = currentStep.component;
-    
+
     // Props específicas por componente
     const componentProps: any = {
       onExit: onExit,
@@ -199,7 +199,7 @@ export function GuidedTrainingSession({
         }, 2000);
       };
     }
-    
+
     return (
       <div className="mt-6">
         <Component {...componentProps} />
@@ -258,15 +258,14 @@ export function GuidedTrainingSession({
             return (
               <div
                 key={step.id}
-                className={`flex-1 h-2 rounded transition-all ${
-                  isCompleted
-                    ? 'bg-green-500'
-                    : isCurrent
+                className={`flex-1 h-2 rounded transition-all ${isCompleted
+                  ? 'bg-green-500'
+                  : isCurrent
                     ? 'bg-purple-500'
                     : isPast
-                    ? 'bg-purple-500/30'
-                    : 'bg-gray-700'
-                }`}
+                      ? 'bg-purple-500/30'
+                      : 'bg-gray-700'
+                  }`}
                 title={step.title}
               />
             );
@@ -307,7 +306,7 @@ export function GuidedTrainingSession({
                   <Sparkles className="w-12 h-12 text-white" />
                 </div>
               </motion.div>
-              
+
               <h3 className="text-3xl font-bold text-white mb-3">{currentStep.title}</h3>
               <p className="text-lg text-gray-300 mb-6">{currentStep.description}</p>
 

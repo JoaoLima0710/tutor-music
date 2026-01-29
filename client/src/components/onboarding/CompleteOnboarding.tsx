@@ -26,6 +26,7 @@ import {
 import { useUserStore } from '@/stores/useUserStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { Link } from 'wouter';
+import { PlacementTest, type PlacementLevel } from './PlacementTest';
 
 interface OnboardingStep {
   id: string;
@@ -67,11 +68,11 @@ export function CompleteOnboarding({ onComplete, onSkip }: CompleteOnboardingPro
     import('@/stores/useTheoryProgressionStore').then(({ useTheoryProgressionStore }) => {
       useTheoryProgressionStore.getState().applyPlacementTest(level, score);
     });
-    
+
     import('@/stores/useProgressionStore').then(({ useProgressionStore }) => {
       useProgressionStore.getState().applyPlacementTest(level, score);
     });
-    
+
     setUserLevel(level);
     setPlacementTestCompleted(true);
     setShowPlacementTest(false);
@@ -83,8 +84,8 @@ export function CompleteOnboarding({ onComplete, onSkip }: CompleteOnboardingPro
       title: 'Bem-vindo ao MusicTutor! 🎸',
       description: 'Vamos configurar sua experiência de aprendizado',
       component: (
-        <WelcomeStep 
-          level={userLevel} 
+        <WelcomeStep
+          level={userLevel}
           onLevelSelect={setUserLevel}
           onTakePlacementTest={() => setShowPlacementTest(true)}
           placementTestCompleted={placementTestCompleted}
@@ -134,11 +135,11 @@ export function CompleteOnboarding({ onComplete, onSkip }: CompleteOnboardingPro
     localStorage.setItem('musictutor_user_level', userLevel);
     localStorage.setItem('musictutor_user_goals', JSON.stringify(goals));
     localStorage.setItem('musictutor_first_access', 'false');
-    
+
     // Atualizar store
     const userStore = useUserStore.getState();
     userStore.updateUser({ level: userLevel });
-    
+
     onComplete(goals);
   };
 
@@ -157,7 +158,7 @@ export function CompleteOnboarding({ onComplete, onSkip }: CompleteOnboardingPro
           >
             <X className="w-5 h-5" />
           </button>
-          
+
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
               <Music className="w-6 h-6 text-white" />
@@ -167,7 +168,7 @@ export function CompleteOnboarding({ onComplete, onSkip }: CompleteOnboardingPro
               <p className="text-white/70 text-sm">{currentStepData.description}</p>
             </div>
           </div>
-          
+
           {/* Progress Bar */}
           <div className="mt-4">
             <Progress value={progress} className="h-2" />
@@ -202,7 +203,7 @@ export function CompleteOnboarding({ onComplete, onSkip }: CompleteOnboardingPro
           >
             Pular
           </Button>
-          
+
           <Button
             onClick={handleNext}
             className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
@@ -221,7 +222,7 @@ export function CompleteOnboarding({ onComplete, onSkip }: CompleteOnboardingPro
           </Button>
         </div>
       </motion.div>
-      
+
       {/* Modal de Teste de Nivelamento */}
       <AnimatePresence>
         {showPlacementTest && (
@@ -305,23 +306,22 @@ function WelcomeStep({
       <p className="text-white/80 text-center mb-6">
         Selecione seu nível atual para personalizarmos seu aprendizado
       </p>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {levels.map((lvl) => {
           const Icon = lvl.icon;
           const isSelected = level === lvl.id;
-          
+
           return (
             <motion.button
               key={lvl.id}
               onClick={() => onLevelSelect(lvl.id)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`p-6 rounded-xl border-2 transition-all ${
-                isSelected
-                  ? `bg-gradient-to-br ${lvl.color} border-white shadow-lg`
-                  : 'bg-white/5 border-white/20 hover:border-white/40'
-              }`}
+              className={`p-6 rounded-xl border-2 transition-all ${isSelected
+                ? `bg-gradient-to-br ${lvl.color} border-white shadow-lg`
+                : 'bg-white/5 border-white/20 hover:border-white/40'
+                }`}
             >
               <Icon className={`w-8 h-8 mb-3 ${isSelected ? 'text-white' : 'text-white/60'}`} />
               <h3 className={`font-bold text-lg mb-1 ${isSelected ? 'text-white' : 'text-white/90'}`}>
@@ -337,7 +337,7 @@ function WelcomeStep({
           );
         })}
       </div>
-      
+
       {/* Teste de Nivelamento Opcional */}
       <div className="mt-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
         <div className="flex items-center justify-between">
@@ -404,16 +404,15 @@ function GoalsQuestionnaire({
           {objectives.map((obj) => {
             const Icon = obj.icon;
             const isSelected = goals.mainObjective === obj.id;
-            
+
             return (
               <button
                 key={obj.id}
                 onClick={() => updateGoals({ mainObjective: obj.id })}
-                className={`p-4 rounded-lg border-2 text-left transition-all ${
-                  isSelected
-                    ? 'bg-purple-500/30 border-purple-400'
-                    : 'bg-white/5 border-white/20 hover:border-white/40'
-                }`}
+                className={`p-4 rounded-lg border-2 text-left transition-all ${isSelected
+                  ? 'bg-purple-500/30 border-purple-400'
+                  : 'bg-white/5 border-white/20 hover:border-white/40'
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon className={`w-5 h-5 ${isSelected ? 'text-purple-300' : 'text-white/60'}`} />
@@ -480,11 +479,10 @@ function GoalsQuestionnaire({
                     : [...goals.favoriteGenres, genre];
                   updateGoals({ favoriteGenres: newGenres });
                 }}
-                className={`px-4 py-2 rounded-full text-sm transition-all ${
-                  isSelected
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-white/10 text-white/80 hover:bg-white/20'
-                }`}
+                className={`px-4 py-2 rounded-full text-sm transition-all ${isSelected
+                  ? 'bg-purple-500 text-white'
+                  : 'bg-white/10 text-white/80 hover:bg-white/20'
+                  }`}
               >
                 {genre}
               </button>
@@ -501,21 +499,19 @@ function GoalsQuestionnaire({
         <div className="flex gap-4">
           <button
             onClick={() => updateGoals({ hasInstrument: true })}
-            className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-              goals.hasInstrument
-                ? 'bg-green-500/30 border-green-400 text-white'
-                : 'bg-white/5 border-white/20 text-white/80'
-            }`}
+            className={`flex-1 p-4 rounded-lg border-2 transition-all ${goals.hasInstrument
+              ? 'bg-green-500/30 border-green-400 text-white'
+              : 'bg-white/5 border-white/20 text-white/80'
+              }`}
           >
             Sim, já tenho
           </button>
           <button
             onClick={() => updateGoals({ hasInstrument: false })}
-            className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-              !goals.hasInstrument
-                ? 'bg-orange-500/30 border-orange-400 text-white'
-                : 'bg-white/5 border-white/20 text-white/80'
-            }`}
+            className={`flex-1 p-4 rounded-lg border-2 transition-all ${!goals.hasInstrument
+              ? 'bg-orange-500/30 border-orange-400 text-white'
+              : 'bg-white/5 border-white/20 text-white/80'
+              }`}
           >
             Ainda não
           </button>
@@ -584,9 +580,8 @@ function InterfaceTour({
         {tourSteps.map((_, i) => (
           <div
             key={i}
-            className={`h-2 rounded-full transition-all ${
-              i === step ? 'w-8 bg-purple-400' : 'w-2 bg-white/30'
-            }`}
+            className={`h-2 rounded-full transition-all ${i === step ? 'w-8 bg-purple-400' : 'w-2 bg-white/30'
+              }`}
           />
         ))}
       </div>
@@ -615,7 +610,7 @@ function FirstExerciseStep() {
               <div className="text-4xl font-bold text-white mb-2">C</div>
               <p className="text-white/60">Acorde Dó Maior</p>
             </div>
-            
+
             <div className="bg-white/5 rounded-lg p-4">
               <p className="text-white/80 text-sm mb-3 font-semibold">Posição dos dedos:</p>
               <ul className="space-y-2 text-white/70 text-sm">
@@ -644,7 +639,7 @@ function FirstExerciseStep() {
 
       <div className="bg-blue-500/20 border border-blue-500/40 rounded-lg p-4">
         <p className="text-blue-200 text-sm">
-          💡 <strong>Dica:</strong> Pratique este acorde algumas vezes antes de continuar. 
+          💡 <strong>Dica:</strong> Pratique este acorde algumas vezes antes de continuar.
           Não se preocupe se não sair perfeito na primeira tentativa!
         </p>
       </div>
@@ -713,14 +708,12 @@ function SetupStep({ goals }: { goals: UserGoals }) {
             </div>
             <button
               onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-              className={`w-12 h-6 rounded-full transition-colors ${
-                notificationsEnabled ? 'bg-purple-500' : 'bg-white/20'
-              }`}
+              className={`w-12 h-6 rounded-full transition-colors ${notificationsEnabled ? 'bg-purple-500' : 'bg-white/20'
+                }`}
             >
               <div
-                className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                  notificationsEnabled ? 'translate-x-6' : 'translate-x-0.5'
-                }`}
+                className={`w-5 h-5 rounded-full bg-white transition-transform ${notificationsEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                  }`}
               />
             </button>
           </div>
@@ -738,34 +731,19 @@ function SetupStep({ goals }: { goals: UserGoals }) {
 }
 
 // Hook para gerenciar onboarding completo
+// DESABILITADO: Onboarding removido conforme solicitação do usuário
 export function useCompleteOnboarding() {
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
+  // Sempre retorna false - onboarding está desabilitado
+  const showOnboarding = false;
+  const isCompleted = true;
 
-  useEffect(() => {
-    const completed = localStorage.getItem('musictutor_onboarding_completed');
-    const firstAccess = localStorage.getItem('musictutor_first_access');
-    
-    if (!completed && firstAccess !== 'false') {
-      // Primeiro acesso - mostrar onboarding
-      setShowOnboarding(true);
-      localStorage.setItem('musictutor_first_access', 'true');
-    }
-    
-    setIsCompleted(completed === 'true');
-  }, []);
-
-  const completeOnboarding = (goals: UserGoals) => {
+  const completeOnboarding = (_goals: UserGoals) => {
     localStorage.setItem('musictutor_onboarding_completed', 'true');
-    setShowOnboarding(false);
-    setIsCompleted(true);
   };
 
   const skipOnboarding = () => {
     localStorage.setItem('musictutor_onboarding_completed', 'true');
     localStorage.setItem('musictutor_first_access', 'false');
-    setShowOnboarding(false);
-    setIsCompleted(true);
   };
 
   return {

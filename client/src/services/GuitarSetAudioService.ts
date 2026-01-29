@@ -516,9 +516,14 @@ class GuitarSetAudioService {
     // Para tablets: usar duração completa do sample
     const fullDuration = duration || buffer.duration;
 
+    // Micro-dynamics: ±2% volume variation to reduce auditory fatigue
+    // This makes repeats sound less "robotic" and more natural
+    const microDynamic = 1.0 + (Math.random() * 0.04 - 0.02);
+    const finalGain = normalizationGain * microDynamic;
+
     // Play the buffer with normalized gain and full duration
     // O envelope ADSR será aplicado automaticamente no playBuffer quando normalizationGain !== 1.0
-    await this.playBuffer(buffer, undefined, fullDuration, normalizationGain);
+    await this.playBuffer(buffer, undefined, fullDuration, finalGain);
     console.log(`✅ Chord played: ${normalizedChord}, duration: ${fullDuration.toFixed(2)}s, gain: ${normalizationGain.toFixed(3)}`);
   }
 
@@ -755,6 +760,29 @@ class GuitarSetAudioService {
 
   getInstrument(): InstrumentType {
     return 'nylon-guitar'; // GuitarSet samples are guitar
+  }
+
+  async fadeOutAll(duration: number = 0.15): Promise<void> {
+    if (!this.gainNode || !this.audioContext) return;
+
+    const currentTime = this.audioContext.currentTime;
+    try {
+      // Cancelar mudanças futuras
+      this.gainNode.gain.cancelScheduledValues(currentTime);
+
+      // Manter valor atual
+      this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, currentTime);
+
+      // Ramp para 0
+      this.gainNode.gain.linearRampToValueAtTime(0, currentTime + duration);
+
+      // Parar tudo após o fade
+      await new Promise(resolve => setTimeout(resolve, duration * 1000 + 50));
+      this.stopAll();
+    } catch (e) {
+      console.warn('FadeOut failed, stopping abruptly:', e);
+      this.stopAll();
+    }
   }
 
   stopAll(): void {

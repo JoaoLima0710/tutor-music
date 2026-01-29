@@ -1,7 +1,6 @@
 import { audioService } from './AudioService';
 import { audioServiceWithSamples } from './AudioServiceWithSamples';
 import { guitarSetAudioService } from './GuitarSetAudioService';
-import { philharmoniaAudioService } from './PhilharmoniaAudioService';
 import { useAudioSettingsStore } from '@/stores/useAudioSettingsStore';
 import type { AudioEngineType, InstrumentType } from '@/stores/useAudioSettingsStore';
 export type { AudioEngineType, InstrumentType };
@@ -16,6 +15,7 @@ import {
   checkBrowserSupport,
 } from '@/errors/AudioErrors';
 import { audioResilienceService } from './AudioResilienceService';
+import { guidanceAudioService } from './GuidanceAudioService';
 import { toast } from 'sonner';
 
 /**
@@ -216,7 +216,6 @@ class AudioManager {
 
       this.currentEngine = engine;
       if (engine === 'guitarset') this.activeService = guitarSetAudioService;
-      else if (engine === 'philharmonia') this.activeService = philharmoniaAudioService;
       else if (engine === 'samples') this.activeService = audioServiceWithSamples;
       else this.activeService = audioService;
 
@@ -258,27 +257,12 @@ class AudioManager {
     if (!this.activeService) throw new Error('Audio service not initialized');
 
     try {
-      if (this.currentEngine === 'philharmonia') {
-        const philInstrument = this.mapToPhilharmoniaInstrument(instrument);
-        await this.activeService.setInstrument(philInstrument as any);
-      } else {
-        await this.activeService.setInstrument(instrument as any);
-      }
+      await this.activeService.setInstrument(instrument as any);
+
       this.notifySubscribers();
     } catch (error) {
       console.error('❌ Error setting instrument:', error);
     }
-  }
-
-  private mapToPhilharmoniaInstrument(instrument: InstrumentType): any {
-    const mapping: Record<string, string> = {
-      'violin': 'violin', 'viola': 'viola', 'cello': 'cello', 'double-bass': 'double_bass',
-      'flute': 'flute', 'oboe': 'oboe', 'clarinet': 'clarinet', 'saxophone': 'saxophone',
-      'trumpet': 'trumpet', 'french-horn': 'french_horn', 'trombone': 'trombone',
-      'guitar': 'guitar', 'mandolin': 'mandolin', 'banjo': 'banjo',
-      'nylon-guitar': 'guitar', 'steel-guitar': 'guitar', 'piano': 'violin'
-    };
-    return mapping[instrument] || 'violin';
   }
 
   private checkAutoplayPolicy(): boolean {
@@ -452,9 +436,6 @@ class AudioManager {
       if (this.currentEngine !== 'guitarset' && guitarSetAudioService.stopAll) {
         guitarSetAudioService.stopAll();
       }
-      if (this.currentEngine !== 'philharmonia' && philharmoniaAudioService.stopAll) {
-        philharmoniaAudioService.stopAll();
-      }
     } catch (error) {
       console.error('Error stopping audio:', error);
     } finally {
@@ -542,13 +523,9 @@ class AudioManager {
       const { AudioEngine } = await import('@/audio');
       if (!AudioEngine.getInstance().isReady()) return;
 
-      const success = await audioBus.playOscillator({
-        frequency: 440,
-        type: 'sine',
-        duration: 0.25,
-        channel: 'effects',
-        volume: 0.08,
-      });
+      // Use GuidanceAudioService for the professional C Major Arpeggio Intro
+      await guidanceAudioService.playIntro();
+      const success = true;
 
       if (success) {
         this.hasPlayedActivationRitual = true;

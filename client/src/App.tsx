@@ -48,6 +48,13 @@ const ChordPractice = lazy(() => import("./pages/ChordPractice").then(m => ({ de
 const Theory = lazy(() => import("./pages/Theory"));
 const Explore = lazy(() => import("./pages/Explore"));
 const TrainingDashboard = lazy(() => import("./pages/TrainingDashboard").then(m => ({ default: m.TrainingDashboard })));
+const WeeklyCurriculum = lazy(() => import("./pages/WeeklyCurriculum"));
+const EarTraining = lazy(() => import("./pages/EarTraining"));
+const StyleModules = lazy(() => import("./pages/StyleModules"));
+const DeliberatePractice = lazy(() => import("./pages/DeliberatePractice"));
+const Learn = lazy(() => import("./pages/Learn"));
+const ModuleView = lazy(() => import("./pages/ModuleView"));
+const LessonView = lazy(() => import("./pages/LessonView"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -87,12 +94,19 @@ function Router() {
         <Route path="/tuner" component={Tuner} />
         <Route path="/settings" component={Settings} />
         <Route path="/songs" component={Songs} />
-        <Route path="/song/:id" component={SongDetail} />
+        <Route path="/songs/:id" component={SongDetail} />
         <Route path="/practice" component={Practice} />
         <Route path="/chord-practice/:chord" component={ChordPractice} />
         <Route path="/theory" component={Theory} />
         <Route path="/explore" component={Explore} />
         <Route path="/training" component={TrainingDashboard} />
+        <Route path="/curriculum" component={WeeklyCurriculum} />
+        <Route path="/ear-training" component={EarTraining} />
+        <Route path="/styles" component={StyleModules} />
+        <Route path="/deliberate-practice" component={DeliberatePractice} />
+        <Route path="/learn" component={Learn} />
+        <Route path="/learn/module/:moduleId" component={ModuleView} />
+        <Route path="/learn/lesson/:lessonId" component={LessonView} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

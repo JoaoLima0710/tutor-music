@@ -48,14 +48,14 @@ class FeedbackSoundService {
 
       // Garantir que AudioBus está pronto
       // Nota: AudioBus valida internamente se AudioEngine está pronto
-      
+
       // Limitar volume máximo a 0.2 (baixo) para não distrair
       const clampedVolume = Math.min(0.2, Math.max(0, volume));
 
       // Obter variação para reduzir fadiga auditiva
       const soundId = `feedback-${type}`;
       const variation = auditoryFatigueReducer.getVariation(soundId);
-      
+
       // Se deve pausar, não tocar
       if (variation === null) {
         console.debug('[FeedbackSound] Pausa auditiva ativa, som não tocado');
@@ -64,10 +64,13 @@ class FeedbackSoundService {
 
       // Aplicar variações controladas
       const baseFrequency = type === 'success' ? 523.25 : type === 'error_execution' ? 293.66 : 329.63;
-      const variedFrequency = auditoryFatigueReducer.applyPitchVariation(baseFrequency, variation);
-      const variedVolume = auditoryFatigueReducer.applyVolumeVariation(clampedVolume, variation);
       const baseDuration = type === 'success' ? 0.12 : type === 'error_execution' ? 0.1 : 0.09;
-      const variedTiming = auditoryFatigueReducer.applyTimingVariation(0, variation);
+
+      // REMOVED RANDOMIZATION: Pedagogical consistency requires stable feedback anchors.
+      // The brain learns faster when "Right" always sounds exactly the same.
+      const variedFrequency = baseFrequency;
+      const variedVolume = clampedVolume;
+      const variedTiming = 0;
 
       switch (type) {
         case 'success':
@@ -77,10 +80,9 @@ class FeedbackSoundService {
           setTimeout(() => {
             audioBus.playOscillator({
               frequency: variedFrequency, // Frequência com microvariação
-              type: 'sine', // Sine é mais suave que triangle
               duration: baseDuration, // Duração base (não varia)
               channel: 'effects', // Usar canal effects para feedback
-              volume: variedVolume, // Volume com microvariação
+              volume: variedVolume,
             });
           }, Math.max(0, variedTiming));
           break;
@@ -113,13 +115,12 @@ class FeedbackSoundService {
            */
           // Aplicar variação com delay se necessário
           const errorDelay = Math.max(0, variedTiming);
-          
+
           setTimeout(() => {
             // Primeira nota: D4 (293.66 Hz) - tom neutro e confortável
-            // Aplicar variação de pitch apenas na primeira nota (manter intervalo)
-            const firstNoteFreq = auditoryFatigueReducer.applyPitchVariation(293.66, variation);
-            const firstNoteVolume = auditoryFatigueReducer.applyVolumeVariation(clampedVolume * 0.5, variation);
-            
+            const firstNoteFreq = 293.66;
+            const firstNoteVolume = clampedVolume * 0.5;
+
             audioBus.playOscillator({
               frequency: firstNoteFreq, // D4 com microvariação
               type: 'sine',
@@ -127,24 +128,24 @@ class FeedbackSoundService {
               channel: 'effects',
               volume: firstNoteVolume, // Volume com microvariação
             });
-            
+
             // Segunda nota após 50ms: G4 (392.00 Hz) - movimento ascendente
             // Manter intervalo relativo (quarta justa)
             const intervalRatio = 392.00 / 293.66; // Razão do intervalo
             const secondNoteFreq = firstNoteFreq * intervalRatio;
             const secondNoteVolume = firstNoteVolume;
-            
+
             setTimeout(() => {
               audioBus.playOscillator({
                 frequency: secondNoteFreq, // G4 mantendo intervalo relativo
                 type: 'sine',
                 duration: 0.1, // 100ms
                 channel: 'effects',
-                volume: secondNoteVolume, // Volume com microvariação
+                volume: secondNoteVolume,
               });
             }, 50);
           }, errorDelay);
-          
+
           // Marcar como "error-soft" para rastreamento em testes
           audioBus.setLastPlayed('error-soft');
           break;
@@ -176,13 +177,12 @@ class FeedbackSoundService {
            */
           // Aplicar variação com delay se necessário
           const timingDelay = Math.max(0, variedTiming);
-          
+
           setTimeout(() => {
             // Primeira nota: E4 (329.63 Hz) - tom intermediário
-            // Aplicar variação de pitch apenas na primeira nota (manter intervalo)
-            const firstNoteFreq = auditoryFatigueReducer.applyPitchVariation(329.63, variation);
-            const firstNoteVolume = auditoryFatigueReducer.applyVolumeVariation(clampedVolume * 0.55, variation);
-            
+            const firstNoteFreq = 329.63;
+            const firstNoteVolume = clampedVolume * 0.55;
+
             audioBus.playOscillator({
               frequency: firstNoteFreq, // E4 com microvariação
               type: 'sine',
@@ -190,20 +190,20 @@ class FeedbackSoundService {
               channel: 'effects',
               volume: firstNoteVolume, // Volume com microvariação
             });
-            
+
             // Segunda nota após 40ms: G4 (392.00 Hz) - movimento ascendente sutil
             // Manter intervalo relativo (terça menor)
             const intervalRatio = 392.00 / 329.63; // Razão do intervalo
             const secondNoteFreq = firstNoteFreq * intervalRatio;
             const secondNoteVolume = firstNoteVolume;
-            
+
             setTimeout(() => {
               audioBus.playOscillator({
                 frequency: secondNoteFreq, // G4 mantendo intervalo relativo
                 type: 'sine',
                 duration: 0.09, // 90ms
                 channel: 'effects',
-                volume: secondNoteVolume, // Volume com microvariação
+                volume: secondNoteVolume,
               });
             }, 40);
           }, timingDelay);

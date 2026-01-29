@@ -15,31 +15,31 @@ const INSTRUMENT_OPTIONS: Array<{
   icon: React.ReactNode;
   desc: string;
 }> = [
-  {
-    value: 'nylon-guitar',
-    label: 'Violão Nylon',
-    icon: <Guitar className="w-4 h-4" />,
-    desc: 'Som suave'
-  },
-  {
-    value: 'steel-guitar',
-    label: 'Violão Aço',
-    icon: <Guitar className="w-4 h-4" />,
-    desc: 'Som brilhante'
-  },
-  {
-    value: 'piano',
-    label: 'Piano',
-    icon: <Piano className="w-4 h-4" />,
-    desc: 'Som clássico'
-  },
-  {
-    value: 'guitar',
-    label: 'Guitarra',
-    icon: <Guitar className="w-4 h-4" />,
-    desc: 'Som elétrico'
-  }
-];
+    {
+      value: 'nylon-guitar',
+      label: 'Violão Nylon',
+      icon: <Guitar className="w-4 h-4" />,
+      desc: 'Som suave'
+    },
+    {
+      value: 'steel-guitar',
+      label: 'Violão Aço',
+      icon: <Guitar className="w-4 h-4" />,
+      desc: 'Som brilhante'
+    },
+    {
+      value: 'piano',
+      label: 'Piano',
+      icon: <Piano className="w-4 h-4" />,
+      desc: 'Som clássico'
+    },
+    {
+      value: 'guitar',
+      label: 'Guitarra',
+      icon: <Guitar className="w-4 h-4" />,
+      desc: 'Som elétrico'
+    }
+  ];
 
 interface AudioQuickToggleProps {
   className?: string;
@@ -69,8 +69,20 @@ export function AudioQuickToggle({ className = '', variant = 'icon' }: AudioQuic
     };
   }, [isOpen]);
 
-  const handleSelect = (newInstrument: InstrumentType) => {
+  const handleSelect = async (newInstrument: InstrumentType) => {
+    // Atualizar store (para UI rápida)
     setInstrument(newInstrument);
+
+    // Atualizar serviço de áudio (para som real)
+    try {
+      // Importação dinâmica para evitar ciclos se houver
+      const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
+      await unifiedAudioService.ensureInitialized();
+      await unifiedAudioService.setInstrument(newInstrument);
+    } catch (error) {
+      console.error('❌ Falha ao mudar instrumento:', error);
+    }
+
     setIsOpen(false);
   };
 
@@ -100,11 +112,10 @@ export function AudioQuickToggle({ className = '', variant = 'icon' }: AudioQuic
                   <button
                     key={option.value}
                     onClick={() => handleSelect(option.value)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                      instrument === option.value
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${instrument === option.value
                         ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
                         : 'text-white/70 hover:bg-white/10 hover:text-white'
-                    }`}
+                      }`}
                   >
                     {option.icon}
                     <div className="flex-1">
@@ -172,11 +183,10 @@ export function AudioQuickToggle({ className = '', variant = 'icon' }: AudioQuic
                   <button
                     key={option.value}
                     onClick={() => handleSelect(option.value)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                      instrument === option.value
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${instrument === option.value
                         ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
                         : 'text-white/70 hover:bg-white/10 hover:text-white'
-                    }`}
+                      }`}
                   >
                     {option.icon}
                     <div className="flex-1">

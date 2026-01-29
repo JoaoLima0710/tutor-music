@@ -25,10 +25,10 @@ export default function Settings() {
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { user } = useUserStore();
   const userName = user?.name || "Usuário";
-  
+
   // Feedback tátil
   const [hapticEnabled, setHapticEnabled] = useState(hapticFeedbackService.getEnabled());
-  
+
   const handleHapticToggle = (enabled: boolean) => {
     hapticFeedbackService.setEnabled(enabled);
     setHapticEnabled(enabled);
@@ -39,7 +39,7 @@ export default function Settings() {
       toast.info('Feedback tátil desabilitado');
     }
   };
-  
+
   const {
     audioEngine,
     setAudioEngine,
@@ -64,9 +64,9 @@ export default function Settings() {
     measuredLatency,
     setMeasuredLatency,
   } = useAudioSettingsStore();
-  
+
   const [isMeasuringLatency, setIsMeasuringLatency] = useState(false);
-  
+
   const handleMeasureLatency = async () => {
     setIsMeasuringLatency(true);
     try {
@@ -84,7 +84,7 @@ export default function Settings() {
       setIsMeasuringLatency(false);
     }
   };
-  
+
   const handleLowLatencyToggle = (enabled: boolean) => {
     setLowLatencyMode(enabled);
     if (enabled) {
@@ -94,20 +94,29 @@ export default function Settings() {
     }
   };
 
-  const handleAudioEngineChange = (engine: 'synthesis' | 'samples' | 'guitarset' | 'philharmonia') => {
+  const handleAudioEngineChange = (engine: 'synthesis' | 'samples' | 'guitarset') => {
     setAudioEngine(engine);
     const messages = {
       synthesis: 'Usando síntese de áudio (leve)',
       samples: 'Usando samples Soundfont (autêntico)',
-      guitarset: 'Usando samples reais do GuitarSet (profissional)',
-      philharmonia: 'Usando samples do Philharmonia Orchestra (orquestral)'
+      guitarset: 'Usando samples reais do GuitarSet (profissional)'
     };
     toast.success(messages[engine]);
   };
 
-  const handleInstrumentChange = (newInstrument: any) => {
+  const handleInstrumentChange = async (newInstrument: any) => {
     setInstrument(newInstrument);
-    toast.success(`Instrumento alterado para ${getInstrumentLabel(newInstrument)}`);
+
+    try {
+      // Importação dinâmica para evitar ciclos
+      const { unifiedAudioService } = await import('@/services/UnifiedAudioService');
+      await unifiedAudioService.ensureInitialized();
+      await unifiedAudioService.setInstrument(newInstrument);
+      toast.success(`Instrumento alterado para ${getInstrumentLabel(newInstrument)}`);
+    } catch (error) {
+      console.error('❌ Falha ao mudar instrumento:', error);
+      toast.error('Erro ao alterar instrumento');
+    }
   };
 
   // Apply EQ whenever values change
@@ -140,24 +149,7 @@ export default function Settings() {
   };
 
   const getAvailableInstruments = () => {
-    if (audioEngine === 'philharmonia') {
-      return [
-        'violin',
-        'viola',
-        'cello',
-        'double-bass',
-        'flute',
-        'oboe',
-        'clarinet',
-        'saxophone',
-        'trumpet',
-        'french-horn',
-        'trombone',
-        'guitar',
-        'mandolin',
-        'banjo',
-      ];
-    } else if (audioEngine === 'guitarset') {
+    if (audioEngine === 'guitarset') {
       return ['nylon-guitar']; // GuitarSet só tem guitarra
     } else {
       return ['nylon-guitar', 'steel-guitar', 'piano'];
@@ -168,14 +160,14 @@ export default function Settings() {
     <>
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
-        <Sidebar 
+        <Sidebar
           userName={userName}
           userLevel={level}
           currentXP={xp}
           xpToNextLevel={xpToNextLevel}
           streak={currentStreak}
         />
-        
+
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto p-8 space-y-6">
             {/* Header */}
@@ -199,140 +191,11 @@ export default function Settings() {
               <NotificationSettings />
             </motion.div>
 
-            {/* Audio Cache Settings */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="mb-6"
-            >
-            <AudioCacheSettings />
-          </motion.div>
 
-            {/* Audio Performance Settings */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mb-6"
-            >
-              <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
-                <div className="flex items-center gap-3 mb-4">
-                  <Zap className="w-5 h-5 text-yellow-400" />
-                  <h3 className="text-lg font-bold text-white">Performance de Áudio</h3>
-                </div>
-                
-                <div className="space-y-4">
-                  {/* Modo de Baixa Latência */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-white font-medium mb-1">Modo de Baixa Latência</p>
-                      <p className="text-sm text-gray-400">
-                        Reduz latência para &lt;30ms (desabilita reverb e reduz efeitos)
-                      </p>
-                    </div>
-                    <Switch
-                      checked={lowLatencyMode}
-                      onCheckedChange={handleLowLatencyToggle}
-                    />
-                  </div>
-                  
-                  {/* Medição de Latência */}
-                  <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex-1">
-                        <p className="text-white font-medium mb-1">Latência Medida</p>
-                        <p className="text-sm text-gray-400">
-                          {measuredLatency !== null 
-                            ? `Latência atual: ${measuredLatency.toFixed(1)}ms`
-                            : 'Ainda não medida'}
-                        </p>
-                      </div>
-                      <Button
-                        onClick={handleMeasureLatency}
-                        disabled={isMeasuringLatency}
-                        variant="outline"
-                        size="sm"
-                        className="border-white/20 text-white hover:bg-white/10"
-                      >
-                        <Gauge className="w-4 h-4 mr-2" />
-                        {isMeasuringLatency ? 'Medindo...' : 'Medir Latência'}
-                      </Button>
-                    </div>
-                    
-                    {measuredLatency !== null && (
-                      <div className="mt-3">
-                        <div className={`p-3 rounded-lg ${
-                          measuredLatency < 30 
-                            ? 'bg-green-500/20 border border-green-500/30'
-                            : measuredLatency < 50
-                            ? 'bg-yellow-500/20 border border-yellow-500/30'
-                            : 'bg-red-500/20 border border-red-500/30'
-                        }`}>
-                          <p className={`text-sm ${
-                            measuredLatency < 30 
-                              ? 'text-green-300'
-                              : measuredLatency < 50
-                              ? 'text-yellow-300'
-                              : 'text-red-300'
-                          }`}>
-                            {measuredLatency < 30 
-                              ? '✅ Latência excelente! Ideal para performance em tempo real.'
-                              : measuredLatency < 50
-                              ? '⚠️ Latência aceitável, mas pode ser melhorada.'
-                              : '❌ Latência alta. Considere habilitar modo de baixa latência.'}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
 
-            {/* Volume Normalization Settings */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className="mb-6"
-            >
-              <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
-                <div className="flex items-center gap-3 mb-4">
-                  <Volume2 className="w-5 h-5 text-green-400" />
-                  <h3 className="text-lg font-bold text-white">Normalização de Volume</h3>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-white font-medium mb-1">Normalizar Volume dos Samples</p>
-                      <p className="text-sm text-gray-400">
-                        Equaliza o volume de cada nota para consistência automática
-                      </p>
-                    </div>
-                    <Switch
-                      defaultChecked={true}
-                      onCheckedChange={(enabled) => {
-                        import('@/services/AudioServiceWithSamples').then(({ audioServiceWithSamples }) => {
-                          audioServiceWithSamples.setNormalizationEnabled(enabled);
-                          toast.success(enabled ? 'Normalização ativada' : 'Normalização desativada');
-                        });
-                      }}
-                    />
-                  </div>
-                  
-                  <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                    <p className="text-sm text-gray-300 mb-2">
-                      A normalização analisa o volume (RMS) de cada sample e ajusta automaticamente o ganho para manter consistência entre todas as notas.
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Isso garante que acordes e escalas soem com volume uniforme, melhorando significativamente a experiência de aprendizado. A normalização ocorre automaticamente em background.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+
+
+
 
             {/* Haptic Feedback Settings */}
             <motion.div
@@ -346,57 +209,57 @@ export default function Settings() {
                   <Smartphone className="w-5 h-5 text-purple-400" />
                   <h3 className="text-lg font-bold text-white">Feedback Tátil (Vibração)</h3>
                 </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-white font-medium mb-1">Vibração em Dispositivos Móveis</p>
-                    <p className="text-sm text-gray-400">
-                      Receba feedback tátil ao acertar, completar módulos e subir de nível
-                    </p>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-white font-medium mb-1">Vibração em Dispositivos Móveis</p>
+                      <p className="text-sm text-gray-400">
+                        Receba feedback tátil ao acertar, completar módulos e subir de nível
+                      </p>
+                    </div>
+                    <Switch
+                      checked={hapticEnabled}
+                      onCheckedChange={handleHapticToggle}
+                      disabled={!hapticFeedbackService.isAvailable()}
+                    />
                   </div>
-                  <Switch
-                    checked={hapticEnabled}
-                    onCheckedChange={handleHapticToggle}
-                    disabled={!hapticFeedbackService.isAvailable()}
-                  />
+
+                  {!hapticFeedbackService.isAvailable() && (
+                    <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                      <p className="text-sm text-yellow-300">
+                        ⚠️ Feedback tátil não está disponível neste dispositivo ou navegador
+                      </p>
+                    </div>
+                  )}
+
+                  {hapticFeedbackService.isAvailable() && (
+                    <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                      <p className="text-sm text-blue-300">
+                        ✓ Vibração disponível. Você receberá feedback ao:
+                      </p>
+                      <ul className="text-xs text-blue-200 mt-2 space-y-1 ml-4 list-disc">
+                        <li>Acertar exercícios (vibração curta)</li>
+                        <li>Completar módulos (vibração dupla)</li>
+                        <li>Subir de nível (vibração longa)</li>
+                      </ul>
+                    </div>
+                  )}
                 </div>
-                
-                {!hapticFeedbackService.isAvailable() && (
-                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                    <p className="text-sm text-yellow-300">
-                      ⚠️ Feedback tátil não está disponível neste dispositivo ou navegador
-                    </p>
-                  </div>
-                )}
-                
-                {hapticFeedbackService.isAvailable() && (
-                  <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <p className="text-sm text-blue-300">
-                      ✓ Vibração disponível. Você receberá feedback ao:
-                    </p>
-                    <ul className="text-xs text-blue-200 mt-2 space-y-1 ml-4 list-disc">
-                      <li>Acertar exercícios (vibração curta)</li>
-                      <li>Completar módulos (vibração dupla)</li>
-                      <li>Subir de nível (vibração longa)</li>
-                    </ul>
-                  </div>
-                )}
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
 
-          {/* LLM Settings */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mb-6"
-          >
-            <LLMSettings />
-          </motion.div>
+            {/* LLM Settings */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mb-6"
+            >
+              <LLMSettings />
+            </motion.div>
 
-          {/* Audio Settings */}
+            {/* Audio Settings */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -412,14 +275,13 @@ export default function Settings() {
               <div className="space-y-6">
                 <div className="p-6 bg-white/5 rounded-2xl">
                   <h3 className="text-lg font-bold text-white mb-4">Motor de Áudio</h3>
-                  <div className={`grid gap-3 ${audioEngine === 'philharmonia' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                  <div className={`grid gap-3 grid-cols-3`}>
                     <Button
                       onClick={() => handleAudioEngineChange('synthesis')}
-                      className={`h-20 flex flex-col items-center justify-center gap-1 ${
-                        audioEngine === 'synthesis'
-                          ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
-                          : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
-                      }`}
+                      className={`h-20 flex flex-col items-center justify-center gap-1 ${audioEngine === 'synthesis'
+                        ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
+                        }`}
                     >
                       <span className="text-xl">🎹</span>
                       <span className="text-xs font-semibold">Síntese</span>
@@ -427,11 +289,10 @@ export default function Settings() {
                     </Button>
                     <Button
                       onClick={() => handleAudioEngineChange('samples')}
-                      className={`h-20 flex flex-col items-center justify-center gap-1 ${
-                        audioEngine === 'samples'
-                          ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
-                          : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
-                      }`}
+                      className={`h-20 flex flex-col items-center justify-center gap-1 ${audioEngine === 'samples'
+                        ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
+                        }`}
                     >
                       <span className="text-xl">🎼</span>
                       <span className="text-xs font-semibold">Soundfont</span>
@@ -439,50 +300,36 @@ export default function Settings() {
                     </Button>
                     <Button
                       onClick={() => handleAudioEngineChange('guitarset')}
-                      className={`h-20 flex flex-col items-center justify-center gap-1 ${
-                        audioEngine === 'guitarset'
-                          ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
-                          : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
-                      }`}
+                      className={`h-20 flex flex-col items-center justify-center gap-1 ${audioEngine === 'guitarset'
+                        ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
+                        }`}
                     >
                       <span className="text-xl">🎸</span>
                       <span className="text-xs font-semibold">GuitarSet</span>
                       <span className="text-[10px] text-gray-500">Profissional</span>
-                    </Button>
-                    <Button
-                      onClick={() => handleAudioEngineChange('philharmonia')}
-                      className={`h-20 flex flex-col items-center justify-center gap-1 ${
-                        audioEngine === 'philharmonia'
-                          ? 'bg-gradient-to-br from-[#a855f7] to-[#9333ea] text-white border-2 border-purple-400 shadow-lg shadow-purple-500/50'
-                          : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
-                      }`}
-                    >
-                      <span className="text-xl">🎻</span>
-                      <span className="text-xs font-semibold">Orquestra</span>
-                      <span className="text-[10px] text-gray-500">Clássico</span>
                     </Button>
                   </div>
                   <p className="text-xs text-gray-400 mt-3">
                     {audioEngine === 'synthesis' && 'Som gerado em tempo real, mais leve e rápido'}
                     {audioEngine === 'samples' && 'Samples de instrumentos via Soundfont, som autêntico'}
                     {audioEngine === 'guitarset' && 'Samples reais extraídos do dataset GuitarSet, qualidade profissional'}
-                    {audioEngine === 'philharmonia' && 'Samples de instrumentos orquestrais do Philharmonia Orchestra, qualidade profissional'}
+
                   </p>
                 </div>
 
                 {/* Instrument Selection */}
                 <div className="p-6 bg-white/5 rounded-2xl">
                   <h3 className="text-lg font-bold text-white mb-4">Instrumento</h3>
-                  <div className={`grid gap-4 ${audioEngine === 'philharmonia' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                  <div className={`grid gap-4 grid-cols-3`}>
                     {getAvailableInstruments().map((inst) => (
                       <Button
                         key={inst}
                         onClick={() => handleInstrumentChange(inst)}
-                        className={`h-24 flex flex-col items-center justify-center gap-2 ${
-                          instrument === inst
-                            ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
-                            : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
-                        }`}
+                        className={`h-24 flex flex-col items-center justify-center gap-2 ${instrument === inst
+                          ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
+                          : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
+                          }`}
                       >
                         <Music className="w-6 h-6" />
                         <span className="font-semibold text-sm">{getInstrumentLabel(inst)}</span>
@@ -521,7 +368,7 @@ export default function Settings() {
                       onCheckedChange={setEnableReverb}
                     />
                   </div>
-                  
+
                   {enableReverb && (
                     <div className="mt-4">
                       <div className="flex items-center justify-between mb-2">
@@ -545,7 +392,7 @@ export default function Settings() {
                     <Sliders className="w-5 h-5 text-[#06b6d4]" />
                     <h3 className="text-lg font-bold text-white">Equalização (EQ)</h3>
                   </div>
-                  
+
                   {/* EQ Presets */}
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     {[
@@ -556,11 +403,10 @@ export default function Settings() {
                       <Button
                         key={preset.value}
                         onClick={() => setEQPreset(preset.value as any)}
-                        className={`h-20 flex flex-col items-center justify-center gap-1 ${
-                          eqPreset === preset.value
-                            ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
-                            : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
-                        }`}
+                        className={`h-20 flex flex-col items-center justify-center gap-1 ${eqPreset === preset.value
+                          ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border-2 border-cyan-400 shadow-lg shadow-cyan-500/50'
+                          : 'bg-white/10 text-gray-400 hover:bg-white/20 border-2 border-transparent'
+                          }`}
                       >
                         <span className="text-2xl">{preset.icon}</span>
                         <span className="text-xs font-semibold">{preset.label}</span>
@@ -570,7 +416,7 @@ export default function Settings() {
                       </Button>
                     ))}
                   </div>
-                  
+
                   {/* Custom EQ Controls */}
                   {eqPreset === 'custom' && (
                     <div className="space-y-4 mt-4">
@@ -588,7 +434,7 @@ export default function Settings() {
                           className="w-full"
                         />
                       </div>
-                      
+
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm text-gray-400">Médios (Mid)</span>
@@ -603,7 +449,7 @@ export default function Settings() {
                           className="w-full"
                         />
                       </div>
-                      
+
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm text-gray-400">Agudos (Treble)</span>
@@ -629,11 +475,11 @@ export default function Settings() {
 
       {/* MOBILE VERSION */}
       <div className="lg:hidden flex flex-col h-screen bg-[#0f0f1a] text-white">
-        <MobileHeader 
+        <MobileHeader
           userName={userName}
           onMenuClick={() => setIsMobileSidebarOpen(true)}
         />
-        
+
         <MobileSidebar
           isOpen={isMobileSidebarOpen}
           onClose={() => setIsMobileSidebarOpen(false)}
@@ -643,7 +489,7 @@ export default function Settings() {
           xpToNextLevel={xpToNextLevel}
           streak={currentStreak}
         />
-        
+
         <main className="flex-1 overflow-y-auto pb-20 px-4">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6 pt-4">
@@ -671,73 +517,59 @@ export default function Settings() {
               {/* Audio Engine */}
               <div className="p-4 bg-white/5 rounded-xl">
                 <h3 className="text-base font-bold text-white mb-3">Motor de Áudio</h3>
-                <div className={`grid gap-2 ${audioEngine === 'philharmonia' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                <div className={`grid gap-2 grid-cols-3`}>
                   <Button
                     onClick={() => handleAudioEngineChange('synthesis')}
-                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${
-                      audioEngine === 'synthesis'
-                        ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
-                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                    }`}
+                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${audioEngine === 'synthesis'
+                      ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
+                      : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                      }`}
                   >
                     <span className="text-lg">🎹</span>
                     <span className="font-semibold">Síntese</span>
                   </Button>
                   <Button
                     onClick={() => handleAudioEngineChange('samples')}
-                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${
-                      audioEngine === 'samples'
-                        ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
-                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                    }`}
+                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${audioEngine === 'samples'
+                      ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
+                      : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                      }`}
                   >
                     <span className="text-lg">🎼</span>
                     <span className="font-semibold">Soundfont</span>
                   </Button>
                   <Button
                     onClick={() => handleAudioEngineChange('guitarset')}
-                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${
-                      audioEngine === 'guitarset'
-                        ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
-                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                    }`}
+                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${audioEngine === 'guitarset'
+                      ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
+                      : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                      }`}
                   >
                     <span className="text-lg">🎸</span>
                     <span className="font-semibold">GuitarSet</span>
                   </Button>
-                  <Button
-                    onClick={() => handleAudioEngineChange('philharmonia')}
-                    className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${
-                      audioEngine === 'philharmonia'
-                        ? 'bg-gradient-to-br from-[#a855f7] to-[#9333ea] text-white border border-purple-400'
-                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                    }`}
-                  >
-                    <span className="text-lg">🎻</span>
-                    <span className="font-semibold">Orquestra</span>
-                  </Button>
+
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
                   {audioEngine === 'synthesis' && 'Som gerado em tempo real'}
                   {audioEngine === 'samples' && 'Samples Soundfont'}
                   {audioEngine === 'guitarset' && 'Samples reais profissionais'}
-                  {audioEngine === 'philharmonia' && 'Samples orquestrais profissionais'}
+
                 </p>
               </div>
 
               {/* Instrument */}
               <div className="p-4 bg-white/5 rounded-xl">
                 <h3 className="text-base font-bold text-white mb-3">Instrumento</h3>
-                <div className={`grid gap-2 ${audioEngine === 'philharmonia' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                <div className={`grid gap-2 grid-cols-3`}>
                   {getAvailableInstruments().map((inst) => (
                     <Button
                       key={inst}
                       onClick={() => handleInstrumentChange(inst)}
-                      className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${
-                        instrument === inst
-                          ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
-                          : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                      }`}
+                      className={`h-16 flex flex-col items-center justify-center gap-1 text-xs ${instrument === inst
+                        ? 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2] text-white border border-cyan-400'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                        }`}
                     >
                       <Music className="w-4 h-4" />
                       <span className="font-semibold text-xs">{getInstrumentLabel(inst).split(' ')[0]}</span>
@@ -766,7 +598,7 @@ export default function Settings() {
                       if (mixer) {
                         mixer.setMasterVolume(newVolume);
                       }
-                    }).catch(() => {});
+                    }).catch(() => { });
                   }}
                   max={100}
                   step={1}
@@ -785,7 +617,7 @@ export default function Settings() {
                     onCheckedChange={setEnableReverb}
                   />
                 </div>
-                
+
                 {enableReverb && (
                   <div className="mt-3">
                     <div className="flex items-center justify-between mb-2">
@@ -804,7 +636,7 @@ export default function Settings() {
             </div>
           </motion.div>
         </main>
-        
+
         <MobileBottomNav />
       </div>
     </>

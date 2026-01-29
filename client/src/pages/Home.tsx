@@ -12,7 +12,7 @@ import { WeeklyChallengeCard } from '@/components/gamification/WeeklyChallengeCa
 import { ChallengeCard } from '@/components/gamification/ChallengeCard';
 import { ContinueLearning } from '@/components/gamification/ContinueLearning';
 import { AIAssistantCard } from '@/components/ai/AIAssistantCard';
-import { DailyTraining, WelcomeTraining } from '@/components/training';
+import { DailyTraining, WelcomeTraining, CurriculumProgressCard } from '@/components/training';
 import { ProgressCard } from '@/components/progression/ProgressCard';
 import { SongCard } from '@/components/songs/SongCard';
 import { Button } from '@/components/ui/button';
@@ -30,11 +30,11 @@ export default function Home() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
   const [, setLocation] = useLocation();
-  
+
   const { xp, level, xpToNextLevel, currentStreak } = useGamificationStore();
   const { getUnlockedSongs, getNextUnlockableSongs } = useSongUnlockStore();
   const { user } = useUserStore();
-  
+
   const userName = user?.name || "Usuário";
 
   // Verificar notificações ao montar e periodicamente
@@ -49,15 +49,15 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, []);
-  
+
   // Check and unlock songs when component mounts or progress changes
   useEffect(() => {
     checkAndUnlockSongs();
   }, [level, xp]);
-  
+
   const unlockedSongs = getUnlockedSongs();
   const nextUnlockable = getNextUnlockableSongs();
-  
+
   // Saudação baseada na hora do dia
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -77,7 +77,7 @@ export default function Home() {
       <WelcomeTraining />
       {/* DESKTOP VERSION */}
       <div className="hidden lg:flex h-screen bg-[#0f0f1a] text-white overflow-hidden">
-        <Sidebar 
+        <Sidebar
           userName={userName}
           userLevel={level}
           currentXP={xp}
@@ -96,7 +96,7 @@ export default function Home() {
                   {unlockedSongs.length} músicas • Nível {level}
                 </p>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <AudioQuickToggle variant="icon" />
                 <Button
@@ -109,37 +109,42 @@ export default function Home() {
                 </Button>
               </div>
             </header>
-            
+
+            {/* 🎯 OAPR Curriculum - Primary CTA */}
+            <section>
+              <CurriculumProgressCard />
+            </section>
+
             {/* Objetivos Diários */}
             <section>
               <DailyObjectivesCard />
             </section>
-            
+
             {/* Desafio Semanal */}
             <section>
               <WeeklyChallengeCard />
             </section>
-            
+
             {/* Seu Progresso */}
             <section>
               <ProgressCard />
             </section>
-            
+
             {/* Meta do Dia - Compacta */}
             <section>
               <DailyGoalCard compact />
             </section>
-            
+
             {/* Treino do Dia - Principal */}
             <section>
               <DailyTraining />
             </section>
-            
+
             {/* Continue Aprendendo */}
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white">Continue Aprendendo</h2>
-                <button 
+                <button
                   onClick={() => setLocation('/training')}
                   className="text-sm text-purple-400 font-medium hover:text-purple-300 flex items-center gap-1"
                 >
@@ -148,12 +153,12 @@ export default function Home() {
               </div>
               <ContinueLearning maxItems={3} />
             </section>
-            
+
             {/* Assistente IA - Card Resumido */}
             <section>
               <AIAssistantCard />
             </section>
-            
+
             {/* Próximas Músicas */}
             {nextUnlockable.length > 0 && (
               <section>
@@ -172,7 +177,7 @@ export default function Home() {
                       Ver todas <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
-                  
+
                   <div className="grid grid-cols-3 gap-3">
                     {nextUnlockable.slice(0, 3).map((song) => (
                       <div
@@ -191,20 +196,20 @@ export default function Home() {
                 </div>
               </section>
             )}
-            
+
             {/* Músicas Desbloqueadas */}
             {unlockedSongs.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-white">Suas Músicas</h2>
-                  <button 
+                  <button
                     onClick={() => setLocation('/songs')}
                     className="text-sm text-cyan-400 font-medium hover:text-cyan-300 flex items-center gap-1"
                   >
                     Ver todas <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4">
                   {unlockedSongs.slice(0, 3).map((song) => (
                     <SongCard
@@ -216,15 +221,15 @@ export default function Home() {
                 </div>
               </section>
             )}
-            
+
             <div className="h-4"></div>
           </div>
         </div>
       </div>
-      
+
       {/* MOBILE VERSION */}
       <div className="lg:hidden min-h-screen bg-[#0f0f1a] text-white pb-20">
-        <MobileSidebar 
+        <MobileSidebar
           isOpen={isMobileSidebarOpen}
           onClose={() => setIsMobileSidebarOpen(false)}
           userName={userName}
@@ -233,7 +238,7 @@ export default function Home() {
           xpToNextLevel={xpToNextLevel}
           streak={currentStreak}
         />
-        
+
         <MobileHeader
           userName={userName}
           onMenuClick={() => setIsMobileSidebarOpen(true)}
@@ -249,36 +254,41 @@ export default function Home() {
         </div>
 
         <main className="px-4 py-4 pb-24 space-y-4">
+          {/* 🎯 OAPR Curriculum - Primary CTA */}
+          <section>
+            <CurriculumProgressCard />
+          </section>
+
           {/* Objetivos Diários */}
           <section>
             <DailyObjectivesCard />
           </section>
-          
+
           {/* Desafio Semanal */}
           <section>
             <WeeklyChallengeCard />
           </section>
-          
+
           {/* Seu Progresso */}
           <section>
             <ProgressCard />
           </section>
-          
+
           {/* Meta do Dia - Compacta */}
           <section>
             <DailyGoalCard compact />
           </section>
-          
+
           {/* Treino do Dia */}
           <section>
             <DailyTraining />
           </section>
-          
+
           {/* Continue Aprendendo */}
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-bold text-white">Continue Aprendendo</h2>
-              <button 
+              <button
                 onClick={() => setLocation('/training')}
                 className="text-xs text-purple-400 font-medium"
               >
@@ -287,12 +297,12 @@ export default function Home() {
             </div>
             <ContinueLearning maxItems={2} />
           </section>
-          
+
           {/* Assistente IA */}
           <section>
             <AIAssistantCard />
           </section>
-          
+
           {/* Próximas Músicas */}
           {nextUnlockable.length > 0 && (
             <section>
@@ -303,7 +313,7 @@ export default function Home() {
                     <h2 className="text-base font-bold text-white">Prontas para Tocar</h2>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   {nextUnlockable.slice(0, 2).map((song) => (
                     <div
@@ -319,7 +329,7 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-                
+
                 <Button
                   onClick={() => setLocation('/songs')}
                   className="mt-3 w-full bg-purple-500 hover:bg-purple-600 text-white text-sm h-9"
@@ -329,20 +339,20 @@ export default function Home() {
               </div>
             </section>
           )}
-          
+
           {/* Músicas Desbloqueadas */}
           {unlockedSongs.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-bold text-white">Suas Músicas</h2>
-                <button 
+                <button
                   onClick={() => setLocation('/songs')}
                   className="text-xs text-cyan-400 font-medium"
                 >
                   Ver todas
                 </button>
               </div>
-              
+
               <div className="space-y-2">
                 {unlockedSongs.slice(0, 2).map((song) => (
                   <SongCard
@@ -355,7 +365,7 @@ export default function Home() {
             </section>
           )}
         </main>
-        
+
         {level <= 3 ? (
           <SimplifiedNav
             userName={userName}

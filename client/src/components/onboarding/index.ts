@@ -8,3 +8,5 @@ export { PlacementTest } from './PlacementTest';
 export { CompetenceAssessment } from './CompetenceAssessment';
 export { HandsOnOnboarding } from './HandsOnOnboarding';
 export { HandsOnTunerOnboarding } from './HandsOnTunerOnboarding';
+export { DiagnosticAssessment } from './DiagnosticAssessment';
+export type { DiagnosticResult } from './DiagnosticAssessment';

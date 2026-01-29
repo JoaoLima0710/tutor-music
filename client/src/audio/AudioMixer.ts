@@ -5,14 +5,14 @@ import AudioEngine from './AudioEngine';
  */
 class AudioMixer {
   private audioEngine: AudioEngine;
-  
+
   // Canais de áudio
   private channels: Map<string, GainNode> = new Map();
-  
+
   // Volumes
   private masterVolume: number = 0.8;
   private channelVolumes: Map<string, number> = new Map();
-  
+
   // Mute state
   private isMuted: boolean = false;
   private previousVolume: number = 0.8;
@@ -27,13 +27,14 @@ class AudioMixer {
    */
   public async initialize(): Promise<void> {
     await this.audioEngine.initialize();
-    
+
     // Criar canais padrão
+    // Hierarchy: Guide (0.9) > Training (0.8) > Feedback (0.6) > UI (0.4)
     this.createChannel('chords', 0.8);
     this.createChannel('scales', 0.8);
-    this.createChannel('metronome', 0.7);
-    this.createChannel('effects', 0.5);
-    
+    this.createChannel('metronome', 0.9); // Guide - Highest priority
+    this.createChannel('effects', 0.6);   // Feedback/UI - Moderate priority
+
     // Sincronizar volume master com store global (se disponível)
     try {
       const { useAudioSettingsStore } = await import('@/stores/useAudioSettingsStore');
@@ -57,14 +58,14 @@ class AudioMixer {
   public createChannel(name: string, volume: number = 0.8): GainNode {
     const audioContext = this.audioEngine.getContext();
     const masterGain = this.audioEngine.getMasterGain();
-    
+
     const channelGain = audioContext.createGain();
     channelGain.gain.value = volume;
     channelGain.connect(masterGain);
-    
+
     this.channels.set(name, channelGain);
     this.channelVolumes.set(name, volume);
-    
+
     return channelGain;
   }
 
@@ -81,7 +82,7 @@ class AudioMixer {
   public setChannelVolume(name: string, volume: number): void {
     const clampedVolume = Math.max(0, Math.min(1, volume));
     const channel = this.channels.get(name);
-    
+
     if (channel) {
       const audioContext = this.audioEngine.getContext();
       channel.gain.setTargetAtTime(clampedVolume, audioContext.currentTime, 0.01);
@@ -103,7 +104,7 @@ class AudioMixer {
   public setMasterVolume(volume: number): void {
     this.masterVolume = Math.max(0, Math.min(1, volume));
     this.audioEngine.setMasterVolume(this.isMuted ? 0 : this.masterVolume);
-    
+
     // Sincronizar com store global (se disponível)
     // Nota: Não atualizar store aqui para evitar loop - store atualiza AudioMixer
     // O VolumeControl já atualiza o store diretamente
@@ -163,7 +164,7 @@ class AudioMixer {
     this.channelVolumes.forEach((volume, name) => {
       channels[name] = volume;
     });
-    
+
     return {
       master: this.masterVolume,
       channels,
@@ -176,7 +177,7 @@ class AudioMixer {
   public fadeOut(duration: number = 0.5): void {
     const audioContext = this.audioEngine.getContext();
     const masterGain = this.audioEngine.getMasterGain();
-    
+
     masterGain.gain.setValueAtTime(masterGain.gain.value, audioContext.currentTime);
     masterGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration);
   }
@@ -187,7 +188,7 @@ class AudioMixer {
   public fadeIn(duration: number = 0.5): void {
     const audioContext = this.audioEngine.getContext();
     const masterGain = this.audioEngine.getMasterGain();
-    
+
     masterGain.gain.setValueAtTime(0, audioContext.currentTime);
     masterGain.gain.linearRampToValueAtTime(this.masterVolume, audioContext.currentTime + duration);
   }

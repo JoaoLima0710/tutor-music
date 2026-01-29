@@ -137,7 +137,7 @@ export function HandsOnOnboarding({
     import('@/services/ActionFeedbackService').then(({ actionFeedbackService }) => {
       actionFeedbackService.playActionFeedback('step_progress');
     });
-    
+
     setState(prev => {
       const newSteps = [...prev.steps];
       newSteps[prev.currentStep].completed = true;
@@ -261,13 +261,12 @@ export function HandsOnOnboarding({
                     {state.steps.map((step, index) => (
                       <div
                         key={step.id}
-                        className={`w-3 h-3 rounded-full transition-all ${
-                          index < state.currentStep
+                        className={`w-3 h-3 rounded-full transition-all ${index < state.currentStep
                             ? 'bg-green-500'
                             : index === state.currentStep
-                            ? 'bg-adaptive-accent animate-pulse'
-                            : 'bg-adaptive-surface'
-                        }`}
+                              ? 'bg-adaptive-accent animate-pulse'
+                              : 'bg-adaptive-surface'
+                          }`}
                       />
                     ))}
                   </div>
@@ -437,29 +436,18 @@ export function HandsOnOnboarding({
 }
 
 // Hook para gerenciar estado do onboarding
+// DESABILITADO: Onboarding removido conforme solicitação
 export function useHandsOnOnboarding() {
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-
-  useEffect(() => {
-    // Verificar se o usuário já completou o onboarding
-    const completed = localStorage.getItem('musictutor_onboarding_completed');
-    setHasCompletedOnboarding(completed === 'true');
-
-    // Mostrar onboarding se for a primeira vez
-    if (!completed) {
-      setShowOnboarding(true);
-    }
-  }, []);
+  // Sempre retorna false - onboarding desabilitado
+  const hasCompletedOnboarding = true;
+  const showOnboarding = false;
 
   const completeOnboarding = () => {
     localStorage.setItem('musictutor_onboarding_completed', 'true');
-    setHasCompletedOnboarding(true);
-    setShowOnboarding(false);
   };
 
   const skipOnboarding = () => {
-    setShowOnboarding(false);
+    // Noop - onboarding já está desabilitado
   };
 
   return {
@@ -468,9 +456,7 @@ export function useHandsOnOnboarding() {
     completeOnboarding,
     skipOnboarding,
     restartOnboarding: () => {
-      localStorage.removeItem('musictutor_onboarding_completed');
-      setHasCompletedOnboarding(false);
-      setShowOnboarding(true);
+      // Noop - onboarding desabilitado permanentemente
     }
   };
 }

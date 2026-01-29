@@ -48,7 +48,7 @@ interface Exercise {
   correctPulse: number; // Número de batidas no padrão
 }
 
-export function ActiveRhythmTraining() {
+export function RhythmListeningPractice() {
   const [currentExercise, setCurrentExercise] = useState<Exercise | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [userPulseCount, setUserPulseCount] = useState<number | null>(null);
@@ -63,7 +63,7 @@ export function ActiveRhythmTraining() {
   const generateExercise = (): Exercise => {
     const pattern = RHYTHM_PATTERNS[Math.floor(Math.random() * RHYTHM_PATTERNS.length)];
     const correctPulse = pattern.beats.filter(b => b).length;
-    
+
     return {
       pattern,
       correctPulse,
@@ -74,24 +74,24 @@ export function ActiveRhythmTraining() {
   const playPattern = async (exercise?: Exercise, repeat: boolean = true) => {
     const exerciseToPlay = exercise || currentExercise;
     if (!exerciseToPlay || isPlaying) return;
-    
+
     setIsPlaying(true);
     setRepetitionCount(0);
-    
+
     try {
       await unifiedAudioService.ensureInitialized();
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const pattern = exerciseToPlay.pattern;
       const beatDuration = 0.08; // Som curto e percussivo
       const beatInterval = (60 / pattern.bpm) * 1000; // Intervalo em ms
-      
+
       // Tocar padrão repetido algumas vezes
       const repetitions = repeat ? maxRepetitions : 1;
-      
+
       for (let rep = 0; rep < repetitions; rep++) {
         console.log(`🎵 [Ritmo Ativo] Repetição ${rep + 1}/${repetitions}`);
-        
+
         for (let i = 0; i < pattern.beats.length; i++) {
           if (pattern.beats[i]) {
             // Tocar batida (nota aguda e curta para simular clique)
@@ -99,20 +99,20 @@ export function ActiveRhythmTraining() {
             const note = isAccent ? 'C5' : 'C4'; // Mais agudo para acento
             await unifiedAudioService.playNote(note, beatDuration);
           }
-          
+
           // Delay até próxima batida (ou pausa)
           if (i < pattern.beats.length - 1) {
             await new Promise(resolve => setTimeout(resolve, beatInterval));
           }
         }
-        
+
         // Pausa entre repetições (exceto após a última)
         if (rep < repetitions - 1) {
           await new Promise(resolve => setTimeout(resolve, beatInterval * 0.5));
           setRepetitionCount(rep + 1);
         }
       }
-      
+
       setRepetitionCount(repetitions);
       console.log('✅ [Ritmo Ativo] Padrão tocado');
     } catch (error) {
@@ -125,49 +125,49 @@ export function ActiveRhythmTraining() {
   // Iniciar modo de escuta (usuário tenta seguir o pulso)
   const startListening = async () => {
     if (!currentExercise) return;
-    
+
     setIsListening(true);
     tapTimesRef.current = [];
-    
+
     // Tocar padrão uma vez para referência
     await playPattern(currentExercise, false);
-    
+
     // Pausa auditiva de 1 segundo antes de permitir que usuário tente
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     console.log('👂 [Ritmo Ativo] Modo escuta ativado - aguardando tentativa do usuário');
   };
 
   // Registrar batida do usuário (quando clicar/bater palmas)
   const recordUserBeat = () => {
     if (!isListening) return;
-    
+
     const now = Date.now();
     tapTimesRef.current.push(now);
-    
+
     // Tocar feedback sonoro curto
-    unifiedAudioService.playNote('C6', 0.05).catch(() => {});
-    
+    unifiedAudioService.playNote('C6', 0.05).catch(() => { });
+
     console.log(`👂 [Ritmo Ativo] Batida registrada: ${tapTimesRef.current.length}`);
   };
 
   // Verificar resposta do usuário
   const checkAnswer = () => {
     if (!currentExercise || !isListening) return;
-    
+
     const userCount = tapTimesRef.current.length;
     setUserPulseCount(userCount);
     setShowResult(true);
     setIsListening(false);
-    
+
     // Tolerância: aceitar se estiver dentro de ±1 batida
     const isCorrect = Math.abs(userCount - currentExercise.correctPulse) <= 1;
-    
+
     setScore(prev => ({
       correct: prev.correct + (isCorrect ? 1 : 0),
       total: prev.total + 1,
     }));
-    
+
     console.log(`🎯 [Ritmo Ativo] Resposta: ${userCount}, Esperado: ${currentExercise.correctPulse}, Correto: ${isCorrect}`);
   };
 
@@ -180,23 +180,18 @@ export function ActiveRhythmTraining() {
     setIsListening(false);
     tapTimesRef.current = [];
     setRepetitionCount(0);
-    
+
     // Pausa auditiva de 2 segundos antes de tocar próximo (silêncio para processar)
     setTimeout(() => {
       playPattern(newExercise, true);
     }, 2000);
   };
 
-  // Inicializar primeiro exercício
+  // Inicializar primeiro exercício (SEM AUTO-PLAY)
   useEffect(() => {
     const exercise = generateExercise();
     setCurrentExercise(exercise);
-    // Tocar automaticamente após um pequeno delay
-    const timer = setTimeout(() => {
-      playPattern(exercise, true);
-    }, 500);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // REMOVIDO: playPattern(exercise, true); - REGRA 1: Áudio nunca nasce sozinho
   }, []);
 
   const accuracy = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
@@ -214,7 +209,7 @@ export function ActiveRhythmTraining() {
             Desenvolva escuta ativa de pulso - ouça e sinta o ritmo
           </p>
         </div>
-        
+
         {/* Estatísticas */}
         {score.total > 0 && (
           <div className="text-right">
@@ -230,12 +225,12 @@ export function ActiveRhythmTraining() {
           {/* Instruções */}
           <div className="text-center mb-6">
             <h4 className="text-lg font-bold text-white mb-2">
-              {!isListening 
+              {!isListening
                 ? 'Ouça o padrão rítmico e sinta o pulso:'
                 : 'Agora tente seguir o pulso - clique quando ouvir cada batida:'}
             </h4>
             <p className="text-gray-300 text-sm">
-              {!isListening 
+              {!isListening
                 ? 'Preste atenção no número de batidas. Depois você vai tentar seguir o pulso.'
                 : `Padrão: ${currentExercise.pattern.description}`}
             </p>
@@ -244,6 +239,7 @@ export function ActiveRhythmTraining() {
           {/* Controles de Áudio */}
           {!isListening && !showResult && (
             <div className="flex justify-center gap-3 mb-6">
+              {/* Botão de Tocar Padrão (agora necessário para começar) */}
               <Button
                 onClick={() => playPattern(currentExercise, true)}
                 disabled={isPlaying}
@@ -253,7 +249,7 @@ export function ActiveRhythmTraining() {
                 <Play className="w-5 h-5 mr-2" />
                 {isPlaying ? 'Tocando...' : 'Ouvir Padrão'}
               </Button>
-              
+
               <Button
                 onClick={startListening}
                 disabled={isPlaying}
@@ -283,7 +279,7 @@ export function ActiveRhythmTraining() {
                   <p className="text-gray-300 text-sm mb-4">
                     Batidas registradas: <strong className="text-green-400">{tapTimesRef.current.length}</strong>
                   </p>
-                  
+
                   <Button
                     onClick={recordUserBeat}
                     size="lg"
@@ -291,12 +287,12 @@ export function ActiveRhythmTraining() {
                   >
                     👏 Bater Aqui
                   </Button>
-                  
+
                   <p className="text-xs text-gray-400 mt-3">
                     Ou bata palmas e clique no botão a cada batida
                   </p>
                 </div>
-                
+
                 <div className="flex justify-center mt-4">
                   <Button
                     onClick={checkAnswer}
@@ -319,11 +315,10 @@ export function ActiveRhythmTraining() {
                 className="space-y-4"
               >
                 {/* Feedback */}
-                <div className={`p-4 rounded-lg border-2 ${
-                  Math.abs(userPulseCount - currentExercise.correctPulse) <= 1
-                    ? 'bg-green-500/20 border-green-500/50'
-                    : 'bg-red-500/20 border-red-500/50'
-                }`}>
+                <div className={`p-4 rounded-lg border-2 ${Math.abs(userPulseCount - currentExercise.correctPulse) <= 1
+                  ? 'bg-green-500/20 border-green-500/50'
+                  : 'bg-red-500/20 border-red-500/50'
+                  }`}>
                   <div className="flex items-center justify-center gap-2 mb-2">
                     {Math.abs(userPulseCount - currentExercise.correctPulse) <= 1 ? (
                       <>
@@ -337,7 +332,7 @@ export function ActiveRhythmTraining() {
                       </>
                     )}
                   </div>
-                  
+
                   <div className="text-center text-gray-300 text-sm space-y-1">
                     <p>
                       <strong className="text-white">Você registrou:</strong> {userPulseCount} batida{userPulseCount !== 1 ? 's' : ''}
@@ -362,7 +357,7 @@ export function ActiveRhythmTraining() {
                 {Math.abs(userPulseCount - currentExercise.correctPulse) > 1 && (
                   <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
                     <p className="text-xs text-blue-300 text-center">
-                      💡 <strong>Dica:</strong> Tente contar mentalmente enquanto ouve. 
+                      💡 <strong>Dica:</strong> Tente contar mentalmente enquanto ouve.
                       O pulso é a base do ritmo - sinta-o, não apenas ouça!
                     </p>
                   </div>

@@ -40,7 +40,7 @@ import { usePracticeMetricsStore } from '@/stores/usePracticeMetricsStore';
 
 type ExerciseType = 'backbeat' | 'subdivision' | 'pulse';
 
-interface RhythmTrainingProps {
+interface RhythmTimingPracticeProps {
   onComplete?: (accuracy: number, avgDelay: number) => void;
   onExit?: () => void;
 }
@@ -74,7 +74,7 @@ const EXERCISE_CONFIG = {
   },
 };
 
-export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
+export function RhythmTimingPractice({ onComplete, onExit }: RhythmTimingPracticeProps) {
   // Estado principal
   const [exerciseType, setExerciseType] = useState<ExerciseType>('backbeat');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -470,12 +470,12 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
               <div
                 key={beat}
                 className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all ${isActive
-                    ? beat === 0
-                      ? 'bg-orange-500 scale-125 shadow-lg shadow-orange-500/50'
-                      : 'bg-purple-500 scale-110'
-                    : isTarget
-                      ? 'bg-purple-500/30 border-2 border-purple-500'
-                      : 'bg-gray-700'
+                  ? beat === 0
+                    ? 'bg-orange-500 scale-125 shadow-lg shadow-orange-500/50'
+                    : 'bg-purple-500 scale-110'
+                  : isTarget
+                    ? 'bg-purple-500/30 border-2 border-purple-500'
+                    : 'bg-gray-700'
                   }`}
               >
                 <span className="text-white font-bold">{beat + 1}</span>
@@ -505,12 +505,12 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className={`mb-4 p-4 rounded-lg border-2 ${feedbackColor === 'green'
-                ? 'bg-green-500/10 border-green-500/50'
-                : feedbackColor === 'yellow'
-                  ? 'bg-yellow-500/10 border-yellow-500/50'
-                  : feedbackColor === 'red'
-                    ? 'bg-red-500/10 border-red-500/50'
-                    : 'bg-gray-500/10 border-gray-500/50'
+              ? 'bg-green-500/10 border-green-500/50'
+              : feedbackColor === 'yellow'
+                ? 'bg-yellow-500/10 border-yellow-500/50'
+                : feedbackColor === 'red'
+                  ? 'bg-red-500/10 border-red-500/50'
+                  : 'bg-gray-500/10 border-gray-500/50'
               }`}
           >
             <div className="flex items-start gap-3">
@@ -520,12 +520,12 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
               <div className="flex-1">
                 <p
                   className={`text-lg font-semibold mb-1 ${feedbackColor === 'green'
-                      ? 'text-green-400'
-                      : feedbackColor === 'yellow'
-                        ? 'text-yellow-400'
-                        : feedbackColor === 'red'
-                          ? 'text-red-400'
-                          : 'text-gray-400'
+                    ? 'text-green-400'
+                    : feedbackColor === 'yellow'
+                      ? 'text-yellow-400'
+                      : feedbackColor === 'red'
+                        ? 'text-red-400'
+                        : 'text-gray-400'
                     }`}
                 >
                   {currentFeedback}
@@ -591,10 +591,10 @@ export function RhythmTraining({ onComplete, onExit }: RhythmTrainingProps) {
                 >
                   <div
                     className={`w-full rounded-t transition-all ${absDelay <= TIMING_TOLERANCE_MS
-                        ? 'bg-green-500'
-                        : absDelay < 100
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
+                      ? 'bg-green-500'
+                      : absDelay < 100
+                        ? 'bg-yellow-500'
+                        : 'bg-red-500'
                       }`}
                     style={{ height: `${height}%` }}
                   />

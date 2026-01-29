@@ -1,4 +1,4 @@
-import { Home, Guitar, Music2, Trophy, Target, User, Flame, Music, Clock, Settings, Book, LogOut } from 'lucide-react';
+import { Home, Guitar, Music2, Trophy, Target, User, Flame, Music, Clock, Settings, Book, LogOut, GraduationCap } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Progress } from '@/components/ui/progress';
 import { useUserStore } from '@/stores/useUserStore';
@@ -22,7 +22,7 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
     toast.success('Logout realizado com sucesso!');
     setLocation('/auth');
   };
-  
+
   const navItems = [
     { path: '/', label: 'Início', icon: Home },
     { path: '/chords', label: 'Acordes', icon: Guitar },
@@ -36,9 +36,9 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
     { path: '/profile', label: 'Perfil', icon: User },
     { path: '/settings', label: 'Configurações', icon: Settings },
   ];
-  
+
   const xpPercentage = (currentXP / xpToNextLevel) * 100;
-  
+
   return (
     <aside className="w-72 h-screen flex flex-col bg-[#0f0f1a] border-r border-white/10">
       {/* Logo */}
@@ -53,7 +53,7 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
           </div>
         </div>
       </div>
-      
+
       {/* User Info */}
       <div className="p-6 border-b border-white/10">
         <div className="flex items-center gap-3 mb-4">
@@ -65,7 +65,7 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
             <p className="text-sm text-gray-400">Nível {userLevel}</p>
           </div>
         </div>
-        
+
         {/* XP Progress */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
@@ -74,7 +74,7 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
           </div>
           <Progress value={xpPercentage} className="h-2" />
         </div>
-        
+
         {/* Streak */}
         <div className="mt-4 flex items-center gap-2 p-3 rounded-xl bg-gradient-to-br from-[#f97316]/20 to-transparent border border-[#f97316]/30">
           <Flame className="w-5 h-5 text-[#f97316]" />
@@ -84,7 +84,7 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
           </div>
         </div>
       </div>
-      
+
       {/* Navigation - Organizada por Categorias */}
       <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
         {/* APRENDER */}
@@ -92,9 +92,12 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 px-4">APRENDER</h3>
           <div className="space-y-1">
             {[
+              { path: '/learn', label: 'Aprender', icon: GraduationCap },
+              { path: '/curriculum', label: 'Currículo', icon: Book },
               { path: '/chords', label: 'Acordes', icon: Guitar },
               { path: '/scales', label: 'Escalas', icon: Music2 },
               { path: '/theory', label: 'Teoria Musical', icon: Book },
+              { path: '/styles', label: 'Estilos', icon: Music },
             ].map((item) => {
               const Icon = item.icon;
               const isActive = location === item.path;
@@ -103,8 +106,8 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
                   <div
                     className={`
                       flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
-                      ${isActive 
-                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
+                      ${isActive
+                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }
                     `}
@@ -126,6 +129,8 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
               { path: '/songs', label: 'Músicas', icon: Music },
               { path: '/tuner', label: 'Afinador', icon: Music2 },
               { path: '/practice', label: 'Prática', icon: Clock },
+              { path: '/ear-training', label: 'Treino Auditivo', icon: Music2 },
+              { path: '/deliberate-practice', label: 'Prática Deliberada', icon: Target },
             ].map((item) => {
               const Icon = item.icon;
               const isActive = location === item.path;
@@ -134,8 +139,8 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
                   <div
                     className={`
                       flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
-                      ${isActive 
-                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
+                      ${isActive
+                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }
                     `}
@@ -164,8 +169,8 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
                   <div
                     className={`
                       flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
-                      ${isActive 
-                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
+                      ${isActive
+                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }
                     `}
@@ -194,8 +199,8 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
                   <div
                     className={`
                       flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer
-                      ${isActive 
-                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' 
+                      ${isActive
+                        ? 'bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }
                     `}
@@ -209,7 +214,7 @@ export function Sidebar({ userName, userLevel, currentXP, xpToNextLevel, streak 
           </div>
         </div>
       </nav>
-      
+
       {/* Footer */}
       <div className="p-4 border-t border-white/10 space-y-2">
         {isAuthenticated && (
